@@ -1,0 +1,27 @@
+{
+  "case_id": "CASE-2026-02",
+  "examiner": "Meena Tharshini I",
+  "generated_at": "2026-08-25T16:33:08.726Z",
+  "evidence": {
+    "evidence_id": "EV-2026-1787674492179-c9d32d083faa",
+    "file_name": "Meena_Tharshini_I_CV.pdf",
+    "size": 83638,
+    "modified_at": "2026-08-25T16:14:52.164Z",
+    "sha256": "20b8cbe0be3d4e6893e15f0d28fe13bc3b4b4aaf332421c7329c5b8f9515a8ab",
+    "hash_algorithm": "SHA-256",
+    "acquired_at": "2026-08-25T16:14:52.179Z"
+  },
+  "integrity": {
+    "status": "VERIFIED",
+    "verified": true,
+    "hash_match": true,
+    "original_source_modified": false,
+    "acquisition_hash": "20b8cbe0be3d4e6893e15f0d28fe13bc3b4b4aaf332421c7329c5b8f9515a8ab",
+    "current_hash": "20b8cbe0be3d4e6893e15f0d28fe13bc3b4b4aaf332421c7329c5b8f9515a8ab",
+    "message": "Evidence integrity verified. Current SHA-256 matches the acquisition baseline."
+  },
+  "compliance": {
+    "standard": "NIST SP 800-88",
+    "note": "Media sanitization compliance reference. Evidence integrity is established separately through SHA-256 hash comparison."
+  }
+}

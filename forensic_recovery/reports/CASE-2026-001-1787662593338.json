@@ -1,0 +1,19 @@
+{
+  "case_id": "CASE-2026-001",
+  "examiner": "Meena Tharshini",
+  "generated_at": "2026-08-25T12:56:33.338Z",
+  "evidence": {
+    "file_name": "test.img",
+    "size": 28,
+    "modified_at": "2026-08-25T04:45:27.468Z",
+    "sha256": "61e60a7db5e00e46fd110d0db154f81dba8a6dabc7f0ac1fccd73fc17935cd54",
+    "hash_algorithm": "SHA-256"
+  },
+  "integrity": {
+    "status": "VERIFIED",
+    "original_source_modified": false
+  },
+  "compliance": {
+    "standard": "NIST 800-88"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "application": "TrustWipe Digital Forensics",
+  "case_id": "CASE-2026-1787984112532-90DNH6",
+  "examiner": "Meena Tharshini I",
+  "generated_at": "2026-08-29T06:17:09.984Z",
+  "evidence": {
+    "evidence_id": "EV-2026-1787851102530-45358a7872d5",
+    "file_name": "trustwipe_forensic_evidence_1.bin",
+    "size": 49380,
+    "modified_at": "2026-08-27T17:18:22.510Z",
+    "sha256": "678d2340aad1a4b72154f75f79b345c212c23dad88600c21eb50bbcd2e147232",
+    "hash_algorithm": "SHA-256",
+    "acquired_at": "2026-08-27T17:18:22.529Z"
+  },
+  "integrity": {
+    "status": "VERIFIED",
+    "verified": true,
+    "hash_match": true,
+    "size_match": true,
+    "acquisition_hash": "678d2340aad1a4b72154f75f79b345c212c23dad88600c21eb50bbcd2e147232",
+    "current_hash": "678d2340aad1a4b72154f75f79b345c212c23dad88600c21eb50bbcd2e147232",
+    "message": "Evidence integrity verified."
+  },
+  "forensic_recovery": {
+    "performed": true,
+    "status": "ELIGIBLE",
+    "note": "Forensic recovery requires successful acquisition-integrity verification."
+  },
+  "compliance": {
+    "framework": "NIST SP 800-88",
+    "standard": "NIST SP 800-88",
+    "classification": "Media sanitization guidance",
+    "note": "NIST SP 800-88 concerns media sanitization. TrustWipe records SHA-256 acquisition integrity and forensic recovery separately."
+  }
+}
