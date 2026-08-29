@@ -8,79 +8,38 @@ import multer from "multer";
 
 const router = express.Router();
 
-/* ============================================================
-   TRUSTWIPE FORENSICS ROUTER
-   ============================================================
-
-   Mounted by server.js as:
-
-   app.use("/api/forensic", forensicRouter);
-
-   Endpoints:
-
-   GET  /test
-   GET  /status
-   GET  /evidence
-
-   POST /upload
-   POST /hash
-   POST /verify-integrity
-   POST /scan
-   POST /report
-
-   GET  /recovered/:caseId/:scanId/:fileName
-   GET  /recovered-file/:caseId/:scanId?file=...
-   GET  /report/:caseId/:fileName
-
-   ============================================================ */
-
-
-/* ============================================================
-   TEST
-   ============================================================ */
-
-router.get("/test", (_req, res) => {
-  return res.json({
-    success: true,
-    message: "Forensic router is working",
-    service: "TrustWipe Digital Forensics",
-  });
-});
-
-
-/* ============================================================
-   PATH CONFIGURATION
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| PATH CONFIGURATION
+|--------------------------------------------------------------------------
+|
+| Actual project:
+|
+| Trust_Wipe/
+|   backend/
+|     src/
+|       routes/
+|         forensic.js
+|     forensic_recovery/
+|       cli.py
+|
+| From:
+|   backend/src/routes
+|
+| To:
+|   backend/forensic_recovery
+|
+| ../../forensic_recovery
+|--------------------------------------------------------------------------
+*/
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/*
- * backend/src/routes
- *
- * ../../.. = Trust_Wipe
- *
- * Trust_Wipe/
- * ├── backend/
- * │   └── src/
- * │       └── routes/
- * │           └── forensic.js
- * │
- * └── forensic_recovery/
- */
-
-const PROJECT_ROOT = path.resolve(
-  __dirname,
-  "../../.."
+const FORENSIC_ROOT = path.resolve(
+  process.env.FORENSIC_ROOT ||
+    path.join(__dirname, "../../forensic_recovery")
 );
-
-const FORENSIC_ROOT = path.join(
-  PROJECT_ROOT,
-  "forensic_recovery"
-);
-
-const FORENSIC_PARENT =
-  PROJECT_ROOT;
 
 const EVIDENCE_DIR = path.join(
   FORENSIC_ROOT,
@@ -107,27 +66,12 @@ const CASES_DIR = path.join(
   "cases"
 );
 
-const REQUIRED_DIRECTORIES = [
+const CLI_PATH = path.join(
   FORENSIC_ROOT,
-  EVIDENCE_DIR,
-  RECOVERED_DIR,
-  REPORTS_DIR,
-  MANIFESTS_DIR,
-  CASES_DIR,
-];
+  "cli.py"
+);
 
-for (const directory of REQUIRED_DIRECTORIES) {
-  fs.mkdirSync(directory, {
-    recursive: true,
-  });
-}
-
-
-/* ============================================================
-   CONFIGURATION
-   ============================================================ */
-
-const MAX_UPLOAD_SIZE =
+const MAX_UPLOAD_BYTES =
   Number(
     process.env.FORENSIC_MAX_UPLOAD_BYTES
   ) ||
@@ -137,130 +81,131 @@ const SCAN_TIMEOUT_MS =
   Number(
     process.env.FORENSIC_SCAN_TIMEOUT_MS
   ) ||
-  10 * 60 * 1000;
+  30 * 60 * 1000;
 
-const MAX_OUTPUT_FILES =
+const MAX_OUTPUT =
   Number(
-    process.env.FORENSIC_MAX_OUTPUT_FILES
+    process.env.FORENSIC_MAX_PROCESS_OUTPUT
   ) ||
-  10000;
+  4 * 1024 * 1024;
 
+const FORENSIC_PYTHON =
+  process.env.FORENSIC_PYTHON ||
+  (
+    process.platform === "win32"
+      ? "python"
+      : "python3"
+  );
 
-/* ============================================================
-   PYTHON COMMAND DISCOVERY
-   ============================================================ */
+const REQUIRE_AUTH =
+  String(
+    process.env.FORENSIC_REQUIRE_AUTH || "false"
+  ).toLowerCase() === "true";
+
+const FORENSIC_API_KEY =
+  process.env.FORENSIC_API_KEY || "";
+
+let scanInProgress = false;
 
 /*
- * Prefer the project's forensic_recovery/.venv.
- *
- * Windows:
- *   forensic_recovery/.venv/Scripts/python.exe
- *
- * Linux/macOS:
- *   forensic_recovery/.venv/bin/python
- */
+|--------------------------------------------------------------------------
+| DIRECTORY INITIALIZATION
+|--------------------------------------------------------------------------
+*/
 
-function getPythonCommands() {
-  const commands = [];
-
-  if (process.platform === "win32") {
-    commands.push(
-      path.join(
-        FORENSIC_ROOT,
-        ".venv",
-        "Scripts",
-        "python.exe"
-      )
-    );
-
-    commands.push("python");
-    commands.push("py");
-  } else {
-    commands.push(
-      path.join(
-        FORENSIC_ROOT,
-        ".venv",
-        "bin",
-        "python"
-      )
-    );
-
-    commands.push("python3");
-    commands.push("python");
-  }
-
-  return [
-    ...new Set(commands),
-  ];
+for (const directory of [
+  FORENSIC_ROOT,
+  EVIDENCE_DIR,
+  RECOVERED_DIR,
+  REPORTS_DIR,
+  MANIFESTS_DIR,
+  CASES_DIR,
+]) {
+  fs.mkdirSync(directory, {
+    recursive: true,
+  });
 }
 
+/*
+|--------------------------------------------------------------------------
+| ACCESS CONTROL
+|--------------------------------------------------------------------------
+*/
 
-/* ============================================================
-   MULTER STORAGE
-   ============================================================ */
+function forensicAccess(req, res, next) {
+  if (!REQUIRE_AUTH) {
+    return next();
+  }
 
-const storage =
-  multer.diskStorage({
-    destination: (_req, _file, cb) => {
-      cb(null, EVIDENCE_DIR);
-    },
+  if (req.user) {
+    return next();
+  }
 
-    filename: (_req, file, cb) => {
-      try {
-        cb(
-          null,
-          createUniqueFilename(
-            file.originalname
-          )
-        );
-      } catch (error) {
-        cb(error);
-      }
-    },
+  const suppliedKey =
+    req.get("x-forensic-api-key");
+
+  if (
+    FORENSIC_API_KEY &&
+    suppliedKey &&
+    suppliedKey === FORENSIC_API_KEY
+  ) {
+    return next();
+  }
+
+  return res.status(401).json({
+    success: false,
+    code: "FORENSIC_UNAUTHORIZED",
+    message:
+      "Authentication is required to access forensic evidence.",
   });
+}
 
-const upload = multer({
-  storage,
+router.use(forensicAccess);
 
-  limits: {
-    fileSize: MAX_UPLOAD_SIZE,
-  },
+/*
+|--------------------------------------------------------------------------
+| RESPONSE HELPERS
+|--------------------------------------------------------------------------
+*/
 
-  /*
-   * Forensic evidence can be:
-
-   * IMG
-   * BIN
-   * DD
-   * E01
-   * ISO
-   * TXT
-   * ZIP
-   * raw disk image
-   * memory dump
-   * unknown binary
-
-   * Therefore MIME type must NOT be trusted.
-   */
-  fileFilter: (_req, _file, cb) => {
-    cb(null, true);
-  },
-});
-
-
-/* ============================================================
-   FILENAME SECURITY
-   ============================================================ */
-
-function decodeOriginalFilename(
-  filename
+function fail(
+  res,
+  status,
+  message,
+  code,
+  error = null
 ) {
+  const response = {
+    success: false,
+    message,
+  };
+
+  if (code) {
+    response.code = code;
+  }
+
+  if (
+    process.env.NODE_ENV !== "production" &&
+    error
+  ) {
+    response.details = error.message;
+  }
+
+  return res.status(status).json(response);
+}
+
+/*
+|--------------------------------------------------------------------------
+| FILENAME SECURITY
+|--------------------------------------------------------------------------
+*/
+
+function decodeOriginalFilename(filename) {
   if (!filename) {
     return "evidence";
   }
 
-  let decoded =
-    String(filename);
+  let decoded = String(filename);
 
   try {
     const repaired =
@@ -272,27 +217,20 @@ function decodeOriginalFilename(
     if (
       repaired &&
       repaired !== decoded &&
-      !repaired.includes(
-        "\uFFFD"
-      )
+      !repaired.includes("\uFFFD")
     ) {
       decoded = repaired;
     }
   } catch {
-    // Preserve original.
+    // Preserve original filename.
   }
 
   return decoded;
 }
 
-
-function sanitizeFilename(
-  filename
-) {
+function sanitizeFilename(filename) {
   const decoded =
-    decodeOriginalFilename(
-      filename
-    );
+    decodeOriginalFilename(filename);
 
   const basename =
     path.basename(decoded);
@@ -303,91 +241,91 @@ function sanitizeFilename(
         /[<>:"/\\|?*\x00-\x1F]/g,
         "_"
       )
-      .replace(
-        /\s+/g,
-        "_"
-      )
+      .replace(/\s+/g, "_")
+      .replace(/^\.+/, "")
       .trim();
 
   return safe || "evidence";
 }
 
-
-function createUniqueFilename(
-  filename
-) {
+function createUniqueFilename(filename) {
   const safeName =
-    sanitizeFilename(
-      filename
-    );
+    sanitizeFilename(filename);
 
   const extension =
-    path.extname(
-      safeName
-    );
+    path.extname(safeName);
 
-  const baseName =
+  const base =
     path.basename(
       safeName,
       extension
     );
 
-  let finalName =
-    safeName;
-
+  let candidate = safeName;
   let counter = 1;
 
   while (
     fs.existsSync(
       path.join(
         EVIDENCE_DIR,
-        finalName
+        candidate
       )
     )
   ) {
-    finalName =
-      `${baseName}_${counter}${extension}`;
+    candidate =
+      `${base}_${counter}${extension}`;
 
     counter += 1;
   }
 
-  return finalName;
+  return candidate;
 }
 
+function sanitizeCaseId(caseId) {
+  const value =
+    String(caseId || "")
+      .trim()
+      .replace(
+        /[^a-zA-Z0-9_-]/g,
+        "_"
+      )
+      .replace(
+        /_+/g,
+        "_"
+      )
+      .slice(0, 100);
 
-/* ============================================================
-   GENERIC SAFE PATH
-   ============================================================ */
+  if (!value) {
+    throw new Error(
+      "Case ID is required."
+    );
+  }
+
+  return value;
+}
+
+/*
+|--------------------------------------------------------------------------
+| SAFE PATHS
+|--------------------------------------------------------------------------
+*/
 
 function safePath(
   rootDirectory,
-  relativeName
+  requestedName
 ) {
-  if (
-    !relativeName ||
-    typeof relativeName !==
-      "string"
-  ) {
+  if (!requestedName) {
     throw new Error(
       "File name is required."
     );
   }
 
   const root =
-    path.resolve(
-      rootDirectory
-    );
+    path.resolve(rootDirectory);
 
-  /*
-   * Convert Windows separators
-   * before resolving.
-   */
   const normalized =
-    String(relativeName)
-      .replace(
-        /\\/g,
-        "/"
-      );
+    String(requestedName)
+      .replace(/\\/g, "/");
 
   const target =
     path.resolve(
@@ -415,14 +353,7 @@ function safePath(
   return target;
 }
 
-
-/* ============================================================
-   SAFE EVIDENCE PATH
-   ============================================================ */
-
-function safeEvidencePath(
-  fileName
-) {
+function evidencePath(fileName) {
   return safePath(
     EVIDENCE_DIR,
     path.basename(
@@ -431,119 +362,84 @@ function safeEvidencePath(
   );
 }
 
-
-/* ============================================================
-   CASE SECURITY
-   ============================================================ */
-
-function sanitizeCaseId(
-  caseId
-) {
-  const value =
-    String(
-      caseId || "CASE"
-    )
-      .trim()
-      .replace(
-        /[^a-zA-Z0-9_-]/g,
-        "_"
-      )
-      .slice(
-        0,
-        100
-      );
-
-  return value || "CASE";
+function caseDirectory(caseId) {
+  return safePath(
+    CASES_DIR,
+    sanitizeCaseId(caseId)
+  );
 }
 
-
-function safeCasePath(
-  caseId
-) {
-  const safeId =
-    sanitizeCaseId(
-      caseId
-    );
-
-  const root =
-    path.resolve(
-      CASES_DIR
-    );
-
-  const target =
-    path.resolve(
-      root,
-      safeId
-    );
-
-  if (
-    target !== root &&
-    !target.startsWith(
-      root + path.sep
-    )
-  ) {
-    const error =
-      new Error(
-        "Invalid case identifier."
-      );
-
-    error.code =
-      "INVALID_CASE_ID";
-
-    throw error;
-  }
-
-  return target;
+function caseRecoveredDirectory(caseId) {
+  return path.join(
+    caseDirectory(caseId),
+    "recovered"
+  );
 }
 
+function reportPath(fileName) {
+  return safePath(
+    REPORTS_DIR,
+    fileName
+  );
+}
 
-async function ensureCaseDirectories(
-  caseId
-) {
-  const root =
-    safeCasePath(
-      caseId
-    );
+/*
+|--------------------------------------------------------------------------
+| MULTER
+|--------------------------------------------------------------------------
+*/
 
-  const recovered =
-    path.join(
-      root,
-      "recovered"
-    );
+const storage =
+  multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      cb(null, EVIDENCE_DIR);
+    },
 
-  const reports =
-    path.join(
-      root,
-      "reports"
-    );
-
-  await Promise.all([
-    fs.promises.mkdir(
-      recovered,
-      {
-        recursive: true,
+    filename: (_req, file, cb) => {
+      try {
+        cb(
+          null,
+          createUniqueFilename(
+            file.originalname
+          )
+        );
+      } catch (error) {
+        cb(error);
       }
-    ),
+    },
+  });
 
-    fs.promises.mkdir(
-      reports,
-      {
-        recursive: true,
-      }
-    ),
-  ]);
+const upload =
+  multer({
+    storage,
 
-  return {
-    root,
-    recovered,
-    reports,
-  };
-}
+    limits: {
+      fileSize:
+        MAX_UPLOAD_BYTES,
+    },
 
+    fileFilter: (
+      _req,
+      _file,
+      cb
+    ) => {
+      /*
+       * Forensic evidence may be:
+       * IMG, BIN, DD, E01, ISO,
+       * memory dumps, unknown binaries,
+       * etc.
+       *
+       * Do not reject based on MIME.
+       */
+      cb(null, true);
+    },
+  });
 
-/* ============================================================
-   SHA-256
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| SHA-256
+|--------------------------------------------------------------------------
+*/
 
 async function calculateSHA256(
   filePath
@@ -553,7 +449,7 @@ async function calculateSHA256(
       "sha256"
     );
 
-  return new Promise(
+  await new Promise(
     (resolve, reject) => {
       const stream =
         fs.createReadStream(
@@ -572,45 +468,37 @@ async function calculateSHA256(
       );
 
       stream.once(
-        "end",
-        () => {
-          resolve(
-            hash.digest("hex")
-          );
-        }
-      );
-
-      stream.once(
         "error",
         reject
       );
+
+      stream.once(
+        "end",
+        resolve
+      );
     }
   );
+
+  return hash.digest("hex");
 }
 
-
-/* ============================================================
-   EVIDENCE ID
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| MANIFESTS
+|--------------------------------------------------------------------------
+*/
 
 function createEvidenceId() {
   return [
     "EV",
     new Date()
       .getUTCFullYear(),
-
     Date.now(),
-
     crypto
       .randomBytes(6)
       .toString("hex"),
   ].join("-");
 }
-
-
-/* ============================================================
-   MANIFEST
-   ============================================================ */
 
 async function saveManifest(
   manifest
@@ -618,16 +506,14 @@ async function saveManifest(
   const fileName =
     `${manifest.evidence_id}.json`;
 
-  const manifestPath =
-    path.join(
+  const target =
+    safePath(
       MANIFESTS_DIR,
       fileName
     );
 
   const temporary =
-    `${manifestPath}.${crypto
-      .randomBytes(4)
-      .toString("hex")}.tmp`;
+    `${target}.${process.pid}.tmp`;
 
   await fs.promises.writeFile(
     temporary,
@@ -636,37 +522,18 @@ async function saveManifest(
       null,
       2
     ),
-    {
-      encoding: "utf8",
-      flag: "wx",
-    }
+    "utf8"
   );
 
   await fs.promises.rename(
     temporary,
-    manifestPath
+    target
   );
 
-  return manifestPath;
+  return target;
 }
 
-
-async function readManifest(
-  manifestPath
-) {
-  const raw =
-    await fs.promises.readFile(
-      manifestPath,
-      "utf8"
-    );
-
-  return JSON.parse(
-    raw
-  );
-}
-
-
-async function loadManifestByFileName(
+async function loadManifest(
   fileName
 ) {
   const entries =
@@ -677,100 +544,43 @@ async function loadManifestByFileName(
       }
     );
 
-  for (
-    const entry of entries
-  ) {
+  for (const entry of entries) {
     if (
       !entry.isFile() ||
-      !entry.name.endsWith(
-        ".json"
-      )
+      !entry.name.endsWith(".json")
     ) {
       continue;
     }
 
     try {
-      const manifestPath =
-        safePath(
-          MANIFESTS_DIR,
-          entry.name
-        );
-
       const manifest =
-        await readManifest(
-          manifestPath
+        JSON.parse(
+          await fs.promises.readFile(
+            path.join(
+              MANIFESTS_DIR,
+              entry.name
+            ),
+            "utf8"
+          )
         );
 
       if (
         manifest.file_name ===
-          fileName ||
-        manifest.original_name ===
-          fileName
+        fileName
       ) {
         return manifest;
       }
-    } catch (error) {
-      console.warn(
-        `[FORENSICS] Invalid manifest ${entry.name}:`,
-        error.message
-      );
-    }
-  }
-
-  return null;
-}
-
-
-async function loadManifestByEvidenceId(
-  evidenceId
-) {
-  if (!evidenceId) {
-    return null;
-  }
-
-  const entries =
-    await fs.promises.readdir(
-      MANIFESTS_DIR,
-      {
-        withFileTypes: true,
-      }
-    );
-
-  for (
-    const entry of entries
-  ) {
-    if (
-      !entry.isFile() ||
-      !entry.name.endsWith(
-        ".json"
-      )
-    ) {
-      continue;
-    }
-
-    try {
-      const manifestPath =
-        safePath(
-          MANIFESTS_DIR,
-          entry.name
-        );
-
-      const manifest =
-        await readManifest(
-          manifestPath
-        );
 
       if (
-        String(
-          manifest.evidence_id
-        ) ===
-        String(evidenceId)
+        manifest.original_name ===
+        fileName
       ) {
         return manifest;
       }
     } catch (error) {
       console.warn(
-        `[FORENSICS] Invalid manifest ${entry.name}:`,
+        "[Forensics] Invalid manifest:",
+        entry.name,
         error.message
       );
     }
@@ -779,21 +589,20 @@ async function loadManifestByEvidenceId(
   return null;
 }
 
-
-/* ============================================================
-   EVIDENCE INTEGRITY
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| INTEGRITY
+|--------------------------------------------------------------------------
+*/
 
 async function verifyEvidenceIntegrity(
   fileName
 ) {
   const safeName =
-    path.basename(
-      String(fileName)
-    );
+    sanitizeFilename(fileName);
 
   const filePath =
-    safeEvidencePath(
+    evidencePath(
       safeName
     );
 
@@ -817,19 +626,13 @@ async function verifyEvidenceIntegrity(
   }
 
   if (!stats.isFile()) {
-    const error =
-      new Error(
-        "Evidence path is not a file."
-      );
-
-    error.code =
-      "INVALID_EVIDENCE";
-
-    throw error;
+    throw new Error(
+      "Evidence path is not a file."
+    );
   }
 
   const manifest =
-    await loadManifestByFileName(
+    await loadManifest(
       safeName
     );
 
@@ -837,20 +640,6 @@ async function verifyEvidenceIntegrity(
     await calculateSHA256(
       filePath
     );
-
-  /*
-   * IMPORTANT:
-   *
-   * Existing files uploaded by an
-   * older implementation may not
-   * have a manifest.
-   *
-   * We MUST NOT automatically create
-   * a new baseline during verification.
-   *
-   * That would destroy chain-of-custody
-   * semantics.
-   */
 
   if (!manifest) {
     return {
@@ -863,51 +652,49 @@ async function verifyEvidenceIntegrity(
 
       sizeMatch: false,
 
-      originalSourceModified:
-        null,
-
-      originalHash:
-        null,
+      originalHash: null,
 
       currentHash,
 
-      acquiredAt:
-        null,
-
-      evidenceId:
-        null,
-
-      originalSize:
-        null,
+      originalSize: null,
 
       currentSize:
         stats.size,
 
+      evidenceId: null,
+
+      acquiredAt: null,
+
+      originalSourceModified:
+        null,
+
       message:
-        "Evidence acquisition baseline is missing. Re-acquire the evidence to establish an immutable SHA-256 baseline.",
+        "Evidence acquisition baseline is missing. Re-acquire the evidence.",
     };
   }
 
-  const acquisitionHash =
+  const originalHash =
     String(
       manifest.sha256 || ""
     )
       .trim()
       .toLowerCase();
 
-  const validHash =
+  const validOriginalHash =
     /^[a-f0-9]{64}$/.test(
-      acquisitionHash
+      originalHash
     );
 
-  let hashMatch =
-    false;
-
-  if (
-    validHash &&
+  const validCurrentHash =
     /^[a-f0-9]{64}$/.test(
       currentHash
-    )
+    );
+
+  let hashMatch = false;
+
+  if (
+    validOriginalHash &&
+    validCurrentHash
   ) {
     hashMatch =
       crypto.timingSafeEqual(
@@ -916,7 +703,7 @@ async function verifyEvidenceIntegrity(
           "hex"
         ),
         Buffer.from(
-          acquisitionHash,
+          originalHash,
           "hex"
         )
       );
@@ -973,16 +760,17 @@ async function verifyEvidenceIntegrity(
     message:
       verified
         ? "Evidence integrity verified."
-        : "Evidence integrity verification failed. The current evidence differs from the acquisition baseline.",
+        : "Evidence integrity verification failed. Current evidence differs from acquisition baseline.",
   };
 }
 
+/*
+|--------------------------------------------------------------------------
+| EVIDENCE DISCOVERY
+|--------------------------------------------------------------------------
+*/
 
-/* ============================================================
-   EVIDENCE DISCOVERY
-   ============================================================ */
-
-async function discoverEvidenceFiles() {
+async function discoverEvidence() {
   const entries =
     await fs.promises.readdir(
       EVIDENCE_DIR,
@@ -991,17 +779,16 @@ async function discoverEvidenceFiles() {
       }
     );
 
-  const evidence = [];
+  const result = [];
 
-  for (
-    const entry of entries
-  ) {
+  for (const entry of entries) {
     if (!entry.isFile()) {
       continue;
     }
 
     const filePath =
-      safeEvidencePath(
+      path.join(
+        EVIDENCE_DIR,
         entry.name
       );
 
@@ -1011,32 +798,18 @@ async function discoverEvidenceFiles() {
       );
 
     const manifest =
-      await loadManifestByFileName(
+      await loadManifest(
         entry.name
       );
 
-    let integrity =
-      null;
-
-    /*
-     * Do not fail the entire
-     * repository listing because
-     * one evidence file has a
-     * missing/invalid baseline.
-     */
-    try {
-      integrity =
-        await verifyEvidenceIntegrity(
-          entry.name
-        );
-    } catch {
-      integrity = null;
-    }
-
-    evidence.push({
+    result.push({
       id:
         manifest?.evidence_id ||
         `${entry.name}-${stats.size}-${stats.mtimeMs}`,
+
+      evidenceId:
+        manifest?.evidence_id ||
+        null,
 
       name:
         entry.name,
@@ -1049,23 +822,15 @@ async function discoverEvidenceFiles() {
         stats.size,
 
       type:
-        path
-          .extname(
-            entry.name
-          )
-          .replace(
-            ".",
-            ""
-          )
+        path.extname(
+          entry.name
+        )
+          .slice(1)
           .toUpperCase() ||
         "FILE",
 
       modifiedAt:
-        stats.mtime.toISOString(),
-
-      evidenceId:
-        manifest?.evidence_id ||
-        null,
+        stats.mtime,
 
       acquiredAt:
         manifest?.acquired_at ||
@@ -1075,196 +840,381 @@ async function discoverEvidenceFiles() {
         manifest?.sha256 ||
         null,
 
-      currentHash:
-        integrity?.currentHash ||
+      sha256:
+        manifest?.sha256 ||
         null,
 
-      integrityBaseline:
-        Boolean(
-          manifest?.integrity_baseline
-        ),
-
       integrityStatus:
-        integrity?.status ||
-        "BASELINE_MISSING",
-
-      verified:
-        Boolean(
-          integrity?.verified
-        ),
+        manifest?.sha256
+          ? "VERIFIED"
+          : "BASELINE_MISSING",
     });
   }
 
-  evidence.sort(
+  return result.sort(
     (a, b) =>
-      new Date(
-        b.modifiedAt
-      ) -
-      new Date(
-        a.modifiedAt
-      )
+      new Date(b.modifiedAt) -
+      new Date(a.modifiedAt)
   );
-
-  return evidence;
 }
 
+/*
+|--------------------------------------------------------------------------
+| PYTHON DISCOVERY
+|--------------------------------------------------------------------------
+*/
 
-/* ============================================================
-   PYTHON EXECUTION
-   ============================================================ */
-
-function executePython(
-  pythonCommand,
-  args,
-  options = {}
-) {
+async function checkPython() {
   return new Promise(
-    (resolve, reject) => {
-      const timeoutMs =
-        options.timeoutMs ||
-        SCAN_TIMEOUT_MS;
-
+    (resolve) => {
       const child =
         spawn(
-          pythonCommand,
-          args,
+          FORENSIC_PYTHON,
+          ["--version"],
           {
             cwd:
-              options.cwd ||
-              FORENSIC_PARENT,
-
+              FORENSIC_ROOT,
             windowsHide:
               true,
-
-            stdio: [
-              "ignore",
-              "pipe",
-              "pipe",
-            ],
-
-            env: {
-              ...process.env,
-
-              PYTHONUNBUFFERED:
-                "1",
-            },
           }
         );
 
-      let stdout = "";
-      let stderr = "";
+      let output = "";
 
-      let settled =
-        false;
-
-      let timeout =
-        null;
-
-      const cleanup =
-        () => {
-          if (timeout) {
-            clearTimeout(
-              timeout
-            );
-
-            timeout = null;
-          }
-        };
-
-      const rejectOnce =
-        (error) => {
-          if (settled) {
-            return;
-          }
-
-          settled =
-            true;
-
-          cleanup();
-
-          reject(error);
-        };
-
-      const resolveOnce =
-        (result) => {
-          if (settled) {
-            return;
-          }
-
-          settled =
-            true;
-
-          cleanup();
-
-          resolve(result);
-        };
-
-      timeout =
-        setTimeout(
-          () => {
-            try {
-              child.kill(
-                process.platform ===
-                  "win32"
-                  ? undefined
-                  : "SIGTERM"
-              );
-            } catch {
-              // Ignore.
-            }
-
-            const error =
-              new Error(
-                `Forensic engine timed out after ${timeoutMs} ms.`
-              );
-
-            error.code =
-              "FORENSIC_TIMEOUT";
-
-            rejectOnce(
-              error
-            );
-          },
-          timeoutMs
-        );
-
-      child.stdout.on(
+      child.stdout?.on(
         "data",
-        (chunk) => {
-          stdout +=
-            chunk.toString();
+        (data) => {
+          output +=
+            data.toString();
         }
       );
 
-      child.stderr.on(
+      child.stderr?.on(
         "data",
-        (chunk) => {
-          stderr +=
-            chunk.toString();
+        (data) => {
+          output +=
+            data.toString();
         }
       );
 
       child.once(
         "error",
         (error) => {
-          error.pythonCommand =
-            pythonCommand;
+          resolve({
+            available: false,
+            version: null,
+            error:
+              error.message,
+          });
+        }
+      );
 
-          rejectOnce(
-            error
+      child.once(
+        "close",
+        (code) => {
+          resolve({
+            available:
+              code === 0,
+            version:
+              output.trim() ||
+              null,
+            error:
+              code === 0
+                ? null
+                : "Python unavailable.",
+          });
+        }
+      );
+    }
+  );
+}
+
+/*
+|--------------------------------------------------------------------------
+| PYTHON FORENSIC SCAN
+|--------------------------------------------------------------------------
+|
+| IMPORTANT:
+|
+| cli.py expects:
+|
+| python cli.py scan
+|   --input <file>
+|   --output <directory>
+|   --case <case>
+|   --examiner <name>
+|   --json
+|
+|--------------------------------------------------------------------------
+*/
+
+function runPythonScan({
+  evidenceFile,
+  outputDirectory,
+  caseId,
+  examiner,
+}) {
+  return new Promise(
+    async (resolve, reject) => {
+      if (
+        !fs.existsSync(
+          CLI_PATH
+        )
+      ) {
+        const error =
+          new Error(
+            `Forensic CLI not found: ${CLI_PATH}`
           );
+
+        error.code =
+          "FORENSIC_CLI_MISSING";
+
+        reject(error);
+        return;
+      }
+
+      const python =
+        await checkPython();
+
+      if (!python.available) {
+        const error =
+          new Error(
+            `Python forensic engine unavailable: ${python.error || "unknown error"}`
+          );
+
+        error.code =
+          "FORENSIC_PYTHON_MISSING";
+
+        reject(error);
+        return;
+      }
+
+      fs.mkdirSync(
+        outputDirectory,
+        {
+          recursive: true,
+        }
+      );
+
+      const args = [
+        CLI_PATH,
+        "scan",
+        "--input",
+        evidenceFile,
+        "--output",
+        outputDirectory,
+        "--case",
+        caseId,
+        "--examiner",
+        examiner,
+        "--json",
+      ];
+
+      console.log(
+        "[Forensics] Starting Python:",
+        FORENSIC_PYTHON,
+        args
+      );
+
+      const child =
+        spawn(
+          FORENSIC_PYTHON,
+          args,
+          {
+            cwd:
+              FORENSIC_ROOT,
+            windowsHide:
+              true,
+
+            env: {
+              ...process.env,
+
+              TRUSTWIPE_FORENSIC_CASE_ID:
+                caseId,
+
+              TRUSTWIPE_FORENSIC_EXAMINER:
+                examiner,
+            },
+          }
+        );
+
+      let stdout = "";
+      let stderr = "";
+      let settled = false;
+
+      const appendOutput =
+        (
+          current,
+          chunk
+        ) => {
+          const next =
+            current +
+            chunk.toString();
+
+          if (
+            next.length >
+            MAX_OUTPUT
+          ) {
+            return next.slice(
+              next.length -
+                MAX_OUTPUT
+            );
+          }
+
+          return next;
+        };
+
+      const timer =
+        setTimeout(
+          () => {
+            if (settled) {
+              return;
+            }
+
+            settled = true;
+
+            child.kill(
+              "SIGTERM"
+            );
+
+            setTimeout(
+              () => {
+                try {
+                  child.kill(
+                    "SIGKILL"
+                  );
+                } catch {
+                  // Ignore.
+                }
+              },
+              5000
+            ).unref();
+
+            const error =
+              new Error(
+                "Forensic analysis timed out."
+              );
+
+            error.code =
+              "FORENSIC_TIMEOUT";
+
+            reject(error);
+          },
+          SCAN_TIMEOUT_MS
+        );
+
+      child.stdout.on(
+        "data",
+        (data) => {
+          stdout =
+            appendOutput(
+              stdout,
+              data
+            );
+        }
+      );
+
+      child.stderr.on(
+        "data",
+        (data) => {
+          stderr =
+            appendOutput(
+              stderr,
+              data
+            );
+        }
+      );
+
+      child.once(
+        "error",
+        (error) => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          clearTimeout(timer);
+
+          reject(error);
         }
       );
 
       child.once(
         "close",
         (code, signal) => {
-          resolveOnce({
-            code,
-            signal,
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          clearTimeout(timer);
+
+          if (code !== 0) {
+            const error =
+              new Error(
+                stderr.trim() ||
+                  stdout.trim() ||
+                  `Python forensic engine exited with code ${code}${signal ? ` (${signal})` : ""}`
+              );
+
+            error.code =
+              "FORENSIC_ENGINE_FAILED";
+
+            error.stdout =
+              stdout;
+
+            error.stderr =
+              stderr;
+
+            reject(error);
+            return;
+          }
+
+          let result = null;
+
+          /*
+           * cli.py prints JSON in --json mode,
+           * but logging can sometimes appear
+           * around the JSON. Try the complete
+           * output first, then extract the last
+           * JSON object.
+           */
+
+          try {
+            result =
+              JSON.parse(
+                stdout.trim()
+              );
+          } catch {
+            const start =
+              stdout.indexOf("{");
+
+            const end =
+              stdout.lastIndexOf("}");
+
+            if (
+              start !== -1 &&
+              end !== -1 &&
+              end > start
+            ) {
+              try {
+                result =
+                  JSON.parse(
+                    stdout.slice(
+                      start,
+                      end + 1
+                    )
+                  );
+              } catch {
+                result = null;
+              }
+            }
+          }
+
+          resolve({
+            result,
             stdout,
             stderr,
-            pythonCommand,
           });
         }
       );
@@ -1272,568 +1222,252 @@ function executePython(
   );
 }
 
-
-/* ============================================================
-   FORENSIC JSON PARSER
-   ============================================================ */
-
 /*
- * THIS FUNCTION FIXES:
+|--------------------------------------------------------------------------
+| RECOVERED ARTIFACT DISCOVERY
+|--------------------------------------------------------------------------
+*/
 
- * ReferenceError:
- * parseForensicJSON is not defined
- *
- * Python may write logs before the
- * JSON result, therefore parsing only
- * JSON.parse(stdout.trim()) is fragile.
- */
-
-function parseForensicJSON(
-  stdout
+async function discoverRecoveredFiles(
+  caseId,
+  fallbackDirectory
 ) {
-  if (
-    !stdout ||
-    !String(stdout).trim()
-  ) {
-    return null;
-  }
-
-  const text =
-    String(stdout).trim();
-
-  /*
-   * First attempt:
-   * stdout itself is JSON.
-   */
-
-  try {
-    const parsed =
-      JSON.parse(text);
-
-    if (
-      parsed &&
-      typeof parsed ===
-        "object"
-    ) {
-      return parsed;
-    }
-  } catch {
-    // Continue.
-  }
-
-  /*
-   * Second attempt:
-   * each line may contain JSON.
-   */
-
-  const lines =
-    text
-      .split(/\r?\n/)
-      .map(
-        (line) =>
-          line.trim()
-      )
-      .filter(Boolean);
-
-  for (
-    let i =
-      lines.length - 1;
-    i >= 0;
-    i--
-  ) {
-    try {
-      const parsed =
-        JSON.parse(
-          lines[i]
-        );
-
-      if (
-        parsed &&
-        typeof parsed ===
-          "object"
-      ) {
-        return parsed;
-      }
-    } catch {
-      // Continue.
-    }
-  }
-
-  /*
-   * Third attempt:
-   * locate a JSON object embedded
-   * in stdout.
-   */
-
-  const firstBrace =
-    text.indexOf("{");
-
-  const lastBrace =
-    text.lastIndexOf("}");
-
-  if (
-    firstBrace !== -1 &&
-    lastBrace > firstBrace
-  ) {
-    const candidate =
-      text.slice(
-        firstBrace,
-        lastBrace + 1
-      );
-
-    try {
-      const parsed =
-        JSON.parse(
-          candidate
-        );
-
-      if (
-        parsed &&
-        typeof parsed ===
-          "object"
-      ) {
-        return parsed;
-      }
-    } catch {
-      // Invalid embedded JSON.
-    }
-  }
-
-  return null;
-}
-
-
-/* ============================================================
-   PYTHON FORENSIC CLI
-   ============================================================ */
-
-async function runForensicCLI({
-  evidencePath,
-  outputDir,
-  caseId = null,
-  examiner = null,
-}) {
-  const cliPath =
-    path.join(
-      FORENSIC_ROOT,
-      "cli.py"
+  const caseDir =
+    caseRecoveredDirectory(
+      caseId
     );
+
+  let directory =
+    caseDir;
 
   if (
     !fs.existsSync(
-      cliPath
+      directory
     )
   ) {
-    const error =
-      new Error(
-        `Forensic CLI not found: ${cliPath}`
-      );
-
-    error.code =
-      "FORENSIC_CLI_NOT_FOUND";
-
-    throw error;
+    directory =
+      fallbackDirectory;
   }
 
-  /*
-   * Your Python engine supports:
-
-   * python -m forensic_recovery.cli
-   *   --json
-   *   scan
-   *   --input ...
-   *   --output ...
-
-   * See the existing TrustWipe
-   * forensic CLI implementation.
-   */
-
-  const args = [
-    "-m",
-    "forensic_recovery.cli",
-
-    "--json",
-
-    "scan",
-
-    "--input",
-    evidencePath,
-
-    "--output",
-    outputDir,
-  ];
-
-  if (caseId) {
-    args.push(
-      "--case",
-      caseId
-    );
-  }
-
-  if (examiner) {
-    args.push(
-      "--examiner",
-      examiner
-    );
-  }
-
-  const pythonCommands =
-    getPythonCommands();
-
-  let lastError =
-    null;
-
-  for (
-    const pythonCommand of
-      pythonCommands
-  ) {
-    try {
-      /*
-       * Explicit .exe paths are
-       * allowed. "python"/"py" are
-       * resolved through PATH.
-       */
-
-      return await executePython(
-        pythonCommand,
-        args,
-        {
-          cwd:
-            FORENSIC_PARENT,
-
-          timeoutMs:
-            SCAN_TIMEOUT_MS,
-        }
-      );
-    } catch (error) {
-      lastError =
-        error;
-
-      if (
-        error.code ===
-        "FORENSIC_TIMEOUT"
-      ) {
-        throw error;
-      }
+  await fs.promises.mkdir(
+    directory,
+    {
+      recursive: true,
     }
-  }
-
-  const error =
-    lastError ||
-    new Error(
-      "Unable to start Python forensic engine."
-    );
-
-  error.code =
-    error.code ||
-    "PYTHON_UNAVAILABLE";
-
-  throw error;
-}
-
-
-/* ============================================================
-   RECOVERED FILE DISCOVERY
-   ============================================================ */
-
-async function discoverRecoveredFiles(
-  outputDirectory,
-  caseId,
-  scanId
-) {
-  const files = [];
-
-  /*
-   * Recursive traversal is important.
-   *
-   * Some carving engines create:
-   *
-   * scan/
-   *   image/
-   *   documents/
-   *   archives/
-   *
-   * rather than placing every
-   * recovered artifact directly
-   * inside scan/.
-   */
-
-  async function walk(
-    directory
-  ) {
-    if (
-      files.length >=
-      MAX_OUTPUT_FILES
-    ) {
-      return;
-    }
-
-    const entries =
-      await fs.promises.readdir(
-        directory,
-        {
-          withFileTypes:
-            true,
-        }
-      );
-
-    for (
-      const entry of entries
-    ) {
-      if (
-        files.length >=
-        MAX_OUTPUT_FILES
-      ) {
-        return;
-      }
-
-      const currentPath =
-        path.join(
-          directory,
-          entry.name
-        );
-
-      if (
-        entry.isDirectory()
-      ) {
-        await walk(
-          currentPath
-        );
-
-        continue;
-      }
-
-      if (
-        !entry.isFile()
-      ) {
-        continue;
-      }
-
-      const stats =
-        await fs.promises.stat(
-          currentPath
-        );
-
-      const sha256 =
-        await calculateSHA256(
-          currentPath
-        );
-
-      const relativePath =
-        path
-          .relative(
-            outputDirectory,
-            currentPath
-          )
-          .split(
-            path.sep
-          )
-          .join("/");
-
-      const encodedCase =
-        encodeURIComponent(
-          caseId
-        );
-
-      const encodedScan =
-        encodeURIComponent(
-          scanId
-        );
-
-      /*
-       * Query parameter avoids
-       * Express 5 wildcard route
-       * incompatibility.
-       */
-
-      const downloadPath =
-        `/api/forensic/recovered-file/${encodedCase}/${encodedScan}?file=${encodeURIComponent(
-          relativePath
-        )}`;
-
-      files.push({
-        name:
-          path.basename(
-            currentPath
-          ),
-
-        relativePath,
-
-        size:
-          stats.size,
-
-        type:
-          path
-            .extname(
-              currentPath
-            )
-            .replace(
-              ".",
-              ""
-            )
-            .toUpperCase() ||
-          "FILE",
-
-        sha256,
-
-        modifiedAt:
-          stats.mtime.toISOString(),
-
-        path:
-          downloadPath,
-
-        downloadUrl:
-          downloadPath,
-      });
-    }
-  }
-
-  await walk(
-    outputDirectory
   );
 
-  return files;
-}
-
-
-/* ============================================================
-   ENGINE STATUS
-   ============================================================ */
-
-router.get(
-  "/status",
-  async (_req, res) => {
-    const pythonCommands =
-      getPythonCommands();
-
-    for (
-      const pythonCommand of
-        pythonCommands
-    ) {
-      try {
-        const result =
-          await executePython(
-            pythonCommand,
-            [
-              "--version",
-            ],
-            {
-              cwd:
-                FORENSIC_PARENT,
-
-              timeoutMs:
-                5000,
-            }
-          );
-
-        const version =
-          (
-            result.stdout ||
-            result.stderr ||
-            ""
-          ).trim();
-
-        if (
-          result.code === 0
-        ) {
-          return res.json({
-            success: true,
-
-            pythonAvailable:
-              true,
-
-            pythonCommand,
-
-            pythonVersion:
-              version || null,
-
-            engine:
-              "READY",
-          });
-        }
-      } catch {
-        // Try next interpreter.
+  const entries =
+    await fs.promises.readdir(
+      directory,
+      {
+        withFileTypes: true,
       }
+    );
+
+  const files = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile()) {
+      continue;
     }
 
-    return res.json({
+    const filePath =
+      path.join(
+        directory,
+        entry.name
+      );
+
+    const stats =
+      await fs.promises.stat(
+        filePath
+      );
+
+    let relativeDownloadPath;
+
+    if (
+      path.resolve(
+        directory
+      ) ===
+      path.resolve(
+        caseDir
+      )
+    ) {
+      relativeDownloadPath =
+        `/api/forensic/recovered/${encodeURIComponent(
+          sanitizeCaseId(caseId)
+        )}/${encodeURIComponent(
+          entry.name
+        )}`;
+    } else {
+      relativeDownloadPath =
+        `/api/forensic/recovered/${encodeURIComponent(
+          entry.name
+        )}`;
+    }
+
+    files.push({
+      artifactId:
+        `${sanitizeCaseId(caseId)}-${entry.name}`,
+
+      name:
+        entry.name,
+
+      size:
+        stats.size,
+
+      type:
+        path.extname(
+          entry.name
+        )
+          .slice(1)
+          .toUpperCase() ||
+        "FILE",
+
+      modifiedAt:
+        stats.mtime,
+
+      validationStatus:
+        "VALIDATED",
+
+      path:
+        relativeDownloadPath,
+    });
+  }
+
+  return files.sort(
+    (a, b) =>
+      new Date(b.modifiedAt) -
+      new Date(a.modifiedAt)
+  );
+}
+
+/*
+|--------------------------------------------------------------------------
+| TEST
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+  "/test",
+  (_req, res) => {
+    res.json({
       success: true,
-
-      pythonAvailable:
-        false,
-
-      pythonCommand:
-        null,
-
-      pythonVersion:
-        null,
-
-      engine:
-        "UNAVAILABLE",
+      service:
+        "TrustWipe Digital Forensics",
+      message:
+        "Forensic router is working.",
+      forensicRoot:
+        FORENSIC_ROOT,
+      cli:
+        CLI_PATH,
+      cliExists:
+        fs.existsSync(CLI_PATH),
     });
   }
 );
 
+/*
+|--------------------------------------------------------------------------
+| STATUS
+|--------------------------------------------------------------------------
+*/
 
-/* ============================================================
-   GET EVIDENCE
-   ============================================================ */
+router.get(
+  "/status",
+  async (_req, res) => {
+    try {
+      const python =
+        await checkPython();
+
+      const cliAvailable =
+        fs.existsSync(
+          CLI_PATH
+        );
+
+      return res.json({
+        success: true,
+
+        available:
+          python.available &&
+          cliAvailable,
+
+        pythonAvailable:
+          python.available,
+
+        cliAvailable,
+
+        pythonVersion:
+          python.version,
+
+        forensicRoot:
+          FORENSIC_ROOT,
+
+        cliPath:
+          CLI_PATH,
+
+        scanInProgress,
+
+        message:
+          python.available &&
+          cliAvailable
+            ? "Forensic engine ready."
+            : "Forensic engine is not fully available.",
+      });
+    } catch (error) {
+      return fail(
+        res,
+        500,
+        "Unable to check forensic engine status.",
+        "FORENSIC_STATUS_FAILED",
+        error
+      );
+    }
+  }
+);
+
+/*
+|--------------------------------------------------------------------------
+| EVIDENCE
+|--------------------------------------------------------------------------
+*/
 
 router.get(
   "/evidence",
   async (_req, res) => {
     try {
       const evidence =
-        await discoverEvidenceFiles();
-
-      const totalSize =
-        evidence.reduce(
-          (sum, item) =>
-            sum +
-            Number(
-              item.size || 0
-            ),
-          0
-        );
+        await discoverEvidence();
 
       return res.json({
         success: true,
-
+        evidence,
         count:
           evidence.length,
-
-        totalSize,
-
-        evidence,
-
         synchronizedAt:
           new Date().toISOString(),
       });
     } catch (error) {
       console.error(
-        "[FORENSICS] Evidence discovery failed:",
+        "[Forensics] Evidence discovery error:",
         error
       );
 
-      return res.status(
-        500
-      ).json({
-        success: false,
-
-        code:
-          "EVIDENCE_DISCOVERY_FAILED",
-
-        message:
-          "Unable to discover evidence.",
-      });
+      return fail(
+        res,
+        500,
+        "Unable to discover evidence files.",
+        "EVIDENCE_DISCOVERY_FAILED",
+        error
+      );
     }
   }
 );
 
-
-/* ============================================================
-   ACQUIRE EVIDENCE
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| UPLOAD / ACQUISITION
+|--------------------------------------------------------------------------
+*/
 
 router.post(
   "/upload",
@@ -1844,78 +1478,56 @@ router.post(
       req,
       res,
       async (error) => {
-        try {
+        if (
+          error instanceof
+          multer.MulterError
+        ) {
           if (
-            error instanceof
-            multer.MulterError
+            error.code ===
+            "LIMIT_FILE_SIZE"
           ) {
-            if (
-              error.code ===
-              "LIMIT_FILE_SIZE"
-            ) {
-              return res
-                .status(413)
-                .json({
-                  success:
-                    false,
-
-                  code:
-                    "EVIDENCE_TOO_LARGE",
-
-                  message:
-                    "Evidence exceeds the configured maximum size.",
-                });
-            }
-
-            return res
-              .status(400)
-              .json({
-                success:
-                  false,
-
-                code:
-                  "UPLOAD_ERROR",
-
-                message:
-                  error.message,
-              });
-          }
-
-          if (error) {
-            console.error(
-              "[FORENSICS] Upload error:",
-              error
+            return fail(
+              res,
+              413,
+              "Evidence file exceeds the maximum supported size.",
+              "FILE_TOO_LARGE"
             );
-
-            return res
-              .status(500)
-              .json({
-                success:
-                  false,
-
-                code:
-                  "UPLOAD_FAILED",
-
-                message:
-                  "Evidence acquisition failed.",
-              });
           }
 
-          if (!req.file) {
-            return res
-              .status(400)
-              .json({
-                success:
-                  false,
+          return fail(
+            res,
+            400,
+            error.message,
+            "UPLOAD_INVALID",
+            error
+          );
+        }
 
-                code:
-                  "EVIDENCE_REQUIRED",
+        if (error) {
+          console.error(
+            "[Forensics] Upload error:",
+            error
+          );
 
-                message:
-                  "Please select an evidence file.",
-              });
-          }
+          return fail(
+            res,
+            500,
+            "Evidence upload failed.",
+            "UPLOAD_FAILED",
+            error
+          );
+        }
 
+        if (!req.file) {
+          return fail(
+            res,
+            400,
+            "Please select an evidence file.",
+            "FILE_REQUIRED"
+          );
+        }
+
+        try {
           const filePath =
             req.file.path;
 
@@ -1924,31 +1536,32 @@ router.post(
               filePath
             );
 
+          if (stats.size === 0) {
+            await fs.promises.unlink(
+              filePath
+            );
+
+            return fail(
+              res,
+              400,
+              "Empty evidence files are not accepted.",
+              "EMPTY_EVIDENCE"
+            );
+          }
+
           const sha256 =
             await calculateSHA256(
               filePath
             );
 
-          const acquiredAt =
-            new Date().toISOString();
-
           const evidenceId =
             createEvidenceId();
 
-          const originalName =
-            decodeOriginalFilename(
-              req.file.originalname
-            );
-
-          /*
-           * This manifest is the
-           * immutable acquisition
-           * baseline.
-           */
+          const acquiredAt =
+            new Date().toISOString();
 
           const manifest = {
-            schema_version:
-              "1.0",
+            schema_version: 2,
 
             evidence_id:
               evidenceId,
@@ -1957,7 +1570,9 @@ router.post(
               req.file.filename,
 
             original_name:
-              originalName,
+              decodeOriginalFilename(
+                req.file.originalname
+              ),
 
             acquired_at:
               acquiredAt,
@@ -1987,143 +1602,110 @@ router.post(
             manifest
           );
 
-          /*
-           * Best-effort read-only
-           * protection.
-           *
-           * Windows may not enforce
-           * POSIX chmod semantics.
-           */
+          return res.status(201).json({
+            success: true,
 
-          try {
-            await fs.promises.chmod(
-              filePath,
-              0o444
-            );
-          } catch {
-            // Ignore on Windows.
-          }
+            message:
+              "Evidence acquired successfully. SHA-256 acquisition baseline recorded.",
 
-          return res
-            .status(201)
-            .json({
-              success:
-                true,
+            evidence: {
+              evidenceId,
 
-              message:
-                "Evidence acquired and SHA-256 baseline established.",
+              name:
+                req.file.filename,
 
-              evidence: {
-                evidenceId,
+              originalName:
+                manifest.original_name,
 
-                id:
-                  evidenceId,
+              size:
+                stats.size,
 
-                name:
-                  req.file.filename,
+              type:
+                path.extname(
+                  req.file.filename
+                )
+                  .slice(1)
+                  .toUpperCase() ||
+                "FILE",
 
-                originalName,
+              modifiedAt:
+                stats.mtime,
 
-                size:
-                  stats.size,
+              acquiredAt,
 
+              sha256,
+
+              acquisitionHash:
                 sha256,
 
-                algorithm:
-                  "SHA-256",
+              algorithm:
+                "SHA-256",
 
-                acquiredAt,
-
-                integrityStatus:
-                  "VERIFIED",
-
-                baseline:
-                  true,
-              },
-            });
-        } catch (error) {
+              integrityStatus:
+                "VERIFIED",
+            },
+          });
+        } catch (uploadError) {
           console.error(
-            "[FORENSICS] Acquisition processing failed:",
-            error
+            "[Forensics] Evidence processing error:",
+            uploadError
           );
 
-          /*
-           * If acquisition fails,
-           * remove the partial file.
-           */
-
-          if (
-            req.file?.path
-          ) {
-            try {
-              await fs.promises.chmod(
-                req.file.path,
-                0o666
-              );
-            } catch {
-              // Ignore.
-            }
-
-            try {
-              await fs.promises.unlink(
-                req.file.path
-              );
-            } catch {
-              // Ignore.
-            }
+          try {
+            await fs.promises.unlink(
+              req.file.path
+            );
+          } catch {
+            // Best effort.
           }
 
-          if (
-            !res.headersSent
-          ) {
-            return res
-              .status(500)
-              .json({
-                success:
-                  false,
-
-                code:
-                  "ACQUISITION_FAILED",
-
-                message:
-                  error.message ||
-                  "Unable to acquire evidence.",
-              });
-          }
+          return fail(
+            res,
+            500,
+            "Unable to process uploaded evidence.",
+            "ACQUISITION_FAILED",
+            uploadError
+          );
         }
       }
     );
   }
 );
 
-
-/* ============================================================
-   HASH
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| HASH
+|--------------------------------------------------------------------------
+*/
 
 router.post(
   "/hash",
   async (req, res) => {
     try {
-      const {
-        fileName,
-      } =
-        req.body || {};
+      const fileName =
+        sanitizeFilename(
+          req.body?.fileName
+        );
 
-      if (!fileName) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
+      const filePath =
+        evidencePath(
+          fileName
+        );
 
-            code:
-              "EVIDENCE_REQUIRED",
+      const stats =
+        await fs.promises.stat(
+          filePath
+        );
 
-            message:
-              "Evidence file name is required.",
-          });
-      }
+      const sha256 =
+        await calculateSHA256(
+          filePath
+        );
+
+      const manifest =
+        await loadManifest(
+          fileName
+        );
 
       const integrity =
         await verifyEvidenceIntegrity(
@@ -2131,19 +1713,21 @@ router.post(
         );
 
       return res.json({
-        success:
-          true,
+        success: true,
 
         fileName,
+
+        size:
+          stats.size,
 
         algorithm:
           "SHA-256",
 
-        sha256:
-          integrity.currentHash,
+        sha256,
 
         acquisitionHash:
-          integrity.originalHash,
+          manifest?.sha256 ||
+          null,
 
         integrityStatus:
           integrity.status,
@@ -2151,1446 +1735,769 @@ router.post(
         hashMatch:
           integrity.hashMatch,
 
-        sizeMatch:
-          integrity.sizeMatch,
-
         integrity,
       });
     } catch (error) {
-      console.error(
-        "[FORENSICS] Hash failed:",
+      return fail(
+        res,
+        500,
+        "Unable to calculate SHA-256.",
+        "HASH_FAILED",
         error
       );
-
-      return res
-        .status(
-          error.code ===
-            "EVIDENCE_NOT_FOUND"
-            ? 404
-            : 500
-        )
-        .json({
-          success:
-            false,
-
-          code:
-            error.code ||
-            "HASH_FAILED",
-
-          message:
-            error.message ||
-            "Unable to calculate evidence hash.",
-        });
     }
   }
 );
 
-
-/* ============================================================
-   VERIFY INTEGRITY
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| VERIFY INTEGRITY
+|--------------------------------------------------------------------------
+*/
 
 router.post(
   "/verify-integrity",
   async (req, res) => {
     try {
-      const {
-        fileName,
-        evidenceId,
-      } =
-        req.body || {};
+      let fileName =
+        req.body?.fileName;
 
-      let resolvedFileName =
-        fileName;
-
-      /*
-       * Allow frontend to send
-       * evidenceId instead of fileName.
-       */
-
-      if (
-        !resolvedFileName &&
-        evidenceId
-      ) {
-        const manifest =
-          await loadManifestByEvidenceId(
-            evidenceId
-          );
-
-        if (manifest) {
-          resolvedFileName =
-            manifest.file_name;
-        }
+      if (!fileName) {
+        return fail(
+          res,
+          400,
+          "Evidence file name is required.",
+          "EVIDENCE_FILE_REQUIRED"
+        );
       }
 
-      if (!resolvedFileName) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "EVIDENCE_REQUIRED",
-
-            message:
-              "Evidence file name or evidence ID is required.",
-          });
-      }
-
-      resolvedFileName =
-        path.basename(
-          String(
-            resolvedFileName
-          )
+      fileName =
+        sanitizeFilename(
+          fileName
         );
 
       const integrity =
         await verifyEvidenceIntegrity(
-          resolvedFileName
+          fileName
         );
 
       return res.json({
-        success:
-          true,
-
-        fileName:
-          resolvedFileName,
-
-        evidenceId:
-          integrity.evidenceId,
-
+        success: true,
+        fileName,
         integrity,
       });
     } catch (error) {
       console.error(
-        "[FORENSICS] Integrity verification failed:",
+        "[Forensics] Integrity error:",
         error
       );
 
-      return res
-        .status(
-          error.code ===
-            "EVIDENCE_NOT_FOUND"
-            ? 404
-            : 500
-        )
-        .json({
-          success:
-            false,
-
-          code:
-            error.code ||
-            "INTEGRITY_CHECK_FAILED",
-
-          message:
-            error.message ||
-            "Unable to verify evidence integrity.",
-        });
+      return fail(
+        res,
+        500,
+        "Integrity verification failed.",
+        "INTEGRITY_CHECK_FAILED",
+        error
+      );
     }
   }
 );
 
-
-/* ============================================================
-   FORENSIC SCAN
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| FORENSIC SCAN
+|--------------------------------------------------------------------------
+*/
 
 router.post(
   "/scan",
   async (req, res) => {
-    const startedAt =
-      Date.now();
+    if (scanInProgress) {
+      return fail(
+        res,
+        409,
+        "Another forensic analysis is already running.",
+        "FORENSIC_SCAN_BUSY"
+      );
+    }
 
-    let scanOutput =
-      null;
+    let fileName;
+    let caseId;
+    let examiner;
 
     try {
-      const {
-        fileName,
-        evidenceId,
-        caseId,
-        examiner =
-          "TrustWipe Examiner",
-      } =
-        req.body || {};
+      fileName =
+        sanitizeFilename(
+          req.body?.fileName
+        );
 
-      /* --------------------------------------------------------
-         VALIDATION
-         -------------------------------------------------------- */
+      caseId =
+        sanitizeCaseId(
+          req.body?.caseId
+        );
+
+      examiner =
+        String(
+          req.body?.examiner ||
+            ""
+        )
+          .trim()
+          .slice(0, 200);
+
+      if (!examiner) {
+        return fail(
+          res,
+          400,
+          "Examiner is required.",
+          "EXAMINER_REQUIRED"
+        );
+      }
+
+      const evidenceFile =
+        evidencePath(
+          fileName
+        );
+
+      await fs.promises.access(
+        evidenceFile,
+        fs.constants.R_OK
+      );
+
+      /*
+       * SECURITY BOUNDARY:
+       * verify BEFORE Python touches
+       * the evidence.
+       */
+      const integrityBefore =
+        await verifyEvidenceIntegrity(
+          fileName
+        );
 
       if (
-        !fileName &&
-        !evidenceId
+        integrityBefore.status !==
+          "VERIFIED" ||
+        integrityBefore.verified !==
+          true ||
+        integrityBefore.hashMatch !==
+          true
       ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
+        return res.status(409).json({
+          success: false,
 
-            code:
-              "EVIDENCE_REQUIRED",
+          code:
+            integrityBefore.status ===
+            "TAMPERED"
+              ? "EVIDENCE_TAMPERED"
+              : "BASELINE_MISSING",
 
-            message:
-              "Evidence file name or evidence ID is required.",
-          });
+          message:
+            "Forensic analysis is blocked because evidence integrity is not VERIFIED.",
+
+          integrity:
+            integrityBefore,
+        });
       }
 
-      if (!caseId) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
+      scanInProgress =
+        true;
 
-            code:
-              "CASE_ID_REQUIRED",
+      console.log(
+        `[Forensics] Scan started: case=${caseId}, evidence=${fileName}`
+      );
 
-            message:
-              "Case ID is required.",
-          });
-      }
-
-      const safeCase =
-        sanitizeCaseId(
+      /*
+       * Every case gets its own recovered
+       * directory.
+       */
+      const caseRecovered =
+        caseRecoveredDirectory(
           caseId
         );
 
-      /* --------------------------------------------------------
-         RESOLVE EVIDENCE
-         -------------------------------------------------------- */
-
-      let resolvedFileName =
-        fileName;
-
-      if (
-        !resolvedFileName &&
-        evidenceId
-      ) {
-        const manifest =
-          await loadManifestByEvidenceId(
-            evidenceId
-          );
-
-        if (manifest) {
-          resolvedFileName =
-            manifest.file_name;
+      await fs.promises.mkdir(
+        caseRecovered,
+        {
+          recursive: true,
         }
-      }
-
-      if (!resolvedFileName) {
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            code:
-              "EVIDENCE_NOT_FOUND",
-
-            message:
-              "Unable to resolve evidence.",
-          });
-      }
-
-      resolvedFileName =
-        path.basename(
-          String(
-            resolvedFileName
-          )
-        );
-
-      /* --------------------------------------------------------
-         VERIFY EVIDENCE EXISTS
-         -------------------------------------------------------- */
-
-      const evidencePath =
-        safeEvidencePath(
-          resolvedFileName
-        );
-
-      try {
-        const stats =
-          await fs.promises.stat(
-            evidencePath
-          );
-
-        if (!stats.isFile()) {
-          throw new Error(
-            "Evidence path is not a file."
-          );
-        }
-      } catch {
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            code:
-              "EVIDENCE_FILE_NOT_FOUND",
-
-            message:
-              "Evidence file not found or is not readable.",
-          });
-      }
-
-      /* --------------------------------------------------------
-         PRE-SCAN INTEGRITY
-         -------------------------------------------------------- */
-
-      const preIntegrity =
-        await verifyEvidenceIntegrity(
-          resolvedFileName
-        );
+      );
 
       /*
-       * NEVER run recovery on:
-       *
-       * - missing baseline
-       * - modified evidence
-       * - invalid baseline
-       *
-       * This is essential for
-       * forensic chain of custody.
+       * Run the real Python CLI.
        */
-
-      if (
-        !preIntegrity.verified ||
-        preIntegrity.status !==
-          "VERIFIED"
-      ) {
-        return res
-          .status(409)
-          .json({
-            success:
-              false,
-
-            code:
-              preIntegrity.status ===
-              "BASELINE_MISSING"
-                ? "BASELINE_MISSING"
-                : "EVIDENCE_TAMPERED",
-
-            message:
-              preIntegrity.status ===
-              "BASELINE_MISSING"
-                ? "Evidence acquisition baseline is missing. Re-acquire the evidence before forensic recovery."
-                : "Forensic recovery is blocked because evidence integrity verification failed.",
-
-            integrity:
-              preIntegrity,
-          });
-      }
-
-      /* --------------------------------------------------------
-         CASE DIRECTORIES
-         -------------------------------------------------------- */
-
-      const caseDirectories =
-        await ensureCaseDirectories(
-          safeCase
-        );
-
-      const scanId =
-        `SCAN-${Date.now()}-${crypto
-          .randomBytes(4)
-          .toString("hex")}`;
-
-      scanOutput =
-        path.join(
-          caseDirectories.recovered,
-          scanId
-        );
-
-      await fs.promises.mkdir(
-        scanOutput,
-        {
-          recursive:
-            true,
-        }
-      );
-
-      /* --------------------------------------------------------
-         RUN PYTHON FORENSIC ENGINE
-         -------------------------------------------------------- */
-
-      console.log(
-        `[FORENSICS] Starting scan ${scanId}`
-      );
-
-      console.log(
-        `[FORENSICS] Evidence: ${resolvedFileName}`
-      );
-
-      console.log(
-        `[FORENSICS] Case: ${safeCase}`
-      );
-
-      const pythonResult =
-        await runForensicCLI({
-          evidencePath,
-
-          outputDir:
-            scanOutput,
-
-          caseId:
-            safeCase,
-
-          examiner:
-            String(
-              examiner ||
-                "TrustWipe Examiner"
-            ),
+      const execution =
+        await runPythonScan({
+          evidenceFile,
+          outputDirectory:
+            caseRecovered,
+          caseId,
+          examiner,
         });
 
-      console.log(
-        `[FORENSICS] Python exit code: ${pythonResult.code}`
-      );
-
-      /* --------------------------------------------------------
-         PYTHON ENGINE FAILURE
-         -------------------------------------------------------- */
-
-      if (
-        pythonResult.code !== 0
-      ) {
-        console.error(
-          "[FORENSICS] Python forensic engine failed."
-        );
-
-        console.error(
-          pythonResult.stderr
-        );
-
-        await fs.promises.rm(
-          scanOutput,
-          {
-            recursive:
-              true,
-
-            force:
-              true,
-          }
-        );
-
-        scanOutput =
-          null;
-
-        return res
-          .status(500)
-          .json({
-            success:
-              false,
-
-            code:
-              "FORENSIC_ENGINE_FAILED",
-
-            message:
-              "Forensic recovery engine failed.",
-
-            exitCode:
-              pythonResult.code,
-
-            signal:
-              pythonResult.signal,
-
-            stdout:
-              pythonResult.stdout ||
-              null,
-
-            stderr:
-              pythonResult.stderr ||
-              null,
-
-            pythonCommand:
-              pythonResult.pythonCommand,
-
-            durationMs:
-              Date.now() -
-              startedAt,
-          });
-      }
-
-      /* --------------------------------------------------------
-         PARSE PYTHON RESULT
-         -------------------------------------------------------- */
-
-      const scanResult =
-        parseForensicJSON(
-          pythonResult.stdout
-        );
-
-      if (!scanResult) {
-        console.error(
-          "[FORENSICS] Python output was not valid JSON."
-        );
-
-        console.error(
-          "STDOUT:",
-          pythonResult.stdout
-        );
-
-        console.error(
-          "STDERR:",
-          pythonResult.stderr
-        );
-
-        await fs.promises.rm(
-          scanOutput,
-          {
-            recursive:
-              true,
-
-            force:
-              true,
-          }
-        );
-
-        scanOutput =
-          null;
-
-        return res
-          .status(500)
-          .json({
-            success:
-              false,
-
-            code:
-              "FORENSIC_RESULT_INVALID",
-
-            message:
-              "Forensic engine completed but returned an invalid scan result.",
-
-            stdout:
-              pythonResult.stdout ||
-              null,
-
-            stderr:
-              pythonResult.stderr ||
-              null,
-
-            durationMs:
-              Date.now() -
-              startedAt,
-          });
-      }
-
-      /* --------------------------------------------------------
-         POST-SCAN INTEGRITY
-         -------------------------------------------------------- */
-
-      const postIntegrity =
+      /*
+       * Verify evidence AGAIN after
+       * Python completes.
+       */
+      const integrityAfter =
         await verifyEvidenceIntegrity(
-          resolvedFileName
+          fileName
         );
 
       if (
-        !postIntegrity.verified ||
-        postIntegrity.status !==
-          "VERIFIED"
+        integrityAfter.status !==
+          "VERIFIED" ||
+        integrityAfter.verified !==
+          true ||
+        integrityAfter.hashMatch !==
+          true
       ) {
-        console.error(
-          "[FORENSICS] Evidence changed during scan."
-        );
+        return res.status(409).json({
+          success: false,
 
-        await fs.promises.rm(
-          scanOutput,
-          {
-            recursive:
-              true,
+          code:
+            "EVIDENCE_CHANGED_DURING_ANALYSIS",
 
-            force:
-              true,
-          }
-        );
+          message:
+            "Evidence changed during forensic analysis. The forensic results cannot be trusted.",
 
-        scanOutput =
-          null;
+          integrity:
+            integrityAfter,
 
-        return res
-          .status(409)
-          .json({
-            success:
-              false,
-
-            code:
-              "EVIDENCE_CHANGED_DURING_SCAN",
-
-            message:
-              "Evidence changed during forensic analysis. Recovery results must not be treated as valid.",
-
-            integrity:
-              postIntegrity,
-          });
+          output:
+            execution.stdout,
+        });
       }
 
-      /* --------------------------------------------------------
-         DISCOVER RECOVERED FILES
-         -------------------------------------------------------- */
+      const pythonResult =
+        execution.result || {};
+
+      /*
+       * Python scanner normally returns:
+       *
+       * {
+       *   evidence_path,
+       *   evidence_size,
+       *   chunk_size,
+       *   overlap_size,
+       *   signatures_detected,
+       *   candidates_found,
+       *   artifacts_carved,
+       *   artifacts_validated,
+       *   duration_ms,
+       *   status,
+       *   artifacts: [...]
+       * }
+       */
+      const stats =
+        pythonResult || {};
 
       const recoveredFiles =
         await discoverRecoveredFiles(
-          scanOutput,
-          safeCase,
-          scanId
+          caseId,
+          caseRecovered
         );
 
-      /* --------------------------------------------------------
-         NORMALIZED SCAN STATISTICS
-         -------------------------------------------------------- */
+      const artifacts =
+        Array.isArray(
+          pythonResult.artifacts
+        )
+          ? pythonResult.artifacts
+          : [];
 
-      const scan = {
-        status:
-          scanResult.status ||
-          "COMPLETED",
+      const normalizedArtifacts =
+        artifacts.map(
+          (artifact, index) => ({
+            artifactId:
+              artifact.artifact_id ||
+              artifact.artifactId ||
+              `ART-${index + 1}`,
 
+            name:
+              artifact.name ||
+              artifact.file_name ||
+              artifact.filename ||
+              path.basename(
+                artifact.output ||
+                  artifact.output_path ||
+                  `artifact-${index + 1}`
+              ),
+
+            size:
+              Number(
+                artifact.size || 0
+              ),
+
+            type:
+              artifact.type ||
+              artifact.format ||
+              "FILE",
+
+            sourceOffset:
+              artifact.source_offset ??
+              artifact.offset ??
+              null,
+
+            sourceEnd:
+              artifact.source_end ??
+              artifact.end_offset ??
+              null,
+
+            confidence:
+              artifact.confidence ??
+              null,
+
+            validationStatus:
+              artifact.validation_status ||
+              artifact.validation ||
+              (
+                artifact.valid === true
+                  ? "VALID"
+                  : "UNKNOWN"
+              ),
+
+            sha256:
+              artifact.sha256 ||
+              artifact.artifact_sha256 ||
+              null,
+
+            path:
+              artifact.output ||
+              artifact.output_path ||
+              null,
+          })
+        );
+
+      /*
+       * Prefer detailed artifact information
+       * from Python when available.
+       */
+      const finalRecovered =
+        normalizedArtifacts.length
+          ? normalizedArtifacts.map(
+              (artifact) => ({
+                ...artifact,
+
+                path:
+                  artifact.path
+                    ? `/api/forensic/recovered/${encodeURIComponent(
+                        caseId
+                      )}/${encodeURIComponent(
+                        path.basename(
+                          artifact.path
+                        )
+                      )}`
+                    : null,
+              })
+            )
+          : recoveredFiles;
+
+      const durationMs =
+        Number(
+          pythonResult.duration_ms ??
+          pythonResult.durationMs ??
+          0
+        );
+
+      const signaturesDetected =
+        Number(
+          pythonResult.signatures_detected ??
+          pythonResult.signaturesDetected ??
+          0
+        );
+
+      const candidatesFound =
+        Number(
+          pythonResult.candidates_found ??
+          pythonResult.candidatesFound ??
+          signaturesDetected
+        );
+
+      const artifactsCarved =
+        Number(
+          pythonResult.artifacts_carved ??
+          pythonResult.artifactsCarved ??
+          finalRecovered.length
+        );
+
+      const artifactsValidated =
+        Number(
+          pythonResult.artifacts_validated ??
+          pythonResult.artifactsValidated ??
+          finalRecovered.length
+        );
+
+      const scanStats = {
         evidenceSize:
-          scanResult.evidence_size ??
-          scanResult.evidenceSize ??
-          0,
-
-        chunkSize:
-          scanResult.chunk_size ??
-          scanResult.chunkSize ??
-          0,
-
-        overlapSize:
-          scanResult.overlap_size ??
-          scanResult.overlapSize ??
-          0,
-
-        chunksScanned:
-          scanResult.chunks_scanned ??
-          scanResult.chunksScanned ??
-          0,
-
-        bytesScanned:
-          scanResult.bytes_scanned ??
-          scanResult.bytesScanned ??
-          0,
-
-        signaturesDetected:
-          scanResult.signatures_detected ??
-          scanResult.signaturesDetected ??
-          0,
-
-        candidateRanges:
-          scanResult.candidate_ranges ??
-          scanResult.candidateRanges ??
-          0,
-
-        artifactsCarved:
-          scanResult.artifacts_carved ??
-          scanResult.artifactsCarved ??
-          0,
-
-        artifactsValidated:
-          scanResult.artifacts_validated ??
-          scanResult.artifactsValidated ??
-          0,
-
-        artifacts:
-          Array.isArray(
-            scanResult.artifacts
-          )
-            ? scanResult.artifacts
-            : [],
-      };
-
-      /* --------------------------------------------------------
-         FINAL RESPONSE
-         -------------------------------------------------------- */
-
-      const completedAt =
-        new Date().toISOString();
-
-      return res.json({
-        success:
-          true,
-
-        status:
-          "COMPLETED",
-
-        caseId:
-          safeCase,
-
-        scanId,
-
-        examiner:
-          String(
-            examiner ||
-              "TrustWipe Examiner"
+          Number(
+            pythonResult.evidence_size ??
+            pythonResult.evidenceSize ??
+            (
+              await fs.promises.stat(
+                evidenceFile
+              )
+            ).size
           ),
 
-        startedAt:
-          new Date(
-            startedAt
-          ).toISOString(),
+        chunkSize:
+          Number(
+            pythonResult.chunk_size ??
+            pythonResult.chunkSize ??
+            0
+          ),
 
-        completedAt,
+        overlapSize:
+          Number(
+            pythonResult.overlap_size ??
+            pythonResult.overlapSize ??
+            0
+          ),
 
-        durationMs:
-          Date.now() -
-          startedAt,
+        chunksScanned:
+          Number(
+            pythonResult.chunks_scanned ??
+            pythonResult.chunksScanned ??
+            0
+          ),
 
-        /*
-         * Frontend expects a
-         * top-level integrity object.
-         */
+        bytesScanned:
+          Number(
+            pythonResult.bytes_scanned ??
+            pythonResult.bytesScanned ??
+            0
+          ),
 
-        integrity:
-          postIntegrity,
+        signaturesDetected,
 
-        /*
-         * Evidence information.
-         */
+        candidatesFound,
 
-        evidence: {
-          fileName:
-            resolvedFileName,
+        artifactsCarved,
 
-          evidenceId:
-            postIntegrity.evidenceId,
+        artifactsValidated,
 
-          acquisitionHash:
-            postIntegrity.originalHash,
+        durationMs,
 
-          currentHash:
-            postIntegrity.currentHash,
+        status:
+          pythonResult.status ||
+          "COMPLETED",
+      };
 
-          size:
-            postIntegrity.currentSize,
+      console.log(
+        `[Forensics] Scan completed: case=${caseId}, recovered=${finalRecovered.length}`
+      );
 
-          integrity:
-            postIntegrity.verified
-              ? "VERIFIED"
-              : "FAILED",
-        },
-
-        /*
-         * Scanner statistics.
-         */
-
-        scan,
-
-        /*
-         * Recovery information.
-         */
-
-        recovery: {
-          status:
-            "COMPLETED",
-
-          recoveredCount:
-            recoveredFiles.length,
-
-          outputDirectory:
-            scanId,
-
-          files:
-            recoveredFiles,
-        },
-
-        /*
-         * Raw engine information.
-         */
-
-        engine: {
-          pythonCommand:
-            pythonResult.pythonCommand,
-
-          exitCode:
-            pythonResult.code,
-
-          stdout:
-            pythonResult.stdout ||
-            "",
-
-          stderr:
-            pythonResult.stderr ||
-            "",
-        },
+      return res.json({
+        success: true,
 
         message:
-          `Forensic recovery completed. ${recoveredFiles.length} candidate artifact(s) recovered.`,
+          `Forensic recovery completed. ${candidatesFound} candidate range(s) identified and ${artifactsValidated} artifact(s) validated.`,
+
+        caseId,
+
+        examiner,
+
+        evidence:
+          fileName,
+
+        recoveredCount:
+          finalRecovered.length,
+
+        recoveredFiles:
+          finalRecovered,
+
+        artifacts:
+          finalRecovered,
+
+        scanStats,
+
+        integrity:
+          integrityAfter,
+
+        output:
+          execution.stdout,
+
+        stderr:
+          execution.stderr,
+
+        engine: {
+          exitCode:
+            0,
+
+          completedAt:
+            new Date().toISOString(),
+
+          python:
+            FORENSIC_PYTHON,
+
+          cli:
+            CLI_PATH,
+        },
       });
     } catch (error) {
       console.error(
-        "[FORENSICS] Scan error:",
+        "[Forensics] Scan failed:",
         error
       );
 
-      if (scanOutput) {
-        try {
-          await fs.promises.rm(
-            scanOutput,
-            {
-              recursive:
-                true,
-
-              force:
-                true,
-            }
-          );
-        } catch {
-          // Ignore cleanup.
-        }
+      if (
+        error.code ===
+        "FORENSIC_TIMEOUT"
+      ) {
+        return fail(
+          res,
+          504,
+          "Forensic analysis timed out.",
+          "FORENSIC_TIMEOUT",
+          error
+        );
       }
 
       if (
-        !res.headersSent
+        error.code ===
+        "FORENSIC_CLI_MISSING"
       ) {
-        return res
-          .status(500)
-          .json({
-            success:
-              false,
-
-            code:
-              error.code ||
-              "FORENSIC_SCAN_ERROR",
-
-            message:
-              error.message ||
-              "Forensic analysis failed.",
-
-            durationMs:
-              Date.now() -
-              startedAt,
-          });
+        return fail(
+          res,
+          500,
+          "Forensic CLI was not found on the backend.",
+          "FORENSIC_CLI_MISSING",
+          error
+        );
       }
+
+      if (
+        error.code ===
+        "FORENSIC_PYTHON_MISSING"
+      ) {
+        return fail(
+          res,
+          500,
+          "Python forensic engine is unavailable on the backend.",
+          "FORENSIC_PYTHON_MISSING",
+          error
+        );
+      }
+
+      return fail(
+        res,
+        500,
+        process.env.NODE_ENV ===
+          "production"
+          ? "Forensic analysis failed."
+          : (
+              error.message ||
+              "Forensic analysis failed."
+            ),
+        "FORENSIC_SCAN_FAILED",
+        error
+      );
+    } finally {
+      scanInProgress =
+        false;
     }
   }
 );
 
-
-/* ============================================================
-   RECOVERED FILE DOWNLOAD
-   ============================================================
-
-   IMPORTANT:
-
-   Do NOT use:
-
-   /recovered/:caseId/:scanId/*
-
-   Express 5 / path-to-regexp rejects
-   that route.
-
-   Instead use:
-
-   /recovered-file/:caseId/:scanId?file=...
-
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| RECOVERED FILE DOWNLOAD
+|--------------------------------------------------------------------------
+*/
 
 router.get(
-  "/recovered-file/:caseId/:scanId",
+  "/recovered/:caseId/:fileName",
   async (req, res) => {
     try {
-      const safeCase =
+      const caseId =
         sanitizeCaseId(
           req.params.caseId
         );
 
-      const safeScanId =
-        path.basename(
-          String(
-            req.params.scanId
-          )
+      const fileName =
+        sanitizeFilename(
+          req.params.fileName
         );
 
-      const requestedFile =
-        req.query.file;
-
-      if (
-        !requestedFile ||
-        typeof requestedFile !==
-          "string"
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "RECOVERED_FILE_REQUIRED",
-
-            message:
-              "Recovered artifact path is required.",
-          });
-      }
-
-      let decodedPath;
-
-      try {
-        decodedPath =
-          decodeURIComponent(
-            requestedFile
-          );
-      } catch {
-        decodedPath =
-          requestedFile;
-      }
-
-      /*
-       * Normalize separators.
-       */
-
-      decodedPath =
-        decodedPath
-          .replace(
-            /\\/g,
-            "/"
-          )
-          .replace(
-            /^\/+/,
-            ""
-          );
-
-      /*
-       * Reject traversal BEFORE
-       * path.resolve.
-       */
-
-      const segments =
-        decodedPath
-          .split("/")
-          .filter(Boolean);
-
-      if (
-        segments.includes(
-          ".."
-        )
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "INVALID_FILE_PATH",
-
-            message:
-              "Path traversal is not allowed.",
-          });
-      }
-
-      const caseDirectories =
-        await ensureCaseDirectories(
-          safeCase
+      const directory =
+        caseRecoveredDirectory(
+          caseId
         );
 
-      const recoveredRoot =
-        path.resolve(
-          caseDirectories.recovered
+      const filePath =
+        safePath(
+          directory,
+          fileName
         );
 
-      const scanDirectory =
-        path.resolve(
-          recoveredRoot,
-          safeScanId
+      const stats =
+        await fs.promises.stat(
+          filePath
         );
 
-      if (
-        !scanDirectory.startsWith(
-          recoveredRoot +
-            path.sep
-        )
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "INVALID_SCAN_PATH",
-
-            message:
-              "Invalid scan path.",
-          });
-      }
-
-      const target =
-        path.resolve(
-          scanDirectory,
-          ...segments
-        );
-
-      if (
-        !target.startsWith(
-          scanDirectory +
-            path.sep
-        )
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "INVALID_FILE_PATH",
-
-            message:
-              "Invalid recovered artifact path.",
-          });
-      }
-
-      let stats;
-
-      try {
-        stats =
-          await fs.promises.stat(
-            target
-          );
-      } catch {
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            code:
-              "RECOVERED_FILE_NOT_FOUND",
-
-            message:
-              "Recovered artifact not found.",
-          });
-      }
-
-      if (
-        !stats.isFile()
-      ) {
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            code:
-              "RECOVERED_FILE_NOT_FOUND",
-
-            message:
-              "Recovered artifact not found.",
-          });
-      }
-
-      /*
-       * Optional final hash.
-       *
-       * This gives the client
-       * an integrity header for
-       * the recovered artifact.
-       */
-
-      let recoveredHash =
-        null;
-
-      try {
-        recoveredHash =
-          await calculateSHA256(
-            target
-          );
-      } catch {
-        // Download can continue.
-      }
-
-      if (recoveredHash) {
-        res.setHeader(
-          "X-TrustWipe-SHA256",
-          recoveredHash
+      if (!stats.isFile()) {
+        throw new Error(
+          "Recovered artifact is not a file."
         );
       }
-
-      res.setHeader(
-        "X-TrustWipe-Case",
-        safeCase
-      );
-
-      res.setHeader(
-        "X-TrustWipe-Scan",
-        safeScanId
-      );
 
       return res.download(
-        target,
+        filePath,
         path.basename(
-          target
-        ),
-        (error) => {
-          if (error) {
-            console.error(
-              "[FORENSICS] Recovered download error:",
-              error
-            );
-
-            if (
-              !res.headersSent
-            ) {
-              res
-                .status(500)
-                .json({
-                  success:
-                    false,
-
-                  code:
-                    "RECOVERED_DOWNLOAD_FAILED",
-
-                  message:
-                    "Unable to download recovered artifact.",
-                });
-            }
-          }
-        }
+          filePath
+        )
       );
     } catch (error) {
       console.error(
-        "[FORENSICS] Recovered file error:",
+        "[Forensics] Recovered download error:",
         error
       );
 
-      if (
-        !res.headersSent
-      ) {
-        return res
-          .status(500)
-          .json({
-            success:
-              false,
-
-            code:
-              error.code ||
-              "RECOVERED_DOWNLOAD_FAILED",
-
-            message:
-              error.message ||
-              "Unable to download recovered artifact.",
-          });
-      }
+      return fail(
+        res,
+        404,
+        "Recovered artifact not found.",
+        "RECOVERED_FILE_NOT_FOUND"
+      );
     }
   }
 );
 
-
-/* ============================================================
-   LEGACY SINGLE-FILENAME DOWNLOAD
-   ============================================================
-
-   Kept for compatibility with
-   older frontend responses.
-
-   Supports:
-
-   /recovered/:caseId/:scanId/:fileName
-
-   It deliberately supports ONLY
-   a single filename.
-
-   Nested files should use the
-   /recovered-file endpoint above.
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| LEGACY RECOVERED FILE DOWNLOAD
+|--------------------------------------------------------------------------
+*/
 
 router.get(
-  "/recovered/:caseId/:scanId/:fileName",
+  "/recovered/:fileName",
   async (req, res) => {
     try {
-      const safeCase =
-        sanitizeCaseId(
-          req.params.caseId
+      const fileName =
+        sanitizeFilename(
+          req.params.fileName
         );
 
-      const safeScanId =
-        path.basename(
-          String(
-            req.params.scanId
-          )
+      const filePath =
+        safePath(
+          RECOVERED_DIR,
+          fileName
         );
 
-      const safeFileName =
-        path.basename(
-          String(
-            req.params.fileName
-          )
+      const stats =
+        await fs.promises.stat(
+          filePath
         );
 
-      const caseDirectories =
-        await ensureCaseDirectories(
-          safeCase
+      if (!stats.isFile()) {
+        throw new Error(
+          "Recovered artifact is not a file."
         );
-
-      const scanDirectory =
-        path.resolve(
-          caseDirectories.recovered,
-          safeScanId
-        );
-
-      const target =
-        path.resolve(
-          scanDirectory,
-          safeFileName
-        );
-
-      if (
-        !scanDirectory.startsWith(
-          path.resolve(
-            caseDirectories.recovered
-          ) +
-            path.sep
-        )
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "INVALID_SCAN_PATH",
-
-            message:
-              "Invalid scan path.",
-          });
-      }
-
-      if (
-        !target.startsWith(
-          scanDirectory +
-            path.sep
-        )
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "INVALID_FILE_PATH",
-
-            message:
-              "Invalid recovered artifact path.",
-          });
-      }
-
-      try {
-        const stats =
-          await fs.promises.stat(
-            target
-          );
-
-        if (
-          !stats.isFile()
-        ) {
-          throw new Error(
-            "Not a file"
-          );
-        }
-      } catch {
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            code:
-              "RECOVERED_FILE_NOT_FOUND",
-
-            message:
-              "Recovered artifact not found.",
-          });
       }
 
       return res.download(
-        target,
-        safeFileName
+        filePath,
+        path.basename(
+          filePath
+        )
       );
-    } catch (error) {
-      console.error(
-        "[FORENSICS] Legacy recovered download failed:",
-        error
+    } catch {
+      return fail(
+        res,
+        404,
+        "Recovered artifact not found.",
+        "RECOVERED_FILE_NOT_FOUND"
       );
-
-      return res
-        .status(500)
-        .json({
-          success:
-            false,
-
-          code:
-            "RECOVERED_DOWNLOAD_FAILED",
-
-          message:
-            "Unable to download recovered artifact.",
-        });
     }
   }
 );
 
-
-/* ============================================================
-   GENERATE FORENSIC REPORT
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| REPORT
+|--------------------------------------------------------------------------
+*/
 
 router.post(
   "/report",
   async (req, res) => {
     try {
-      const {
-        fileName,
-        evidenceId,
-        caseId,
-        examiner =
-          "TrustWipe Examiner",
-      } =
-        req.body || {};
-
-      if (
-        !fileName &&
-        !evidenceId
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "EVIDENCE_REQUIRED",
-
-            message:
-              "Evidence file name or evidence ID is required.",
-          });
-      }
-
-      if (!caseId) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "CASE_ID_REQUIRED",
-
-            message:
-              "Case ID is required.",
-          });
-      }
-
-      let resolvedFileName =
-        fileName;
-
-      if (
-        !resolvedFileName &&
-        evidenceId
-      ) {
-        const manifest =
-          await loadManifestByEvidenceId(
-            evidenceId
-          );
-
-        if (manifest) {
-          resolvedFileName =
-            manifest.file_name;
-        }
-      }
-
-      if (!resolvedFileName) {
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            code:
-              "EVIDENCE_NOT_FOUND",
-
-            message:
-              "Unable to resolve evidence.",
-          });
-      }
-
-      const safeFileName =
-        path.basename(
-          String(
-            resolvedFileName
-          )
+      const fileName =
+        sanitizeFilename(
+          req.body?.fileName
         );
 
-      const evidencePath =
-        safeEvidencePath(
-          safeFileName
+      const caseId =
+        sanitizeCaseId(
+          req.body?.caseId
         );
 
-      try {
-        const stats =
-          await fs.promises.stat(
-            evidencePath
-          );
+      const examiner =
+        String(
+          req.body?.examiner ||
+            ""
+        )
+          .trim()
+          .slice(0, 200);
 
-        if (
-          !stats.isFile()
-        ) {
-          throw new Error(
-            "Not a file"
-          );
-        }
-      } catch {
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            code:
-              "EVIDENCE_NOT_FOUND",
-
-            message:
-              "Evidence file not found.",
-          });
+      if (!examiner) {
+        return fail(
+          res,
+          400,
+          "Examiner is required.",
+          "EXAMINER_REQUIRED"
+        );
       }
 
-      const integrity =
-        await verifyEvidenceIntegrity(
-          safeFileName
+      const filePath =
+        evidencePath(
+          fileName
         );
 
       const stats =
         await fs.promises.stat(
-          evidencePath
+          filePath
         );
 
-      const safeCase =
-        sanitizeCaseId(
-          caseId
+      const integrity =
+        await verifyEvidenceIntegrity(
+          fileName
         );
 
-      const safeExaminer =
-        String(
-          examiner ||
-            "TrustWipe Examiner"
-        ).trim();
+      if (
+        integrity.status !==
+          "VERIFIED" ||
+        integrity.verified !==
+          true ||
+        integrity.hashMatch !==
+          true
+      ) {
+        return res.status(409).json({
+          success: false,
+
+          code:
+            integrity.status ===
+            "TAMPERED"
+              ? "EVIDENCE_TAMPERED"
+              : "BASELINE_MISSING",
+
+          message:
+            "Report generation blocked because evidence integrity is not VERIFIED.",
+
+          integrity,
+        });
+      }
 
       const generatedAt =
         new Date().toISOString();
 
       const report = {
-        schema_version:
-          "1.0",
+        schema_version: 2,
 
-        application:
-          "TrustWipe Digital Forensics",
+        product:
+          "TrustWipe Forensics",
 
         case_id:
-          safeCase,
+          caseId,
 
-        examiner:
-          safeExaminer,
+        examiner,
 
         generated_at:
           generatedAt,
@@ -3600,7 +2507,7 @@ router.post(
             integrity.evidenceId,
 
           file_name:
-            safeFileName,
+            fileName,
 
           size:
             stats.size,
@@ -3637,81 +2544,66 @@ router.post(
           current_hash:
             integrity.currentHash,
 
+          original_source_modified:
+            integrity.originalSourceModified,
+
           message:
             integrity.message,
         },
 
-        forensic_recovery: {
-          performed:
-            integrity.status ===
-            "VERIFIED",
+        methodology: {
+          acquisition:
+            "Immutable SHA-256 acquisition baseline",
 
-          status:
-            integrity.status ===
-            "VERIFIED"
-              ? "ELIGIBLE"
-              : "BLOCKED",
+          integrity:
+            "SHA-256 and file-size comparison",
 
-          note:
-            "Forensic recovery requires successful acquisition-integrity verification.",
+          analysis:
+            "TrustWipe Python forensic recovery engine",
         },
 
         compliance: {
-          framework:
+          reference:
             "NIST SP 800-88",
-
-          standard:
-            "NIST SP 800-88",
-
-          classification:
-            "Media sanitization guidance",
 
           note:
-            "NIST SP 800-88 concerns media sanitization. TrustWipe records SHA-256 acquisition integrity and forensic recovery separately.",
+            "This report records evidence integrity and forensic workflow metadata. It does not by itself certify physical media sanitization.",
         },
       };
 
-      const caseDirectories =
-        await ensureCaseDirectories(
-          safeCase
-        );
-
       const reportFileName =
-        `${safeCase}-${Date.now()}-${crypto
-          .randomBytes(4)
+        `${caseId}-${Date.now()}-${crypto
+          .randomBytes(3)
           .toString("hex")}.json`;
 
-      const reportPath =
-        path.join(
-          caseDirectories.reports,
+      const outputPath =
+        reportPath(
           reportFileName
         );
 
+      const temporary =
+        `${outputPath}.${process.pid}.tmp`;
+
       await fs.promises.writeFile(
-        reportPath,
+        temporary,
         JSON.stringify(
           report,
           null,
           2
         ),
-        {
-          encoding:
-            "utf8",
+        "utf8"
+      );
 
-          flag:
-            "wx",
-        }
+      await fs.promises.rename(
+        temporary,
+        outputPath
       );
 
       return res.json({
-        success:
-          true,
+        success: true,
 
         message:
-          integrity.status ===
-          "VERIFIED"
-            ? "Forensic evidence report generated successfully. Evidence integrity is VERIFIED."
-            : "Forensic evidence report generated with an integrity warning.",
+          "Forensic evidence report generated successfully. Evidence integrity is VERIFIED.",
 
         report,
 
@@ -3720,149 +2612,72 @@ router.post(
 
         downloadUrl:
           `/api/forensic/report/${encodeURIComponent(
-            safeCase
-          )}/${encodeURIComponent(
             reportFileName
           )}`,
       });
     } catch (error) {
       console.error(
-        "[FORENSICS] Report generation failed:",
+        "[Forensics] Report error:",
         error
       );
 
-      return res
-        .status(500)
-        .json({
-          success:
-            false,
-
-          code:
-            error.code ||
-            "REPORT_GENERATION_FAILED",
-
-          message:
-            error.message ||
-            "Unable to generate forensic report.",
-        });
+      return fail(
+        res,
+        500,
+        "Unable to generate forensic report.",
+        "REPORT_FAILED",
+        error
+      );
     }
   }
 );
 
-
-/* ============================================================
-   REPORT DOWNLOAD
-   ============================================================ */
+/*
+|--------------------------------------------------------------------------
+| REPORT DOWNLOAD
+|--------------------------------------------------------------------------
+*/
 
 router.get(
-  "/report/:caseId/:fileName",
+  "/report/:fileName",
   async (req, res) => {
     try {
-      const safeCase =
-        sanitizeCaseId(
-          req.params.caseId
+      const fileName =
+        sanitizeFilename(
+          req.params.fileName
         );
 
-      const safeFile =
-        path.basename(
-          String(
-            req.params.fileName
-          )
+      const filePath =
+        reportPath(
+          fileName
         );
 
-      const caseDirectories =
-        await ensureCaseDirectories(
-          safeCase
+      const stats =
+        await fs.promises.stat(
+          filePath
         );
 
-      const reportsRoot =
-        path.resolve(
-          caseDirectories.reports
+      if (!stats.isFile()) {
+        throw new Error(
+          "Report is not a file."
         );
-
-      const reportPath =
-        path.resolve(
-          reportsRoot,
-          safeFile
-        );
-
-      if (
-        !reportPath.startsWith(
-          reportsRoot +
-            path.sep
-        )
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            code:
-              "INVALID_REPORT_PATH",
-
-            message:
-              "Invalid report path.",
-          });
-      }
-
-      try {
-        const stats =
-          await fs.promises.stat(
-            reportPath
-          );
-
-        if (
-          !stats.isFile()
-        ) {
-          throw new Error(
-            "Not a file"
-          );
-        }
-      } catch {
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            code:
-              "REPORT_NOT_FOUND",
-
-            message:
-              "Report not found.",
-          });
       }
 
       return res.download(
-        reportPath,
-        safeFile
+        filePath,
+        path.basename(
+          filePath
+        )
       );
     } catch (error) {
-      console.error(
-        "[FORENSICS] Report download failed:",
-        error
+      return fail(
+        res,
+        404,
+        "Report file not found.",
+        "REPORT_NOT_FOUND"
       );
-
-      return res
-        .status(500)
-        .json({
-          success:
-            false,
-
-          code:
-            "REPORT_DOWNLOAD_FAILED",
-
-          message:
-            "Unable to download report.",
-        });
     }
   }
 );
-
-
-/* ============================================================
-   EXPORT
-   ============================================================ */
 
 export default router;

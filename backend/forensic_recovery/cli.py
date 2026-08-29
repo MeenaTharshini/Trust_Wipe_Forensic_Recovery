@@ -2,80 +2,57 @@
 TrustWipe Forensic Recovery Engine
 ==================================
 
-Command-line interface for authorized forensic evidence processing.
+Command-line interface for the TrustWipe forensic recovery engine.
 
-Supported operations:
+Supported commands:
 
     hash
-        Calculate SHA-256 for an evidence file.
+        Calculate SHA-256.
 
     acquire
-        Create an evidence acquisition record containing the
-        cryptographic baseline.
+        Create an acquisition record.
 
     scan
-        Stream-scan an evidence image and recover candidate
-        artifacts using range-based carving.
+        Scan evidence and recover artifacts.
 
     report
-        Generate a JSON forensic case report.
+        Generate a forensic report.
 
-Examples:
+The Express backend invokes:
 
-    python -m forensic_recovery.cli hash evidence/test.img
-
-    python -m forensic_recovery.cli acquire evidence/test.img
-
-    python -m forensic_recovery.cli acquire evidence/test.img \
-        --output evidence.json
-
-    python -m forensic_recovery.cli scan evidence/test.img \
-        --output recovered/
-
-    python -m forensic_recovery.cli scan evidence/test.img \
-        --output recovered/ \
-        --case CASE-2026-03 \
-        --examiner "Meena Tharshini I"
-
-    python -m forensic_recovery.cli scan \
-        --input evidence/test.img \
-        --output recovered/
-
-    python -m forensic_recovery.cli report \
-        --case CASE-2026-03 \
-        --examiner "Meena Tharshini I" \
-        --input evidence.json \
-        --output reports/report.json
+    python cli.py scan \
+        --input <evidence> \
+        --output <recovered> \
+        --case <case-id> \
+        --examiner <examiner> \
+        --json
 """
 
 from __future__ import annotations
 
-# ============================================================================
-# BOOTSTRAP
-# ============================================================================
-
-import sys
-from pathlib import Path
-
-
-CURRENT_FILE = Path(__file__).resolve()
-
-FORENSIC_PACKAGE_DIR = CURRENT_FILE.parent
-PROJECT_ROOT = FORENSIC_PACKAGE_DIR.parent
-
-
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-
-# ============================================================================
-# STANDARD LIBRARY
-# ============================================================================
-
 import argparse
 import json
 import logging
+import sys
+from pathlib import Path
 from typing import Any
+
+
+# ============================================================================
+# PATH BOOTSTRAP
+# ============================================================================
+
+CURRENT_FILE = Path(__file__).resolve()
+
+FORENSIC_ROOT = CURRENT_FILE.parent
+
+BACKEND_ROOT = FORENSIC_ROOT.parent
+
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(
+        0,
+        str(BACKEND_ROOT),
+    )
 
 
 # ============================================================================
@@ -83,7 +60,6 @@ from typing import Any
 # ============================================================================
 
 try:
-
     from forensic_recovery.acquisition.evidence import (
         EvidenceAcquisitionError,
         identify,
@@ -106,25 +82,24 @@ try:
         generate_report,
     )
 
-except ImportError as import_error:
-
+except ImportError as exc:
     print(
         "ERROR: Unable to load TrustWipe forensic modules.",
         file=sys.stderr,
     )
 
     print(
-        f"Import error: {import_error}",
+        f"Import error: {exc}",
         file=sys.stderr,
     )
 
     print(
-        f"Forensic package: {FORENSIC_PACKAGE_DIR}",
+        f"Forensic root: {FORENSIC_ROOT}",
         file=sys.stderr,
     )
 
     print(
-        f"Project root: {PROJECT_ROOT}",
+        f"Backend root: {BACKEND_ROOT}",
         file=sys.stderr,
     )
 
@@ -135,8 +110,11 @@ except ImportError as import_error:
 # APPLICATION METADATA
 # ============================================================================
 
-APP_NAME = "TrustWipe Forensic Recovery Engine"
-APP_VERSION = "2.0.0"
+APP_NAME = (
+    "TrustWipe Forensic Recovery Engine"
+)
+
+APP_VERSION = "2.1.0"
 
 
 # ============================================================================
@@ -152,13 +130,11 @@ def configure_logging(
     verbose: bool = False,
 ) -> None:
     """
-    Configure CLI logging.
+    Configure logging.
 
-    Normal operation:
-        INFO
-
-    Verbose operation:
-        DEBUG
+    IMPORTANT:
+    When --json is used, logging goes to stderr
+    so stdout remains machine-readable JSON.
     """
 
     level = (
@@ -170,6 +146,7 @@ def configure_logging(
     logging.basicConfig(
         level=level,
         format="%(levelname)s: %(message)s",
+        stream=sys.stderr,
     )
 
 
@@ -180,22 +157,15 @@ def configure_logging(
 def positive_integer(
     value: str,
 ) -> int:
-    """
-    argparse validator for positive integers.
-    """
-
     try:
-
         number = int(value)
 
     except ValueError as exc:
-
         raise argparse.ArgumentTypeError(
             f"Invalid integer: {value}"
         ) from exc
 
     if number <= 0:
-
         raise argparse.ArgumentTypeError(
             "Value must be greater than zero."
         )
@@ -207,10 +177,7 @@ def existing_file(
     value: str,
 ) -> Path:
     """
-    argparse validator for an existing regular file.
-
-    Symbolic links are rejected because forensic evidence
-    should resolve to a specific immutable source.
+    Validate that an evidence file exists.
     """
 
     path = (
@@ -220,19 +187,16 @@ def existing_file(
     )
 
     if not path.exists():
-
         raise argparse.ArgumentTypeError(
             f"File does not exist: {path}"
         )
 
     if path.is_symlink():
-
         raise argparse.ArgumentTypeError(
             f"Symbolic links are not accepted: {path}"
         )
 
     if not path.is_file():
-
         raise argparse.ArgumentTypeError(
             f"Path is not a regular file: {path}"
         )
@@ -243,12 +207,6 @@ def existing_file(
 def directory_path(
     value: str,
 ) -> Path:
-    """
-    Convert an output directory argument to an absolute Path.
-
-    The directory does not have to exist yet.
-    """
-
     return (
         Path(value)
         .expanduser()
@@ -264,12 +222,6 @@ def write_json(
     data: Any,
     output_path: Path,
 ) -> None:
-    """
-    Safely write JSON.
-
-    A temporary file is written first and then atomically
-    replaced into the requested destination.
-    """
 
     output_path = (
         Path(output_path)
@@ -282,12 +234,13 @@ def write_json(
         exist_ok=True,
     )
 
-    temporary_path = output_path.with_name(
-        output_path.name + ".tmp"
+    temporary_path = (
+        output_path.with_name(
+            output_path.name + ".tmp"
+        )
     )
 
     try:
-
         with temporary_path.open(
             "w",
             encoding="utf-8",
@@ -310,11 +263,9 @@ def write_json(
     except OSError:
 
         try:
-
             temporary_path.unlink(
                 missing_ok=True
             )
-
         except OSError:
             pass
 
@@ -324,9 +275,6 @@ def write_json(
 def print_json(
     data: Any,
 ) -> None:
-    """
-    Print structured JSON to stdout.
-    """
 
     print(
         json.dumps(
@@ -338,175 +286,150 @@ def print_json(
 
 
 # ============================================================================
-# HASH COMMAND
+# HASH
 # ============================================================================
 
 def command_hash(
     args: argparse.Namespace,
 ) -> int:
-    """
-    Calculate SHA-256 for an evidence file.
-    """
 
-    path: Path = args.input
+    evidence_path: Path = args.input
 
     logger.info(
         "Calculating SHA-256: %s",
-        path,
+        evidence_path,
     )
 
     digest = sha256_file(
-        path,
+        evidence_path,
         chunk_size=args.chunk_size,
     )
 
     result = {
         "operation": "hash",
         "algorithm": "SHA-256",
-        "path": str(path.resolve()),
-        "size": path.stat().st_size,
-        "sha256": digest,
+        "path": str(
+            evidence_path.resolve()
+        ),
+        "size":
+            evidence_path.stat().st_size,
+        "sha256":
+            digest,
     }
 
     if args.json:
-
         print_json(result)
+        return 0
 
-    else:
-
-        print()
-        print("TrustWipe SHA-256")
-        print("-----------------")
-        print(f"File:              {path}")
-        print(f"Size:              {result['size']} bytes")
-        print(f"SHA-256:           {digest}")
-        print()
+    print()
+    print("TrustWipe SHA-256")
+    print("=================")
+    print(
+        f"File:       {evidence_path}"
+    )
+    print(
+        f"Size:       {result['size']} bytes"
+    )
+    print(
+        f"SHA-256:    {digest}"
+    )
+    print()
 
     return 0
 
 
 # ============================================================================
-# ACQUIRE COMMAND
+# ACQUIRE
 # ============================================================================
 
 def command_acquire(
     args: argparse.Namespace,
 ) -> int:
-    """
-    Create a cryptographic evidence acquisition record.
-    """
 
-    path: Path = args.input
+    evidence_path: Path = args.input
 
     logger.info(
         "Acquiring evidence: %s",
-        path,
+        evidence_path,
     )
 
-    evidence = identify(path)
+    evidence =
+        identify(evidence_path)
 
     result = evidence.to_dict()
 
     if args.output:
-
-        output_path: Path = (
-            args.output
-            .expanduser()
-            .resolve()
-        )
-
         write_json(
             result,
-            output_path,
-        )
-
-        logger.info(
-            "Evidence record written to: %s",
-            output_path,
+            args.output,
         )
 
     if args.json:
-
         print_json(result)
+        return 0
 
-    else:
+    print()
+    print("TrustWipe Evidence Acquisition")
+    print("===============================")
 
-        print()
-        print("Evidence Acquisition")
-        print("--------------------")
+    print(
+        f"Path:        {result.get('path', evidence_path)}"
+    )
 
+    print(
+        f"Size:        {result.get('size', 0)} bytes"
+    )
+
+    print(
+        f"SHA-256:     {result.get('sha256', '')}"
+    )
+
+    print(
+        f"Algorithm:   {result.get('hash_algorithm', 'SHA-256')}"
+    )
+
+    print(
+        f"Acquired:    {result.get('acquired_utc', '')}"
+    )
+
+    if args.output:
         print(
-            f"Path:             "
-            f"{result.get('path', path)}"
+            f"Record:      {args.output}"
         )
 
-        print(
-            f"Size:             "
-            f"{result.get('size', 0)} bytes"
-        )
-
-        print(
-            f"SHA-256:          "
-            f"{result.get('sha256', '')}"
-        )
-
-        print(
-            f"Algorithm:        "
-            f"{result.get('hash_algorithm', 'SHA-256')}"
-        )
-
-        print(
-            f"Acquired UTC:     "
-            f"{result.get('acquired_utc', '')}"
-        )
-
-        print(
-            f"Schema Version:   "
-            f"{result.get('schema_version', '1.0')}"
-        )
-
-        if args.output:
-
-            print(
-                f"Record:           "
-                f"{args.output.resolve()}"
-            )
-
-        print()
+    print()
 
     return 0
 
 
 # ============================================================================
-# SCAN COMMAND
+# SCAN
 # ============================================================================
 
 def command_scan(
     args: argparse.Namespace,
 ) -> int:
     """
-    Stream-scan an evidence image and recover candidate artifacts.
+    Run the actual forensic scanner.
 
-    IMPORTANT:
-
-    The CLI does not load the evidence image into memory.
-
-    scan_image() performs:
+    The scanner performs:
 
         Evidence
-            ↓
-        Streaming signature detection
-            ↓
-        Absolute offsets
-            ↓
-        Range-based carving
-            ↓
-        Artifact validation
-            ↓
-        Artifact hashes
+           ↓
+        Streaming scan
+           ↓
+        Signature detection
+           ↓
+        Candidate ranges
+           ↓
+        Range carving
+           ↓
+        Validation
+           ↓
+        Artifact hashing
     """
 
-    image_path: Path = args.input
+    evidence_path: Path = args.input
 
     output_dir: Path = (
         args.output
@@ -514,49 +437,229 @@ def command_scan(
         .resolve()
     )
 
-    logger.info(
-        "Starting forensic scan: %s",
-        image_path,
+    output_dir.mkdir(
+        parents=True,
+        exist_ok=True,
     )
 
     logger.info(
-        "Recovery directory: %s",
+        "TrustWipe forensic scan started."
+    )
+
+    logger.info(
+        "Evidence: %s",
+        evidence_path,
+    )
+
+    logger.info(
+        "Output: %s",
         output_dir,
     )
 
     logger.info(
-        "Scanner chunk size: %d bytes",
+        "Case: %s",
+        args.case or "N/A",
+    )
+
+    logger.info(
+        "Examiner: %s",
+        args.examiner or "N/A",
+    )
+
+    logger.info(
+        "Chunk size: %d bytes",
         args.chunk_size,
     )
 
-    # ---------------------------------------------------------------
-    # The scanner itself creates the output directory.
-    #
-    # Do not read the evidence file here.
-    # ---------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # RUN SCANNER
+    # ------------------------------------------------------------------------
 
     result = scan_image(
-        image_path=image_path,
+        image_path=evidence_path,
         output_dir=output_dir,
         chunk_size=args.chunk_size,
     )
 
-    # ---------------------------------------------------------------
-    # Add CLI investigation context without changing the scanner's
-    # core forensic result.
-    # ---------------------------------------------------------------
+    if result is None:
+        result = {}
 
-    if args.case is not None:
+    if not isinstance(
+        result,
+        dict,
+    ):
+        result = {
+            "scanner_result":
+                result
+        }
 
+    # ------------------------------------------------------------------------
+    # NORMALIZE CORE FIELDS
+    # ------------------------------------------------------------------------
+
+    result.setdefault(
+        "operation",
+        "scan",
+    )
+
+    result.setdefault(
+        "evidence_path",
+        str(evidence_path),
+    )
+
+    result.setdefault(
+        "evidence_size",
+        evidence_path.stat().st_size,
+    )
+
+    result.setdefault(
+        "chunk_size",
+        args.chunk_size,
+    )
+
+    result.setdefault(
+        "status",
+        "COMPLETED",
+    )
+
+    # ------------------------------------------------------------------------
+    # CASE INFORMATION
+    # ------------------------------------------------------------------------
+
+    if args.case:
         result["case_id"] = args.case
 
-    if args.examiner is not None:
+    if args.examiner:
+        result["examiner"] = (
+            args.examiner
+        )
 
-        result["examiner"] = args.examiner
+    # ------------------------------------------------------------------------
+    # NORMALIZE COUNTS
+    # ------------------------------------------------------------------------
 
-    # ---------------------------------------------------------------
-    # Optional scan-result JSON
-    # ---------------------------------------------------------------
+    result.setdefault(
+        "signatures_detected",
+        result.get(
+            "signaturesDetected",
+            0,
+        ),
+    )
+
+    result.setdefault(
+        "candidates_found",
+        result.get(
+            "candidatesFound",
+            result.get(
+                "candidate_count",
+                0,
+            ),
+        ),
+    )
+
+    result.setdefault(
+        "artifacts_carved",
+        result.get(
+            "artifactsCarved",
+            0,
+        ),
+    )
+
+    result.setdefault(
+        "artifacts_validated",
+        result.get(
+            "artifactsValidated",
+            len(
+                result.get(
+                    "artifacts",
+                    [],
+                )
+            ),
+        ),
+    )
+
+    # ------------------------------------------------------------------------
+    # NORMALIZE ARTIFACTS
+    # ------------------------------------------------------------------------
+
+    artifacts = result.get(
+        "artifacts",
+        [],
+    )
+
+    if not isinstance(
+        artifacts,
+        list,
+    ):
+        artifacts = []
+
+    normalized_artifacts = []
+
+    for index, artifact in enumerate(
+        artifacts,
+        start=1,
+    ):
+
+        if not isinstance(
+            artifact,
+            dict,
+        ):
+            continue
+
+        normalized = dict(
+            artifact
+        )
+
+        normalized.setdefault(
+            "artifact_id",
+            f"ART-{index:05d}",
+        )
+
+        normalized.setdefault(
+            "size",
+            0,
+        )
+
+        normalized.setdefault(
+            "validation",
+            normalized.get(
+                "valid",
+                "UNKNOWN",
+            ),
+        )
+
+        normalized.setdefault(
+            "sha256",
+            normalized.get(
+                "artifact_sha256"
+            ),
+        )
+
+        normalized_artifacts.append(
+            normalized
+        )
+
+    result["artifacts"] = (
+        normalized_artifacts
+    )
+
+    result["artifacts_validated"] = (
+        max(
+            int(
+                result.get(
+                    "artifacts_validated",
+                    0,
+                )
+            ),
+            len(
+                normalized_artifacts
+            ),
+        )
+    )
+
+    # ------------------------------------------------------------------------
+    # OUTPUT RESULT JSON
+    # ------------------------------------------------------------------------
 
     if args.result:
 
@@ -576,240 +679,163 @@ def command_scan(
             result_path,
         )
 
-    # ---------------------------------------------------------------
-    # JSON mode
-    # ---------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # JSON OUTPUT
+    # ------------------------------------------------------------------------
 
     if args.json:
-
         print_json(result)
-
         return 0
 
-    # ---------------------------------------------------------------
-    # Human-readable mode
-    # ---------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # HUMAN OUTPUT
+    # ------------------------------------------------------------------------
 
     print()
     print("TrustWipe Forensic Scan")
     print("=======================")
 
     print(
-        f"Evidence:          "
-        f"{result.get('evidence_path', image_path)}"
+        f"Evidence:             {result.get('evidence_path')}"
     )
 
     print(
-        f"Evidence size:     "
-        f"{result.get('evidence_size', 0)} bytes"
+        f"Evidence size:        {result.get('evidence_size', 0)} bytes"
     )
 
     print(
-        f"Chunk size:        "
-        f"{result.get('chunk_size', args.chunk_size)} bytes"
+        f"Chunk size:           {result.get('chunk_size', 0)} bytes"
     )
 
     print(
-        f"Overlap:            "
-        f"{result.get('overlap_size', 0)} bytes"
+        f"Overlap:              {result.get('overlap_size', 0)} bytes"
     )
 
     print(
-        f"Signatures found:  "
-        f"{result.get('signatures_detected', 0)}"
+        f"Signatures detected:  {result.get('signatures_detected', 0)}"
     )
 
     print(
-        f"Artifacts carved:  "
-        f"{result.get('artifacts_carved', 0)}"
+        f"Candidates found:     {result.get('candidates_found', 0)}"
     )
 
     print(
-        f"Status:            "
-        f"{result.get('status', 'UNKNOWN')}"
+        f"Artifacts carved:     {result.get('artifacts_carved', 0)}"
+    )
+
+    print(
+        f"Artifacts validated:  {result.get('artifacts_validated', 0)}"
+    )
+
+    print(
+        f"Status:               {result.get('status', 'UNKNOWN')}"
     )
 
     if args.case:
-
         print(
-            f"Case ID:           "
-            f"{args.case}"
+            f"Case ID:              {args.case}"
         )
 
     if args.examiner:
-
         print(
-            f"Examiner:          "
-            f"{args.examiner}"
+            f"Examiner:             {args.examiner}"
         )
 
     print(
-        f"Recovery directory:"
-        f" {output_dir}"
-    )
-
-    if args.result:
-
-        print(
-            f"Result JSON:       "
-            f"{args.result.resolve()}"
-        )
-
-    # ---------------------------------------------------------------
-    # Recovered artifacts
-    # ---------------------------------------------------------------
-
-    artifacts = result.get(
-        "artifacts",
-        [],
+        f"Recovery directory:   {output_dir}"
     )
 
     print()
 
-    if artifacts:
+    if normalized_artifacts:
 
         print("Recovered Artifacts")
         print("-------------------")
 
         for index, artifact in enumerate(
-            artifacts,
+            normalized_artifacts,
             start=1,
         ):
 
-            artifact_id = artifact.get(
-                "artifact_id",
-                f"ARTIFACT-{index:05d}",
-            )
-
-            artifact_type = artifact.get(
-                "type",
-                artifact.get(
-                    "format",
-                    "UNKNOWN",
-                ),
-            )
-
-            size = artifact.get(
-                "size",
-                0,
-            )
-
-            offset = artifact.get(
-                "offset",
-                artifact.get(
-                    "source_offset",
-                    0,
-                ),
-            )
-
-            output = artifact.get(
-                "output",
-                artifact.get(
-                    "output_path",
-                    "",
-                ),
-            )
-
-            validation = artifact.get(
-                "validation",
-                artifact.get(
-                    "valid",
-                    "UNKNOWN",
-                ),
-            )
-
-            sha256 = artifact.get(
-                "sha256",
-                artifact.get(
-                    "artifact_sha256",
-                    "",
-                ),
-            )
-
             print(
                 f"{index}. "
-                f"{artifact_id}"
+                f"{artifact.get('artifact_id')}"
             )
 
             print(
-                f"   Type:       {artifact_type}"
+                f"   Type:       "
+                f"{artifact.get('type', 'UNKNOWN')}"
             )
 
             print(
-                f"   Size:       {size} bytes"
+                f"   Size:       "
+                f"{artifact.get('size', 0)} bytes"
             )
 
             print(
-                f"   Offset:     {offset}"
+                f"   Offset:     "
+                f"{artifact.get('offset', artifact.get('source_offset', 0))}"
             )
 
             print(
-                f"   Validation: {validation}"
+                f"   Validation: "
+                f"{artifact.get('validation', 'UNKNOWN')}"
             )
 
-            if sha256:
-
+            if artifact.get(
+                "sha256"
+            ):
                 print(
-                    f"   SHA-256:    {sha256}"
+                    f"   SHA-256:    "
+                    f"{artifact['sha256']}"
                 )
 
-            if output:
-
+            if artifact.get(
+                "output"
+            ):
                 print(
-                    f"   Output:     {output}"
+                    f"   Output:     "
+                    f"{artifact['output']}"
                 )
 
             print()
 
     else:
-
         print(
-            "No recovered artifacts."
+            "No validated artifacts recovered."
         )
-
-        print(
-            "No supported and recoverable "
-            "file signatures were found."
-        )
-
-        print()
 
     return 0
 
 
 # ============================================================================
-# REPORT COMMAND
+# REPORT
 # ============================================================================
 
 def command_report(
     args: argparse.Namespace,
 ) -> int:
-    """
-    Generate a forensic JSON case report.
-    """
 
     logger.info(
-        "Generating forensic report for case: %s",
+        "Generating report for case: %s",
         args.case,
     )
 
     input_path = (
-        Path(args.input)
+        args.input
         .expanduser()
         .resolve()
     )
 
     output_path = (
-        Path(args.output)
+        args.output
         .expanduser()
         .resolve()
     )
 
     if not input_path.exists():
-
         raise FileNotFoundError(
-            f"Report input does not exist: "
-            f"{input_path}"
+            f"Report input does not exist: {input_path}"
         )
 
     report = generate_report(
@@ -819,39 +845,29 @@ def command_report(
         output_path,
     )
 
-    if report is not None:
+    if args.json:
+        print_json(
+            report
+        )
+        return 0
 
-        if args.json:
+    print()
+    print("TrustWipe Forensic Report")
+    print("=========================")
 
-            print_json(report)
-
-        else:
-
-            print()
-            print("TrustWipe Forensic Report")
-            print("=========================")
-
-            print(
-                json.dumps(
-                    report,
-                    indent=2,
-                    ensure_ascii=False,
-                )
-            )
-
-            print()
-
-    logger.info(
-        "Report written to: %s",
-        output_path,
+    print(
+        json.dumps(
+            report,
+            indent=2,
+            ensure_ascii=False,
+        )
     )
 
-    if not args.json:
+    print()
 
-        print(
-            f"Report written to "
-            f"{output_path}"
-        )
+    print(
+        f"Report written to: {output_path}"
+    )
 
     return 0
 
@@ -861,9 +877,6 @@ def command_report(
 # ============================================================================
 
 def build_parser() -> argparse.ArgumentParser:
-    """
-    Build the TrustWipe forensic CLI.
-    """
 
     parser = argparse.ArgumentParser(
         prog="trustwipe-forensics",
@@ -904,22 +917,23 @@ def build_parser() -> argparse.ArgumentParser:
         )
     )
 
-    # ========================================================================
+    # ------------------------------------------------------------------------
     # HASH
-    # ========================================================================
+    # ------------------------------------------------------------------------
 
-    hash_parser = subparsers.add_parser(
-        "hash",
-        help=(
-            "Calculate SHA-256 for "
-            "an evidence file."
-        ),
+    hash_parser = (
+        subparsers.add_parser(
+            "hash",
+            help=(
+                "Calculate SHA-256."
+            ),
+        )
     )
 
     hash_parser.add_argument(
         "input",
         type=existing_file,
-        help="Path to evidence file.",
+        help="Evidence file.",
     )
 
     hash_parser.add_argument(
@@ -927,8 +941,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=positive_integer,
         default=1024 * 1024,
         help=(
-            "Hashing chunk size in bytes "
-            "(default: 1048576)."
+            "Hash chunk size."
         ),
     )
 
@@ -936,83 +949,73 @@ def build_parser() -> argparse.ArgumentParser:
         handler=command_hash
     )
 
-    # ========================================================================
+    # ------------------------------------------------------------------------
     # ACQUIRE
-    # ========================================================================
+    # ------------------------------------------------------------------------
 
-    acquire_parser = subparsers.add_parser(
-        "acquire",
-        help=(
-            "Create a forensic evidence "
-            "acquisition record."
-        ),
+    acquire_parser = (
+        subparsers.add_parser(
+            "acquire",
+            help=(
+                "Create acquisition record."
+            ),
+        )
     )
 
     acquire_parser.add_argument(
         "input",
         type=existing_file,
-        help="Path to evidence file.",
+        help="Evidence file.",
     )
 
     acquire_parser.add_argument(
         "--output",
         type=Path,
-        help=(
-            "Write acquisition metadata "
-            "to a JSON file."
-        ),
+        help="Acquisition JSON output.",
     )
 
     acquire_parser.set_defaults(
         handler=command_acquire
     )
 
-    # ========================================================================
+    # ------------------------------------------------------------------------
     # SCAN
-    # ========================================================================
+    # ------------------------------------------------------------------------
 
-    scan_parser = subparsers.add_parser(
-        "scan",
-        help=(
-            "Stream-scan a forensic image "
-            "and recover candidate artifacts."
-        ),
+    scan_parser = (
+        subparsers.add_parser(
+            "scan",
+            help=(
+                "Scan and recover forensic artifacts."
+            ),
+        )
     )
 
-    # Positional input:
-    #
-    #     scan evidence/test.img
-    #
     scan_parser.add_argument(
         "input",
-        type=existing_file,
         nargs="?",
-        help=(
-            "Path to forensic evidence image."
-        ),
+        type=existing_file,
+        help="Evidence file.",
     )
 
-    # Optional input:
-    #
-    #     scan --input evidence/test.img
-    #
-    # This is useful for your Node/Express backend.
     scan_parser.add_argument(
         "--input",
         dest="input_option",
         type=existing_file,
         help=(
-            "Path to forensic evidence image."
+            "Evidence file. Used by the Express backend."
         ),
     )
 
     scan_parser.add_argument(
         "--output",
         type=directory_path,
-        default=Path("recovered").resolve(),
+        default=(
+            FORENSIC_ROOT /
+            "recovered"
+        ),
         help=(
-            "Directory for recovered artifacts "
-            "(default: recovered)."
+            "Recovered artifact directory."
         ),
     )
 
@@ -1021,8 +1024,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Optional JSON file containing "
-            "the complete scan result."
+            "Optional scan-result JSON."
         ),
     )
 
@@ -1031,75 +1033,66 @@ def build_parser() -> argparse.ArgumentParser:
         type=positive_integer,
         default=64 * 1024 * 1024,
         help=(
-            "Streaming scanner chunk size in bytes "
-            "(default: 67108864 / 64 MiB)."
+            "Scanner chunk size in bytes."
         ),
     )
 
     scan_parser.add_argument(
         "--case",
         default=None,
-        help=(
-            "Forensic case identifier."
-        ),
+        help="Forensic case ID.",
     )
 
     scan_parser.add_argument(
         "--examiner",
         default=None,
-        help=(
-            "Name or identifier of examiner."
-        ),
+        help="Examiner name.",
     )
 
     scan_parser.set_defaults(
         handler=command_scan
     )
 
-    # ========================================================================
+    # ------------------------------------------------------------------------
     # REPORT
-    # ========================================================================
+    # ------------------------------------------------------------------------
 
-    report_parser = subparsers.add_parser(
-        "report",
-        help=(
-            "Generate a forensic JSON case report."
-        ),
+    report_parser = (
+        subparsers.add_parser(
+            "report",
+            help=(
+                "Generate forensic report."
+            ),
+        )
     )
 
     report_parser.add_argument(
         "--case",
         required=True,
-        help=(
-            "Forensic case identifier."
-        ),
+        help="Case ID.",
     )
 
     report_parser.add_argument(
         "--examiner",
         required=True,
-        help=(
-            "Name or identifier of examiner."
-        ),
+        help="Examiner.",
     )
 
     report_parser.add_argument(
         "--input",
         type=Path,
         required=True,
-        help=(
-            "Input evidence/report data."
-        ),
+        help="Input report data.",
     )
 
     report_parser.add_argument(
         "--output",
         type=Path,
-        default=Path("report.json"),
-        help=(
-            "Output report path "
-            "(default: report.json)."
+        default=(
+            FORENSIC_ROOT /
+            "report.json"
         ),
+        help="Output report.",
     )
 
     report_parser.set_defaults(
@@ -1116,60 +1109,45 @@ def build_parser() -> argparse.ArgumentParser:
 def normalize_scan_input(
     args: argparse.Namespace,
 ) -> None:
-    """
-    Support both:
 
-        scan evidence/test.img
+    positional =
+        getattr(
+            args,
+            "input",
+            None,
+        )
 
-    and:
-
-        scan --input evidence/test.img
-
-    The latter is useful when the Express backend
-    launches the forensic engine.
-    """
-
-    positional_input = getattr(
-        args,
-        "input",
-        None,
-    )
-
-    option_input = getattr(
-        args,
-        "input_option",
-        None,
-    )
+    optional =
+        getattr(
+            args,
+            "input_option",
+            None,
+        )
 
     if (
-        positional_input is not None
-        and option_input is not None
+        positional is not None
+        and optional is not None
     ):
-
         raise ValueError(
             "Specify the evidence input only once."
         )
 
-    resolved_input = (
-        option_input
-        or positional_input
-    )
+    resolved =
+        optional or positional
 
-    if resolved_input is None:
-
+    if resolved is None:
         raise ValueError(
             "Evidence input is required. "
             "Use: scan <file> or "
             "scan --input <file>."
         )
 
-    args.input = resolved_input
+    args.input = resolved
 
     if hasattr(
         args,
         "input_option",
     ):
-
         delattr(
             args,
             "input_option",
@@ -1183,12 +1161,6 @@ def normalize_scan_input(
 def main(
     argv: list[str] | None = None,
 ) -> int:
-    """
-    CLI application entry point.
-
-    Returns:
-        Process exit code.
-    """
 
     parser = build_parser()
 
@@ -1200,30 +1172,17 @@ def main(
         verbose=args.verbose
     )
 
-    # ------------------------------------------------------------------------
-    # Normalize scan arguments.
-    # ------------------------------------------------------------------------
-
     if args.command == "scan":
-
         try:
-
             normalize_scan_input(
                 args
             )
-
         except ValueError as exc:
-
             parser.error(
                 str(exc)
             )
 
-    # ------------------------------------------------------------------------
-    # Execute command.
-    # ------------------------------------------------------------------------
-
     try:
-
         return args.handler(
             args
         )
@@ -1250,7 +1209,7 @@ def main(
     except KeyboardInterrupt:
 
         logger.error(
-            "Operation cancelled by user."
+            "Operation cancelled."
         )
 
         return 130
@@ -1269,7 +1228,6 @@ def main(
 # ============================================================================
 
 if __name__ == "__main__":
-
     sys.exit(
         main()
     )
