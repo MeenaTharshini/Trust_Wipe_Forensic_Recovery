@@ -1,11 +1,3 @@
-hashlib
-json
-os
-pathlib
-argparse
-datetime
-struct
-re
-subprocess
-typing
-dataclasses
+# backend/forensic_recovery/requirements.txt
+
+# No external Python dependencies required.

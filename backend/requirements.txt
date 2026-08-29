@@ -1,11 +1,4 @@
-hashlib
-json
-os
-pathlib
-argparse
-datetime
-struct
-re
-subprocess
-typing
-dataclasses
+# TrustWipe Forensic Recovery
+# Python standard-library modules require no pip installation.
+
+# No external Python dependencies required.
