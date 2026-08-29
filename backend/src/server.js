@@ -13,7 +13,7 @@ import wipeRoutes from "./routes/wipeRoutes.js";
 import verificationRoutes from "./routes/verificationRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
-
+import forensicRoutes from "./routes/forensic.js";
 import { initAgentClient } from "./socket/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -49,7 +49,7 @@ app.use("/api/wipe", wipeRoutes);
 app.use("/api/verification", verificationRoutes);
 app.use("/api/certificate", certificateRoutes);
 app.use("/api/reports", reportRoutes);
-
+app.use("/api/forensic", forensicRoutes);
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK" });
@@ -100,4 +100,3 @@ mongoose
     console.error("❌ MongoDB Connection Error:", err.message);
     process.exit(1);
   });
-
