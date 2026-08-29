@@ -138,7 +138,6 @@ out
 
 # TernJS
 .tern-port
-
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
