@@ -7,15 +7,13 @@ import {
 
 import {
   LayoutDashboard,
-  Database,
-  ShieldCheck,
-  FileText,
   BarChart3,
   Radar,
   X,
   Shield,
   LogOut,
   User,
+  ScanSearch,
 } from "lucide-react";
 
 import "./Sidebar.css";
@@ -42,6 +40,11 @@ function Sidebar() {
       name: "Dashboard",
       path: "/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      name: "Forensics",
+      path: "/forensics",
+      icon: ScanSearch,
     },
     {
       name: "Reports",
@@ -95,16 +98,19 @@ function Sidebar() {
           {menus.map((item) => {
             const Icon = item.icon;
 
+            const isActive =
+              location.pathname === item.path ||
+              location.pathname.startsWith(
+                `${item.path}/`
+              );
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setOpen(false)}
                 className={`nav-link ${
-                  location.pathname ===
-                  item.path
-                    ? "active"
-                    : ""
+                  isActive ? "active" : ""
                 }`}
               >
                 <Icon size={18} />
