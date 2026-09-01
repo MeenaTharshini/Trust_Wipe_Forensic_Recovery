@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -7,6 +8,10 @@ import {
 } from "react";
 
 import "./Forensics.css";
+
+/* ==========================================================================
+   CONFIGURATION
+   ========================================================================== */
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "";
@@ -31,7 +36,7 @@ const INTEGRITY = {
 };
 
 /* ==========================================================================
-   API HELPERS
+   API
    ========================================================================== */
 
 function apiUrl(path = "") {
@@ -110,7 +115,7 @@ async function apiFetch(path, options = {}) {
 }
 
 /* ==========================================================================
-   GENERAL HELPERS
+   HELPERS
    ========================================================================== */
 
 function firstDefined(...values) {
@@ -192,7 +197,14 @@ function formatDuration(ms) {
     return `${Math.round(value)} ms`;
   }
 
-  return `${(value / 1000).toFixed(2)} s`;
+  if (value < 60000) {
+    return `${(value / 1000).toFixed(2)} s`;
+  }
+
+  const minutes = Math.floor(value / 60000);
+  const seconds = Math.floor((value % 60000) / 1000);
+
+  return `${minutes}m ${seconds}s`;
 }
 
 function getFileType(fileName = "") {
@@ -509,7 +521,8 @@ function normalizeRecoveredFile(file) {
 export default function Forensics() {
   const fileInputRef = useRef(null);
 
-  const [status, setStatus] = useState(STATUS.IDLE);
+  const [status, setStatus] =
+    useState(STATUS.IDLE);
 
   const [engine, setEngine] = useState({
     available: false,
@@ -518,34 +531,46 @@ export default function Forensics() {
   });
 
   const [evidence, setEvidence] = useState([]);
+
   const [selectedEvidence, setSelectedEvidence] =
     useState(null);
 
-  const [integrity, setIntegrity] = useState(null);
+  const [integrity, setIntegrity] =
+    useState(null);
 
   const [recoveredFiles, setRecoveredFiles] =
     useState([]);
 
-  const [report, setReport] = useState(null);
-  const [reportFile, setReportFile] = useState(null);
+  const [report, setReport] =
+    useState(null);
 
-  const [scanStats, setScanStats] = useState(null);
+  const [reportFile, setReportFile] =
+    useState(null);
+
+  const [scanStats, setScanStats] =
+    useState(null);
 
   const [caseId, setCaseId] = useState(
     createLocalCaseId()
   );
 
-  const [examiner, setExaminer] = useState("");
+  const [examiner, setExaminer] =
+    useState("");
 
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] =
+    useState(false);
 
   const [progressMessage, setProgressMessage] =
     useState("");
 
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [error, setError] =
+    useState("");
 
-  const [scanOutput, setScanOutput] = useState("");
+  const [notice, setNotice] =
+    useState("");
+
+  const [scanOutput, setScanOutput] =
+    useState("");
 
   const [lastScanDuration, setLastScanDuration] =
     useState(null);
@@ -566,7 +591,8 @@ export default function Forensics() {
   const integrityVerified =
     integrity?.status === INTEGRITY.VERIFIED &&
     integrity?.verified === true &&
-    integrity?.hashMatch === true;
+    integrity?.hashMatch === true &&
+    integrity?.sizeMatch === true;
 
   const canVerify =
     Boolean(selectedEvidence) && !busy;
@@ -590,103 +616,115 @@ export default function Forensics() {
      ENGINE STATUS
      ========================================================================== */
 
-  const loadEngineStatus = useCallback(async () => {
-    try {
-      const response = await apiFetch(
-        "/api/forensic/status"
-      );
+  const loadEngineStatus = useCallback(
+    async () => {
+      try {
+        const response = await apiFetch(
+          "/api/forensic/status"
+        );
 
-      const available = toBoolean(
-        firstDefined(
-          response?.pythonAvailable,
-          response?.python_available,
-          response?.available,
-          response?.engineAvailable,
-          response?.engine_available
-        )
-      );
+        const available = toBoolean(
+          firstDefined(
+            response?.pythonAvailable,
+            response?.python_available,
+            response?.available,
+            response?.engineAvailable,
+            response?.engine_available
+          )
+        );
 
-      const version =
-        firstDefined(
-          response?.pythonVersion,
-          response?.python_version,
-          response?.version,
-          response?.engineVersion,
-          response?.engine_version
-        ) || null;
+        const version =
+          firstDefined(
+            response?.pythonVersion,
+            response?.python_version,
+            response?.version,
+            response?.engineVersion,
+            response?.engine_version
+          ) || null;
 
-      setEngine({
-        available,
-        version,
-        message:
-          response?.message ||
-          (available
-            ? "Forensic engine is ready."
-            : "Forensic engine unavailable."),
-      });
-    } catch (err) {
-      setEngine({
-        available: false,
-        version: null,
-        message:
-          err.message ||
-          "Forensic engine unavailable.",
-      });
-    }
-  }, []);
+        setEngine({
+          available,
+          version,
+          message:
+            response?.message ||
+            (available
+              ? "Forensic engine is ready."
+              : "Forensic engine unavailable."),
+        });
+      } catch (err) {
+        setEngine({
+          available: false,
+          version: null,
+          message:
+            err.message ||
+            "Forensic engine unavailable.",
+        });
+      }
+    },
+    []
+  );
 
   /* ==========================================================================
      EVIDENCE REPOSITORY
      ========================================================================== */
 
-  const loadEvidence = useCallback(async () => {
-    try {
-      const response = await apiFetch(
-        "/api/forensic/evidence"
-      );
-
-      const rawItems = Array.isArray(response)
-        ? response
-        : Array.isArray(response?.evidence)
-        ? response.evidence
-        : Array.isArray(response?.data)
-        ? response.data
-        : Array.isArray(response?.data?.evidence)
-        ? response.data.evidence
-        : [];
-
-      const items = rawItems
-        .map(normalizeEvidence)
-        .filter(Boolean);
-
-      setEvidence(items);
-
-      setSelectedEvidence((current) => {
-        if (!current) return null;
-
-        const refreshed = items.find(
-          (item) =>
-            (current.evidenceId &&
-              item.evidenceId ===
-                current.evidenceId) ||
-            (!current.evidenceId &&
-              item.name === current.name)
+  const loadEvidence = useCallback(
+    async () => {
+      try {
+        const response = await apiFetch(
+          "/api/forensic/evidence"
         );
 
-        return refreshed || current;
-      });
-    } catch (err) {
-      setError(
-        err.message ||
-          "Unable to load evidence repository."
-      );
-    }
-  }, []);
+        const rawItems =
+          Array.isArray(response)
+            ? response
+            : Array.isArray(response?.evidence)
+            ? response.evidence
+            : Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(
+                response?.data?.evidence
+              )
+            ? response.data.evidence
+            : [];
+
+        const items = rawItems
+          .map(normalizeEvidence)
+          .filter(Boolean);
+
+        setEvidence(items);
+
+        setSelectedEvidence((current) => {
+          if (!current) return null;
+
+          const refreshed = items.find(
+            (item) =>
+              (current.evidenceId &&
+                item.evidenceId ===
+                  current.evidenceId) ||
+              (!current.evidenceId &&
+                item.name === current.name)
+          );
+
+          return refreshed || current;
+        });
+      } catch (err) {
+        setError(
+          err.message ||
+            "Unable to load evidence repository."
+        );
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     loadEngineStatus();
     loadEvidence();
-  }, [loadEngineStatus, loadEvidence]);
+  }, [
+    loadEngineStatus,
+    loadEvidence,
+  ]);
 
   /* ==========================================================================
      SELECT EVIDENCE
@@ -762,7 +800,8 @@ export default function Forensics() {
           );
         }
 
-        const formData = new FormData();
+        const formData =
+          new FormData();
 
         formData.append(
           "evidence",
@@ -782,12 +821,13 @@ export default function Forensics() {
         const result =
           await parseResponse(response);
 
-        const acquired = normalizeEvidence(
-          result?.evidence ||
-            result?.data?.evidence ||
-            result?.data ||
-            result
-        );
+        const acquired =
+          normalizeEvidence(
+            result?.evidence ||
+              result?.data?.evidence ||
+              result?.data ||
+              result
+          );
 
         if (!acquired) {
           throw new Error(
@@ -803,17 +843,15 @@ export default function Forensics() {
 
         setSelectedEvidence(acquired);
 
-        setStatus(
-          acquired.acquisitionHash
-            ? STATUS.READY
-            : STATUS.FAILED
-        );
-
         if (!acquired.acquisitionHash) {
+          setStatus(STATUS.FAILED);
+
           setError(
-            "Evidence was uploaded, but the server did not return an acquisition SHA-256 baseline."
+            "Evidence was uploaded, but no acquisition SHA-256 baseline was returned."
           );
         } else {
+          setStatus(STATUS.READY);
+
           setNotice(
             result?.message ||
               "Evidence acquired successfully. Verify SHA-256 before recovery."
@@ -836,626 +874,726 @@ export default function Forensics() {
     [loadEvidence]
   );
 
-  const handleFileChange = useCallback(
-    async (event) => {
-      const file = event.target.files?.[0];
+  const handleFileChange =
+    useCallback(
+      async (event) => {
+        const file =
+          event.target.files?.[0];
 
-      event.target.value = "";
+        event.target.value = "";
 
-      if (file) {
-        await acquireEvidence(file);
-      }
-    },
-    [acquireEvidence]
-  );
+        if (file) {
+          await acquireEvidence(file);
+        }
+      },
+      [acquireEvidence]
+    );
 
   /* ==========================================================================
      VERIFY INTEGRITY
      ========================================================================== */
 
-  const verifyIntegrity = useCallback(async () => {
-    if (!selectedEvidence) {
-      setError("Select evidence first.");
-      return;
-    }
-
-    setBusy(true);
-    setError("");
-    setNotice("");
-    setStatus(STATUS.VERIFYING);
-
-    setProgressMessage(
-      "Calculating current SHA-256 and comparing it with the acquisition baseline..."
-    );
-
-    try {
-      const response = await apiFetch(
-        "/api/forensic/verify-integrity",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            evidenceId: selectedEvidenceId,
-            evidence_id: selectedEvidenceId,
-            fileName: selectedFileName,
-            file_name: selectedFileName,
-          }),
-        }
-      );
-
-      const result = normalizeIntegrity(
-        response?.integrity ||
-          response?.data?.integrity ||
-          response?.data ||
-          response
-      );
-
-      if (!result) {
-        throw new Error(
-          "Server returned no integrity verification result."
-        );
+  const verifyIntegrity =
+    useCallback(async () => {
+      if (!selectedEvidence) {
+        setError("Select evidence first.");
+        return;
       }
 
-      setIntegrity(result);
+      setBusy(true);
+      setError("");
+      setNotice("");
+      setStatus(STATUS.VERIFYING);
 
-      if (
-        result.status === INTEGRITY.VERIFIED &&
-        result.verified === true &&
-        result.hashMatch === true
-      ) {
-        setStatus(STATUS.READY);
+      setProgressMessage(
+        "Calculating current SHA-256 and comparing it with the acquisition baseline..."
+      );
 
-        setNotice(
-          "Evidence integrity VERIFIED. Forensic recovery is now unlocked."
-        );
-      } else {
+      try {
+        const response =
+          await apiFetch(
+            "/api/forensic/verify-integrity",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+              body: JSON.stringify({
+                evidenceId:
+                  selectedEvidenceId,
+                evidence_id:
+                  selectedEvidenceId,
+                fileName:
+                  selectedFileName,
+                file_name:
+                  selectedFileName,
+              }),
+            }
+          );
+
+        const result =
+          normalizeIntegrity(
+            response?.integrity ||
+              response?.data?.integrity ||
+              response?.data ||
+              response
+          );
+
+        if (!result) {
+          throw new Error(
+            "Server returned no integrity verification result."
+          );
+        }
+
+        setIntegrity(result);
+
+        if (
+          result.status ===
+            INTEGRITY.VERIFIED &&
+          result.verified === true &&
+          result.hashMatch === true &&
+          result.sizeMatch === true
+        ) {
+          setStatus(STATUS.READY);
+
+          setNotice(
+            "Evidence integrity VERIFIED. Forensic recovery is now unlocked."
+          );
+        } else {
+          setStatus(STATUS.FAILED);
+
+          setError(
+            result.message ||
+              "Evidence integrity verification failed."
+          );
+        }
+      } catch (err) {
         setStatus(STATUS.FAILED);
 
         setError(
-          result.message ||
-            "Evidence integrity verification failed."
+          err.message ||
+            "Integrity verification failed."
         );
+      } finally {
+        setBusy(false);
+        setProgressMessage("");
       }
-    } catch (err) {
-      setStatus(STATUS.FAILED);
-
-      setError(
-        err.message ||
-          "Integrity verification failed."
-      );
-    } finally {
-      setBusy(false);
-      setProgressMessage("");
-    }
-  }, [
-    selectedEvidence,
-    selectedEvidenceId,
-    selectedFileName,
-  ]);
+    }, [
+      selectedEvidence,
+      selectedEvidenceId,
+      selectedFileName,
+    ]);
 
   /* ==========================================================================
      FORENSIC SCAN
      ========================================================================== */
 
-  const runForensicScan = useCallback(async () => {
-    if (!selectedEvidence) {
-      setError(
-        "Select evidence before starting recovery."
+  const runForensicScan =
+    useCallback(async () => {
+      if (!selectedEvidence) {
+        setError(
+          "Select evidence before starting recovery."
+        );
+        return;
+      }
+
+      if (!integrityVerified) {
+        setError(
+          "Recovery is blocked until evidence integrity is VERIFIED."
+        );
+        return;
+      }
+
+      if (!engine.available) {
+        setError(
+          "The Python forensic engine is unavailable."
+        );
+        return;
+      }
+
+      if (!caseId.trim()) {
+        setError("Case ID is required.");
+        return;
+      }
+
+      if (!examiner.trim()) {
+        setError(
+          "Examiner name is required."
+        );
+        return;
+      }
+
+      setBusy(true);
+      setError("");
+      setNotice("");
+      setStatus(STATUS.SCANNING);
+
+      setRecoveredFiles([]);
+      setScanStats(null);
+      setReport(null);
+      setReportFile(null);
+      setScanOutput("");
+      setLastOperation(null);
+
+      setProgressMessage(
+        "Scanning verified evidence. Detecting signatures, carving ranges and validating artifacts..."
       );
-      return;
-    }
 
-    if (!integrityVerified) {
-      setError(
-        "Recovery is blocked until evidence integrity is VERIFIED."
-      );
-      return;
-    }
+      const started =
+        performance.now();
 
-    if (!engine.available) {
-      setError(
-        "The Python forensic engine is unavailable."
-      );
-      return;
-    }
+      try {
+        const response =
+          await apiFetch(
+            "/api/forensic/scan",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+              body: JSON.stringify({
+                evidenceId:
+                  selectedEvidenceId,
+                evidence_id:
+                  selectedEvidenceId,
 
-    if (!caseId.trim()) {
-      setError("Case ID is required.");
-      return;
-    }
+                fileName:
+                  selectedFileName,
+                file_name:
+                  selectedFileName,
 
-    if (!examiner.trim()) {
-      setError("Examiner name is required.");
-      return;
-    }
+                caseId:
+                  caseId.trim(),
 
-    setBusy(true);
-    setError("");
-    setNotice("");
-    setStatus(STATUS.SCANNING);
+                case_id:
+                  caseId.trim(),
 
-    setRecoveredFiles([]);
-    setScanStats(null);
-    setReport(null);
-    setReportFile(null);
-    setScanOutput("");
-    setLastOperation(null);
+                examiner:
+                  examiner.trim(),
+              }),
+            }
+          );
 
-    setProgressMessage(
-      "Scanning verified evidence. Detecting signatures, carving ranges and validating artifacts..."
-    );
+        const duration =
+          Math.round(
+            performance.now() - started
+          );
 
-    const started = performance.now();
+        const stats =
+          response?.scanStats ||
+          response?.scan_stats ||
+          response?.statistics ||
+          response?.stats ||
+          response?.data?.scanStats ||
+          response?.data?.scan_stats ||
+          {};
 
-    try {
-      const response = await apiFetch(
-        "/api/forensic/scan",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            evidenceId: selectedEvidenceId,
-            evidence_id: selectedEvidenceId,
+        const durationMs =
+          response?.durationMs ??
+          response?.duration_ms ??
+          stats?.durationMs ??
+          stats?.duration_ms ??
+          duration;
 
-            fileName: selectedFileName,
-            file_name: selectedFileName,
+        setLastScanDuration(
+          durationMs
+        );
 
-            caseId: caseId.trim(),
-            case_id: caseId.trim(),
+        setScanStats({
+          evidenceSize:
+            stats?.evidenceSize ??
+            stats?.evidence_size ??
+            selectedEvidence.size,
 
-            examiner: examiner.trim(),
-          }),
+          chunkSize:
+            stats?.chunkSize ??
+            stats?.chunk_size ??
+            null,
+
+          overlapSize:
+            stats?.overlapSize ??
+            stats?.overlap_size ??
+            null,
+
+          chunksScanned:
+            stats?.chunksScanned ??
+            stats?.chunks_scanned ??
+            null,
+
+          bytesScanned:
+            stats?.bytesScanned ??
+            stats?.bytes_scanned ??
+            null,
+
+          signaturesDetected:
+            stats?.signaturesDetected ??
+            stats?.signatures_detected ??
+            response?.signaturesDetected ??
+            response?.signatures_detected ??
+            0,
+
+          candidatesFound:
+            stats?.candidatesFound ??
+            stats?.candidates_found ??
+            response?.candidateCount ??
+            response?.candidate_count ??
+            0,
+
+          artifactsCarved:
+            stats?.artifactsCarved ??
+            stats?.artifacts_carved ??
+            0,
+
+          artifactsValidated:
+            stats?.artifactsValidated ??
+            stats?.artifacts_validated ??
+            response?.validatedCount ??
+            response?.validated_count ??
+            0,
+
+          durationMs,
+
+          status:
+            stats?.status ||
+            response?.scanStatus ||
+            response?.scan_status ||
+            "COMPLETED",
+        });
+
+        const rawRecovered =
+          response?.recoveredFiles ||
+          response?.recovered_files ||
+          response?.artifacts ||
+          response?.data?.recoveredFiles ||
+          response?.data?.recovered_files ||
+          response?.data?.artifacts ||
+          [];
+
+        const normalizedRecovered =
+          (
+            Array.isArray(
+              rawRecovered
+            )
+              ? rawRecovered
+              : []
+          )
+            .map(
+              normalizeRecoveredFile
+            )
+            .filter(Boolean);
+
+        setRecoveredFiles(
+          normalizedRecovered
+        );
+
+        setScanOutput(
+          response?.output ||
+            response?.stdout ||
+            response?.consoleOutput ||
+            response?.console_output ||
+            response?.data?.output ||
+            ""
+        );
+
+        /* ---------------------------------------------------------------
+           POST-SCAN INTEGRITY
+           --------------------------------------------------------------- */
+
+        const postScanIntegrity =
+          response?.integrity ||
+          response?.postScanIntegrity ||
+          response?.post_scan_integrity ||
+          response?.data?.integrity ||
+          response?.data?.postScanIntegrity ||
+          response?.data?.post_scan_integrity;
+
+        const postScan =
+          normalizeIntegrity(
+            postScanIntegrity
+          );
+
+        if (!postScan) {
+          setStatus(
+            STATUS.FAILED
+          );
+
+          setError(
+            "Forensic scan completed, but post-scan integrity verification was not returned."
+          );
+
+          return;
         }
-      );
 
-      const duration = Math.round(
-        performance.now() - started
-      );
+        setIntegrity(postScan);
 
-      const stats =
-        response?.scanStats ||
-        response?.scan_stats ||
-        response?.statistics ||
-        response?.stats ||
-        response?.data?.scanStats ||
-        response?.data?.scan_stats ||
-        {};
+        if (
+          postScan.status !==
+            INTEGRITY.VERIFIED ||
+          postScan.verified !== true ||
+          postScan.hashMatch !== true ||
+          postScan.sizeMatch !== true
+        ) {
+          setStatus(
+            STATUS.FAILED
+          );
 
-      const durationMs =
-        response?.durationMs ??
-        response?.duration_ms ??
-        stats?.durationMs ??
-        stats?.duration_ms ??
-        duration;
+          setError(
+            "Evidence integrity changed or could not be verified after recovery. Recovered artifacts must not be treated as verified evidence."
+          );
 
-      setLastScanDuration(durationMs);
+          return;
+        }
 
-      setScanStats({
-        evidenceSize:
-          stats?.evidenceSize ??
-          stats?.evidence_size ??
-          selectedEvidence.size,
+        const finalCaseId =
+          response?.caseId ||
+          response?.case_id ||
+          caseId.trim();
 
-        chunkSize:
-          stats?.chunkSize ??
-          stats?.chunk_size ??
-          null,
+        const finalExaminer =
+          response?.examiner ||
+          examiner.trim();
 
-        overlapSize:
-          stats?.overlapSize ??
-          stats?.overlap_size ??
-          null,
+        setLastOperation({
+          caseId:
+            finalCaseId,
+          examiner:
+            finalExaminer,
+          completedAt:
+            new Date().toISOString(),
+        });
 
-        chunksScanned:
-          stats?.chunksScanned ??
-          stats?.chunks_scanned ??
-          null,
+        setStatus(
+          STATUS.COMPLETED
+        );
 
-        bytesScanned:
-          stats?.bytesScanned ??
-          stats?.bytes_scanned ??
-          null,
-
-        signaturesDetected:
-          stats?.signaturesDetected ??
-          stats?.signatures_detected ??
-          response?.signaturesDetected ??
-          response?.signatures_detected ??
-          0,
-
-        candidatesFound:
-          stats?.candidatesFound ??
-          stats?.candidates_found ??
-          response?.candidateCount ??
-          response?.candidate_count ??
-          0,
-
-        artifactsCarved:
-          stats?.artifactsCarved ??
-          stats?.artifacts_carved ??
-          0,
-
-        artifactsValidated:
-          stats?.artifactsValidated ??
-          stats?.artifacts_validated ??
+        const validatedCount =
           response?.validatedCount ??
           response?.validated_count ??
-          0,
+          stats?.artifactsValidated ??
+          stats?.artifacts_validated ??
+          normalizedRecovered.length;
 
-        durationMs,
+        const candidateCount =
+          response?.candidateCount ??
+          response?.candidate_count ??
+          stats?.candidatesFound ??
+          stats?.candidates_found ??
+          0;
 
-        status:
-          stats?.status ||
-          response?.scanStatus ||
-          response?.scan_status ||
-          "COMPLETED",
-      });
+        setNotice(
+          response?.message ||
+            `Forensic recovery completed. ${candidateCount} candidate range(s) identified and ${validatedCount} artifact(s) validated.`
+        );
+      } catch (err) {
+        setStatus(
+          STATUS.FAILED
+        );
 
-      const rawRecovered =
-        response?.recoveredFiles ||
-        response?.recovered_files ||
-        response?.artifacts ||
-        response?.data?.recoveredFiles ||
-        response?.data?.recovered_files ||
-        response?.data?.artifacts ||
-        [];
+        const serverIntegrity =
+          err.response?.integrity ||
+          err.response?.data?.integrity;
 
-      const recoveredArray =
-        Array.isArray(rawRecovered)
-          ? rawRecovered
-          : [];
-
-      const normalizedRecovered =
-        recoveredArray
-          .map(normalizeRecoveredFile)
-          .filter(Boolean);
-
-      setRecoveredFiles(normalizedRecovered);
-
-      setScanOutput(
-        response?.output ||
-          response?.stdout ||
-          response?.consoleOutput ||
-          response?.console_output ||
-          response?.data?.output ||
-          ""
-      );
-
-      /* ---------------------------------------------------------------
-         POST-SCAN INTEGRITY
-         --------------------------------------------------------------- */
-
-      const postScanIntegrity =
-        response?.integrity ||
-        response?.postScanIntegrity ||
-        response?.post_scan_integrity ||
-        response?.data?.integrity ||
-        response?.data?.postScanIntegrity ||
-        response?.data?.post_scan_integrity;
-
-      const postScan = normalizeIntegrity(
-        postScanIntegrity
-      );
-
-      if (!postScan) {
-        setStatus(STATUS.FAILED);
+        if (serverIntegrity) {
+          setIntegrity(
+            normalizeIntegrity(
+              serverIntegrity
+            )
+          );
+        }
 
         setError(
-          "Forensic scan completed, but the server did not return post-scan integrity verification."
+          err.message ||
+            "Forensic recovery failed."
         );
-
-        return;
+      } finally {
+        setBusy(false);
+        setProgressMessage("");
       }
-
-      setIntegrity(postScan);
-
-      if (
-        postScan.status !==
-          INTEGRITY.VERIFIED ||
-        postScan.verified !== true ||
-        postScan.hashMatch !== true
-      ) {
-        setStatus(STATUS.FAILED);
-
-        setError(
-          "Evidence integrity changed or could not be verified after recovery. The recovered artifacts must not be treated as verified evidence."
-        );
-
-        return;
-      }
-
-      const finalCaseId =
-        response?.caseId ||
-        response?.case_id ||
-        caseId.trim();
-
-      const finalExaminer =
-        response?.examiner ||
-        examiner.trim();
-
-      setLastOperation({
-        caseId: finalCaseId,
-        examiner: finalExaminer,
-        completedAt:
-          new Date().toISOString(),
-      });
-
-      setStatus(STATUS.COMPLETED);
-
-      const validatedCount =
-        response?.validatedCount ??
-        response?.validated_count ??
-        stats?.artifactsValidated ??
-        stats?.artifacts_validated ??
-        normalizedRecovered.length;
-
-      const candidateCount =
-        response?.candidateCount ??
-        response?.candidate_count ??
-        stats?.candidatesFound ??
-        stats?.candidates_found ??
-        0;
-
-      setNotice(
-        response?.message ||
-          `Forensic recovery completed. ${candidateCount} candidate range(s) identified and ${validatedCount} artifact(s) validated.`
-      );
-    } catch (err) {
-      setStatus(STATUS.FAILED);
-
-      const serverIntegrity =
-        err.response?.integrity ||
-        err.response?.data?.integrity;
-
-      if (serverIntegrity) {
-        setIntegrity(
-          normalizeIntegrity(serverIntegrity)
-        );
-      }
-
-      setError(
-        err.message ||
-          "Forensic recovery failed."
-      );
-    } finally {
-      setBusy(false);
-      setProgressMessage("");
-    }
-  }, [
-    selectedEvidence,
-    selectedEvidenceId,
-    selectedFileName,
-    integrityVerified,
-    engine.available,
-    caseId,
-    examiner,
-  ]);
+    }, [
+      selectedEvidence,
+      selectedEvidenceId,
+      selectedFileName,
+      integrityVerified,
+      engine.available,
+      caseId,
+      examiner,
+    ]);
 
   /* ==========================================================================
      REPORT
      ========================================================================== */
 
-  const generateReport = useCallback(async () => {
-    if (!selectedEvidence) {
-      setError("Select evidence first.");
-      return;
-    }
-
-    if (!integrityVerified) {
-      setError(
-        "Report generation requires VERIFIED evidence."
-      );
-      return;
-    }
-
-    if (!caseId.trim()) {
-      setError("Case ID is required.");
-      return;
-    }
-
-    if (!examiner.trim()) {
-      setError("Examiner name is required.");
-      return;
-    }
-
-    setBusy(true);
-    setError("");
-    setNotice("");
-
-    try {
-      const response = await apiFetch(
-        "/api/forensic/report",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            evidenceId: selectedEvidenceId,
-            evidence_id: selectedEvidenceId,
-
-            fileName: selectedFileName,
-            file_name: selectedFileName,
-
-            caseId: caseId.trim(),
-            case_id: caseId.trim(),
-
-            examiner: examiner.trim(),
-          }),
-        }
-      );
-
-      const generatedReport =
-        response?.report ||
-        response?.data?.report ||
-        response?.data ||
-        null;
-
-      if (
-        !generatedReport ||
-        typeof generatedReport !== "object"
-      ) {
-        throw new Error(
-          "Report generation returned no report data."
+  const generateReport =
+    useCallback(async () => {
+      if (!selectedEvidence) {
+        setError(
+          "Select evidence first."
         );
+        return;
       }
 
-      setReport(generatedReport);
+      if (!integrityVerified) {
+        setError(
+          "Report generation requires VERIFIED evidence."
+        );
+        return;
+      }
 
-      const generatedReportFile =
-        response?.reportFile ||
-        response?.report_file ||
-        response?.downloadPath ||
-        response?.download_path ||
-        response?.data?.reportFile ||
-        response?.data?.report_file ||
-        generatedReport?.reportFile ||
-        generatedReport?.report_file ||
-        generatedReport?.downloadPath ||
-        generatedReport?.download_path ||
-        null;
+      if (!caseId.trim()) {
+        setError(
+          "Case ID is required."
+        );
+        return;
+      }
 
-      setReportFile(generatedReportFile);
+      if (!examiner.trim()) {
+        setError(
+          "Examiner name is required."
+        );
+        return;
+      }
 
-      if (generatedReport.integrity) {
-        const normalized =
-          normalizeIntegrity(
-            generatedReport.integrity
+      setBusy(true);
+      setError("");
+      setNotice("");
+
+      try {
+        const response =
+          await apiFetch(
+            "/api/forensic/report",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+              body: JSON.stringify({
+                evidenceId:
+                  selectedEvidenceId,
+                evidence_id:
+                  selectedEvidenceId,
+
+                fileName:
+                  selectedFileName,
+                file_name:
+                  selectedFileName,
+
+                caseId:
+                  caseId.trim(),
+                case_id:
+                  caseId.trim(),
+
+                examiner:
+                  examiner.trim(),
+              }),
+            }
           );
 
-        if (normalized) {
-          setIntegrity(normalized);
+        const generatedReport =
+          response?.report ||
+          response?.data?.report ||
+          response?.data ||
+          null;
 
-          if (
-            normalized.status !==
-              INTEGRITY.VERIFIED ||
-            normalized.verified !== true ||
-            normalized.hashMatch !== true
-          ) {
-            setStatus(STATUS.FAILED);
+        if (
+          !generatedReport ||
+          typeof generatedReport !==
+            "object"
+        ) {
+          throw new Error(
+            "Report generation returned no report data."
+          );
+        }
 
-            setError(
-              "The generated report indicates that evidence integrity is not VERIFIED."
+        setReport(
+          generatedReport
+        );
+
+        const generatedReportFile =
+          response?.reportFile ||
+          response?.report_file ||
+          response?.downloadPath ||
+          response?.download_path ||
+          response?.data?.reportFile ||
+          response?.data?.report_file ||
+          generatedReport?.reportFile ||
+          generatedReport?.report_file ||
+          generatedReport?.downloadPath ||
+          generatedReport?.download_path ||
+          null;
+
+        setReportFile(
+          generatedReportFile
+        );
+
+        if (generatedReport.integrity) {
+          const normalized =
+            normalizeIntegrity(
+              generatedReport.integrity
             );
 
-            return;
+          if (normalized) {
+            setIntegrity(
+              normalized
+            );
+
+            if (
+              normalized.status !==
+                INTEGRITY.VERIFIED ||
+              normalized.verified !== true ||
+              normalized.hashMatch !== true ||
+              normalized.sizeMatch !== true
+            ) {
+              setStatus(
+                STATUS.FAILED
+              );
+
+              setError(
+                "The generated report indicates that evidence integrity is not VERIFIED."
+              );
+
+              return;
+            }
           }
         }
-      }
 
-      setNotice(
-        response?.message ||
-          "Forensic evidence report generated successfully."
-      );
-    } catch (err) {
-      setError(
-        err.message ||
-          "Unable to generate forensic report."
-      );
-    } finally {
-      setBusy(false);
-    }
-  }, [
-    selectedEvidence,
-    selectedEvidenceId,
-    selectedFileName,
-    integrityVerified,
-    caseId,
-    examiner,
-  ]);
+        setNotice(
+          response?.message ||
+            "Forensic evidence report generated successfully."
+        );
+      } catch (err) {
+        setError(
+          err.message ||
+            "Unable to generate forensic report."
+        );
+      } finally {
+        setBusy(false);
+      }
+    }, [
+      selectedEvidence,
+      selectedEvidenceId,
+      selectedFileName,
+      integrityVerified,
+      caseId,
+      examiner,
+    ]);
 
   /* ==========================================================================
      RESET
      ========================================================================== */
 
-  const resetWorkspace = useCallback(() => {
-    if (busy) return;
+  const resetWorkspace =
+    useCallback(() => {
+      if (busy) return;
 
-    setSelectedEvidence(null);
-    setIntegrity(null);
-    setRecoveredFiles([]);
-    setScanStats(null);
-    setReport(null);
-    setReportFile(null);
-    setScanOutput("");
+      setSelectedEvidence(null);
+      setIntegrity(null);
+      setRecoveredFiles([]);
+      setScanStats(null);
+      setReport(null);
+      setReportFile(null);
+      setScanOutput("");
 
-    setError("");
-    setNotice("");
+      setError("");
+      setNotice("");
 
-    setStatus(STATUS.IDLE);
+      setStatus(
+        STATUS.IDLE
+      );
 
-    setLastScanDuration(null);
-    setLastOperation(null);
+      setLastScanDuration(null);
+      setLastOperation(null);
 
-    setCaseId(createLocalCaseId());
-    setExaminer("");
-  }, [busy]);
+      setCaseId(
+        createLocalCaseId()
+      );
+
+      setExaminer("");
+    }, [busy]);
 
   /* ==========================================================================
      DOWNLOADS
      ========================================================================== */
 
   const downloadRecoveredFile =
-    useCallback((file) => {
-      if (!file?.path) {
+    useCallback(
+      (file) => {
+        if (!file?.path) {
+          setError(
+            "This artifact has no download path."
+          );
+          return;
+        }
+
+        window.open(
+          apiUrl(file.path),
+          "_blank",
+          "noopener,noreferrer"
+        );
+      },
+      []
+    );
+
+  const downloadReport =
+    useCallback(() => {
+      if (!reportFile) {
         setError(
-          "This artifact has no download path."
+          "No report file is available."
         );
         return;
       }
 
-      const url = apiUrl(file.path);
+      const reportPath =
+        String(reportFile);
 
-      window.open(
-        url,
-        "_blank",
-        "noopener,noreferrer"
-      );
-    }, []);
-
-  const downloadReport = useCallback(() => {
-    if (!reportFile) {
-      setError(
-        "No report file is available."
-      );
-      return;
-    }
-
-    const reportPath = String(reportFile);
-
-    window.open(
-      apiUrl(
+      const url =
         reportPath.startsWith("/api/")
           ? reportPath
           : `/api/forensic/report/${encodeURIComponent(
               reportPath
-            )}`
-      ),
-      "_blank",
-      "noopener,noreferrer"
-    );
-  }, [reportFile]);
+            )}`;
+
+      window.open(
+        apiUrl(url),
+        "_blank",
+        "noopener,noreferrer"
+      );
+    }, [reportFile]);
 
   /* ==========================================================================
-     REPOSITORY STATISTICS
+     STATISTICS
      ========================================================================== */
 
-  const repositoryStats = useMemo(() => {
-    const totalSize = evidence.reduce(
-      (sum, item) =>
-        sum + Number(item.size || 0),
-      0
-    );
+  const repositoryStats =
+    useMemo(() => {
+      const totalSize =
+        evidence.reduce(
+          (sum, item) =>
+            sum +
+            Number(item.size || 0),
+          0
+        );
 
-    return {
-      total: evidence.length,
-      totalSize,
-    };
-  }, [evidence]);
+      return {
+        total: evidence.length,
+        totalSize,
+      };
+    }, [evidence]);
+
+  const validatedArtifacts =
+    useMemo(
+      () =>
+        recoveredFiles.filter(
+          (file) =>
+            String(
+              file.validationStatus
+            ).toUpperCase() ===
+            "VALID"
+        ).length,
+      [recoveredFiles]
+    );
 
   /* ==========================================================================
      RENDER
@@ -1463,9 +1601,8 @@ export default function Forensics() {
 
   return (
     <div className="forensics-page">
-      {/* ====================================================================
-          HEADER
-          ==================================================================== */}
+
+      {/* HEADER */}
 
       <header className="forensics-header">
         <div>
@@ -1473,12 +1610,14 @@ export default function Forensics() {
             SECURITY OPERATIONS CENTER
           </div>
 
-          <h1>TrustWipe Digital Forensics</h1>
+          <h1>
+            TrustWipe Digital Forensics
+          </h1>
 
           <p>
-            Secure evidence acquisition, integrity
-            verification, forensic recovery and
-            compliance-grade evidence reporting.
+            Secure evidence acquisition,
+            integrity verification, forensic
+            recovery and evidence reporting.
           </p>
         </div>
 
@@ -1515,9 +1654,7 @@ export default function Forensics() {
         </div>
       </header>
 
-      {/* ====================================================================
-          ALERTS
-          ==================================================================== */}
+      {/* ALERTS */}
 
       {error && (
         <div
@@ -1545,11 +1682,10 @@ export default function Forensics() {
         </div>
       )}
 
-      {/* ====================================================================
-          SUMMARY
-          ==================================================================== */}
+      {/* SUMMARY */}
 
       <section className="forensics-summary">
+
         <div className="summary-card">
           <span>Evidence Assets</span>
 
@@ -1590,7 +1726,7 @@ export default function Forensics() {
           <span>Validated Artifacts</span>
 
           <strong>
-            {recoveredFiles.length}
+            {validatedArtifacts}
           </strong>
 
           <small>
@@ -1611,30 +1747,31 @@ export default function Forensics() {
             Python forensic engine
           </small>
         </div>
+
       </section>
 
-      {/* ====================================================================
-          MAIN GRID
-          ==================================================================== */}
+      {/* MAIN GRID */}
 
       <div className="forensics-grid">
-        {/* ================================================================
-            EVIDENCE MANAGEMENT
-            ================================================================ */}
+
+        {/* EVIDENCE */}
 
         <section className="forensics-panel evidence-panel">
+
           <div className="panel-header">
             <div>
               <span className="panel-kicker">
                 EVIDENCE MANAGEMENT
               </span>
 
-              <h2>Acquire Evidence</h2>
+              <h2>
+                Acquire Evidence
+              </h2>
 
               <p>
-                Evidence is copied into the forensic
-                repository and assigned an immutable
-                SHA-256 acquisition baseline.
+                Evidence is copied into the
+                forensic repository and assigned
+                an acquisition SHA-256 baseline.
               </p>
             </div>
 
@@ -1709,12 +1846,14 @@ export default function Forensics() {
           </div>
 
           <div className="evidence-list">
+
             {evidence.length === 0 ? (
               <div className="empty-state">
                 No evidence has been acquired.
               </div>
             ) : (
               evidence.map((item) => {
+
                 const selected =
                   item.evidenceId &&
                   selectedEvidenceId
@@ -1740,17 +1879,23 @@ export default function Forensics() {
                     }
                     disabled={busy}
                   >
+
                     <div className="evidence-type">
-                      {getFileType(item.name)}
+                      {getFileType(
+                        item.name
+                      )}
                     </div>
 
                     <div className="evidence-details">
+
                       <strong>
                         {item.name}
                       </strong>
 
                       <small>
-                        {formatBytes(item.size)}{" "}
+                        {formatBytes(
+                          item.size
+                        )}{" "}
                         • {item.type}
                       </small>
 
@@ -1759,6 +1904,7 @@ export default function Forensics() {
                           {item.evidenceId}
                         </small>
                       )}
+
                     </div>
 
                     <div className="evidence-state">
@@ -1772,19 +1918,21 @@ export default function Forensics() {
                         </span>
                       )}
                     </div>
+
                   </button>
                 );
               })
             )}
+
           </div>
         </section>
 
-        {/* ================================================================
-            ACTIVE EVIDENCE
-            ================================================================ */}
+        {/* ACTIVE EVIDENCE */}
 
         <section className="forensics-panel active-panel">
+
           <div className="panel-header">
+
             <div>
               <span className="panel-kicker">
                 ACTIVE EVIDENCE
@@ -1801,10 +1949,13 @@ export default function Forensics() {
             >
               {status}
             </span>
+
           </div>
 
           {!selectedEvidence ? (
+
             <div className="empty-active-state">
+
               <div className="empty-icon">
                 ◇
               </div>
@@ -1817,14 +1968,17 @@ export default function Forensics() {
                 Acquire or select a forensic
                 evidence image.
               </p>
+
             </div>
+
           ) : (
+
             <>
-              {/* ============================================================
-                  METADATA
-                  ============================================================ */}
+
+              {/* METADATA */}
 
               <div className="metadata-grid">
+
                 <div>
                   <span>SIZE</span>
 
@@ -1861,15 +2015,17 @@ export default function Forensics() {
                     )}
                   </strong>
                 </div>
+
               </div>
 
-              {/* ============================================================
-                  CASE CONTROL
-                  ============================================================ */}
+              {/* CASE */}
 
               <div className="case-control">
+
                 <div className="section-title">
-                  <span>CASE CONTROL</span>
+                  <span>
+                    CASE CONTROL
+                  </span>
 
                   <small>
                     Investigation context
@@ -1877,6 +2033,7 @@ export default function Forensics() {
                 </div>
 
                 <div className="form-grid">
+
                   <label>
                     <span>CASE ID</span>
 
@@ -1907,15 +2064,16 @@ export default function Forensics() {
                       maxLength={150}
                     />
                   </label>
+
                 </div>
               </div>
 
-              {/* ============================================================
-                  INTEGRITY
-                  ============================================================ */}
+              {/* INTEGRITY */}
 
               <div className="integrity-section">
+
                 <div className="section-title">
+
                   <span>
                     EVIDENCE INTEGRITY
                   </span>
@@ -1929,20 +2087,26 @@ export default function Forensics() {
                       {integrity.status}
                     </span>
                   )}
+
                 </div>
 
                 {!integrity ? (
+
                   <div className="integrity-empty">
                     Integrity has not been verified
                     for this evidence.
                   </div>
+
                 ) : (
+
                   <>
+
                     <div
                       className={`integrity-banner ${getIntegrityClass(
                         integrity.status
                       )}`}
                     >
+
                       <strong>
                         {integrity.status ===
                         INTEGRITY.VERIFIED
@@ -1972,9 +2136,11 @@ export default function Forensics() {
                           ? "YES"
                           : "NO"}
                       </small>
+
                     </div>
 
                     <div className="hash-grid">
+
                       <div className="hash-box">
                         <span>
                           ACQUISITION SHA-256
@@ -1996,29 +2162,36 @@ export default function Forensics() {
                             "—"}
                         </code>
                       </div>
+
                     </div>
+
                   </>
                 )}
 
                 <div className="action-row">
+
                   <button
                     type="button"
                     className="secondary-button"
-                    onClick={verifyIntegrity}
+                    onClick={
+                      verifyIntegrity
+                    }
                     disabled={!canVerify}
                   >
                     Calculate &amp; Verify
                     SHA-256
                   </button>
+
                 </div>
+
               </div>
 
-              {/* ============================================================
-                  FORENSIC CONTROL
-                  ============================================================ */}
+              {/* FORENSIC CONTROL */}
 
               <div className="forensic-control">
+
                 <div className="section-title">
+
                   <div>
                     <span>
                       FORENSIC CONTROL CENTER
@@ -2029,9 +2202,11 @@ export default function Forensics() {
                       evidence integrity.
                     </small>
                   </div>
+
                 </div>
 
                 <div className="operation-flow">
+
                   <div
                     className={
                       integrityVerified
@@ -2040,7 +2215,9 @@ export default function Forensics() {
                     }
                   >
                     <span>1</span>
-                    <strong>Verify</strong>
+                    <strong>
+                      Verify
+                    </strong>
                   </div>
 
                   <div
@@ -2054,7 +2231,9 @@ export default function Forensics() {
                     }
                   >
                     <span>2</span>
-                    <strong>Recover</strong>
+                    <strong>
+                      Recover
+                    </strong>
                   </div>
 
                   <div
@@ -2065,17 +2244,24 @@ export default function Forensics() {
                     }
                   >
                     <span>3</span>
-                    <strong>Report</strong>
+                    <strong>
+                      Report
+                    </strong>
                   </div>
+
                 </div>
 
                 <div className="action-row">
+
                   <button
                     type="button"
                     className="primary-button"
-                    onClick={runForensicScan}
+                    onClick={
+                      runForensicScan
+                    }
                     disabled={!canScan}
                   >
+
                     {status ===
                     STATUS.SCANNING ? (
                       <>
@@ -2087,12 +2273,15 @@ export default function Forensics() {
                         ◈ START FORENSIC RECOVERY
                       </>
                     )}
+
                   </button>
 
                   <button
                     type="button"
                     className="secondary-button"
-                    onClick={generateReport}
+                    onClick={
+                      generateReport
+                    }
                     disabled={
                       !canGenerateReport
                     }
@@ -2103,25 +2292,33 @@ export default function Forensics() {
                   <button
                     type="button"
                     className="danger-outline-button"
-                    onClick={resetWorkspace}
+                    onClick={
+                      resetWorkspace
+                    }
                     disabled={busy}
                   >
                     RESET
                   </button>
+
                 </div>
+
               </div>
+
             </>
           )}
+
         </section>
+
       </div>
 
-      {/* ====================================================================
-          SCAN STATISTICS
-          ==================================================================== */}
+      {/* SCAN STATISTICS */}
 
       {scanStats && (
+
         <section className="forensics-panel">
+
           <div className="panel-header">
+
             <div>
               <span className="panel-kicker">
                 FORENSIC ANALYSIS
@@ -2140,9 +2337,11 @@ export default function Forensics() {
             <strong>
               {scanStats.status}
             </strong>
+
           </div>
 
           <div className="metadata-grid">
+
             <div>
               <span>EVIDENCE SIZE</span>
 
@@ -2225,9 +2424,11 @@ export default function Forensics() {
                 {scanStats.artifactsValidated}
               </strong>
             </div>
+
           </div>
 
           <div className="compliance-note">
+
             <strong>
               Forensic interpretation
             </strong>
@@ -2235,20 +2436,23 @@ export default function Forensics() {
             <p>
               A detected file signature is only
               a candidate location. An artifact is
-              reported as recovered only after the
-              carving and validation stages succeed.
+              reported as recovered only after
+              carving and validation succeed.
             </p>
+
           </div>
+
         </section>
       )}
 
-      {/* ====================================================================
-          RECOVERED ARTIFACTS
-          ==================================================================== */}
+      {/* RECOVERED ARTIFACTS */}
 
       {selectedEvidence && (
+
         <section className="forensics-panel results-panel">
+
           <div className="panel-header">
+
             <div>
               <span className="panel-kicker">
                 FORENSIC RECOVERY
@@ -2266,12 +2470,15 @@ export default function Forensics() {
             </div>
 
             <strong>
-              {recoveredFiles.length}
+              {validatedArtifacts}
             </strong>
+
           </div>
 
           {recoveredFiles.length === 0 ? (
+
             <div className="empty-results">
+
               <span>◇</span>
 
               <div>
@@ -2285,11 +2492,16 @@ export default function Forensics() {
                   recovery and validation stages.
                 </p>
               </div>
+
             </div>
+
           ) : (
+
             <div className="recovered-list">
+
               {recoveredFiles.map(
                 (file, index) => (
+
                   <div
                     className="recovered-item"
                     key={
@@ -2297,11 +2509,13 @@ export default function Forensics() {
                       `${file.name}-${index}`
                     }
                   >
+
                     <div className="recovered-type">
                       {file.type}
                     </div>
 
                     <div className="recovered-details">
+
                       <strong>
                         {file.name}
                       </strong>
@@ -2315,8 +2529,8 @@ export default function Forensics() {
 
                         {file.confidence !==
                           null &&
-                          file.confidence !==
-                            undefined
+                        file.confidence !==
+                          undefined
                           ? ` • Confidence: ${file.confidence}`
                           : ""}
                       </small>
@@ -2331,7 +2545,8 @@ export default function Forensics() {
                           </small>
                         )}
 
-                      {file.sourceEnd !== null &&
+                      {file.sourceEnd !==
+                        null &&
                         file.sourceEnd !==
                           undefined && (
                           <small>
@@ -2346,9 +2561,11 @@ export default function Forensics() {
                           {file.sha256}
                         </code>
                       )}
+
                     </div>
 
                     {file.path && (
+
                       <button
                         type="button"
                         className="secondary-button"
@@ -2360,22 +2577,28 @@ export default function Forensics() {
                       >
                         Download
                       </button>
+
                     )}
+
                   </div>
+
                 )
               )}
+
             </div>
           )}
+
         </section>
       )}
 
-      {/* ====================================================================
-          ENGINE OUTPUT
-          ==================================================================== */}
+      {/* ENGINE OUTPUT */}
 
       {scanOutput && (
+
         <section className="forensics-panel console-panel">
+
           <div className="panel-header">
+
             <div>
               <span className="panel-kicker">
                 ENGINE OUTPUT
@@ -2393,24 +2616,27 @@ export default function Forensics() {
                 )}
               </span>
             )}
+
           </div>
 
           <pre className="forensic-console">
             {scanOutput}
           </pre>
+
         </section>
       )}
 
-      {/* ====================================================================
-          REPORT
-          ==================================================================== */}
+      {/* REPORT */}
 
       {report && (
+
         <section className="forensics-panel report-panel">
+
           <div className="panel-header">
+
             <div>
               <span className="panel-kicker">
-                COMPLIANCE &amp; EVIDENCE
+                EVIDENCE REPORT
               </span>
 
               <h2>
@@ -2425,17 +2651,23 @@ export default function Forensics() {
             </div>
 
             {reportFile && (
+
               <button
                 type="button"
                 className="primary-button"
-                onClick={downloadReport}
+                onClick={
+                  downloadReport
+                }
               >
                 DOWNLOAD REPORT
               </button>
+
             )}
+
           </div>
 
           <div className="report-grid">
+
             <div>
               <span>CASE ID</span>
 
@@ -2484,9 +2716,11 @@ export default function Forensics() {
                 )}
               </strong>
             </div>
+
           </div>
 
           <div className="report-hashes">
+
             <div>
               <span>
                 ACQUISITION HASH
@@ -2520,10 +2754,13 @@ export default function Forensics() {
                   "—"}
               </code>
             </div>
+
           </div>
 
           {report.compliance && (
+
             <div className="compliance-note">
+
               <strong>
                 Compliance Reference
               </strong>
@@ -2537,17 +2774,20 @@ export default function Forensics() {
                 {report.compliance.note ||
                   ""}
               </p>
+
             </div>
+
           )}
+
         </section>
       )}
 
-      {/* ====================================================================
-          OPERATION FOOTER
-          ==================================================================== */}
+      {/* OPERATION FOOTER */}
 
       {lastOperation && (
+
         <section className="operation-footer">
+
           <div>
             <span>INVESTIGATION</span>
 
@@ -2583,14 +2823,14 @@ export default function Forensics() {
                 : "REVIEW REQUIRED"}
             </strong>
           </div>
+
         </section>
       )}
 
-      {/* ====================================================================
-          FOOTER
-          ==================================================================== */}
+      {/* FOOTER */}
 
       <footer className="forensics-footer">
+
         <span>
           TRUSTWIPE SECURITY OPERATIONS CENTER
         </span>
@@ -2605,7 +2845,9 @@ export default function Forensics() {
             ? "ONLINE"
             : "OFFLINE"}
         </span>
+
       </footer>
+
     </div>
   );
 }
