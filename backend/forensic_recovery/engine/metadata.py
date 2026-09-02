@@ -1,137 +1,78 @@
-"""
-TrustWipe Forensic Recovery
----------------------------
-Filesystem and basic metadata extraction.
+import os
+import re
+import struct
+import time
+from typing import Dict, Any
 
-This module extracts metadata that is available from the filesystem
-without attempting to interpret the contents of the file.
-
-IMPORTANT:
-    `mime_guess` is only a filename-based MIME type guess. It must
-    never be treated as proof of the actual file format.
-
-Content-based identification should be performed separately by
-the forensic scanner/carving/validation pipeline.
-"""
-
-from __future__ import annotations
-
-import mimetypes
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any
-
-
-class MetadataError(Exception):
-    """Base exception for metadata extraction failures."""
-
-
-class MetadataNotFoundError(MetadataError):
-    """Raised when the target file does not exist."""
-
-
-class MetadataTypeError(MetadataError):
-    """Raised when the target is not a regular file."""
-
-
-@dataclass(frozen=True, slots=True)
-class FileMetadata:
+class MetadataExtractor:
     """
-    Basic filesystem metadata for an evidence file.
-
-    Timestamps are represented in UTC ISO-8601 format.
+    Parses structural metadata, EXIF tags, header properties,
+    and filesystem metrics from evidence items and carved artifacts.
     """
+    @staticmethod
+    def extract_file_metadata(file_path: str) -> Dict[str, Any]:
+        """
+        Extracts comprehensive metadata for a given file.
+        """
+        if not os.path.exists(file_path):
+            return {"error": f"File not found: {file_path}"}
 
-    name: str
-    path: str
-    size: int
-    suffix: str
-    mime_guess: str | None
-    created_utc: str | None
-    modified_utc: str | None
-    accessed_utc: str | None
+        stat = os.stat(file_path)
+        ext = os.path.splitext(file_path)[1].lower().strip('.')
 
-    def to_dict(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation."""
-        return asdict(self)
+        meta = {
+            "filename": os.path.basename(file_path),
+            "extension": ext,
+            "size_bytes": stat.st_size,
+            "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(stat.st_ctime)),
+            "modified_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(stat.st_mtime)),
+            "accessed_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(stat.st_atime)),
+            "attributes": {
+                "readonly": not os.access(file_path, os.W_OK),
+                "executable": os.access(file_path, os.X_OK)
+            },
+            "format_details": {}
+        }
 
+        # Format-specific header parsing
+        try:
+            with open(file_path, 'rb') as f:
+                header = f.read(512)
+                
+                if ext in ['jpg', 'jpeg'] and header.startswith(b'\xFF\xD8'):
+                    meta["format_details"] = MetadataExtractor._parse_jpeg_header(header)
+                elif ext == 'pdf' and b'%PDF-' in header:
+                    meta["format_details"] = MetadataExtractor._parse_pdf_header(f, stat.st_size)
+                elif ext == 'zip' or header.startswith(b'PK\x03\x04'):
+                    meta["format_details"] = {"compression": "Zip Archive", "signature": "PKZip"}
+                elif ext == 'png' and header.startswith(b'\x89PNG'):
+                    if len(header) >= 24:
+                        width, height = struct.unpack('>II', header[16:24])
+                        meta["format_details"] = {"dimensions": f"{width}x{height}", "color_depth": "8/16-bit PNG"}
+        except Exception as e:
+            meta["format_details"]["parse_error"] = str(e)
 
-def _utc_timestamp(timestamp: float) -> str:
-    """
-    Convert a filesystem timestamp into an ISO-8601 UTC timestamp.
-    """
+        return meta
 
-    return datetime.fromtimestamp(
-        timestamp,
-        tz=timezone.utc,
-    ).isoformat()
+    @staticmethod
+    def _parse_jpeg_header(header: bytes) -> Dict[str, Any]:
+        info = {"type": "JPEG Image"}
+        if b'JFIF' in header:
+            info["format"] = "JFIF"
+        elif b'Exif' in header:
+            info["format"] = "EXIF Metadata Present"
+        return info
 
-
-def basic_metadata(path: Path) -> dict[str, Any]:
-    """
-    Extract basic filesystem metadata from a file.
-
-    Args:
-        path:
-            Path to the evidence file.
-
-    Returns:
-        Dictionary containing filesystem metadata.
-
-    Raises:
-        MetadataNotFoundError:
-            If the file does not exist.
-
-        MetadataTypeError:
-            If the path is not a regular file.
-
-        MetadataError:
-            If filesystem metadata cannot be read.
-    """
-
-    if not isinstance(path, Path):
-        path = Path(path)
-
-    if not path.exists():
-        raise MetadataNotFoundError(
-            f"Evidence file does not exist: {path}"
-        )
-
-    if path.is_symlink():
-        raise MetadataTypeError(
-            f"Symbolic links are not accepted: {path}"
-        )
-
-    if not path.is_file():
-        raise MetadataTypeError(
-            f"Path is not a regular file: {path}"
-        )
-
-    try:
-        resolved_path = path.resolve(strict=True)
-        stat = resolved_path.stat()
-
-    except OSError as exc:
-        raise MetadataError(
-            f"Unable to read metadata for '{path}': {exc}"
-        ) from exc
-
-    mime, _ = mimetypes.guess_type(
-        resolved_path.name,
-        strict=False,
-    )
-
-    metadata = FileMetadata(
-        name=resolved_path.name,
-        path=str(resolved_path),
-        size=stat.st_size,
-        mime_guess=mime,
-        suffix=resolved_path.suffix.lower(),
-        created_utc=_utc_timestamp(stat.st_ctime),
-        modified_utc=_utc_timestamp(stat.st_mtime),
-        accessed_utc=_utc_timestamp(stat.st_atime),
-    )
-
-    return metadata.to_dict()
-	
+    @staticmethod
+    def _parse_pdf_header(file_obj, file_size: int) -> Dict[str, Any]:
+        info = {"type": "PDF Document"}
+        file_obj.seek(0)
+        content = file_obj.read(min(file_size, 4096)).decode('latin1', errors='ignore')
+        version_match = re.search(r'%PDF-(\d\.\d)', content)
+        if version_match:
+            info["pdf_version"] = version_match.group(1)
+        if '/Title' in content:
+            info["has_title"] = True
+        if '/Producer' in content:
+            info["has_producer"] = True
+        return info

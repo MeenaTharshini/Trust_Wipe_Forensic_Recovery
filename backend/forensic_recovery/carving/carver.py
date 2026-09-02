@@ -1,512 +1,137 @@
-"""
-TrustWipe Forensic Recovery
----------------------------
-Range-based forensic file carving.
-
-The evidence image is never modified.
-
-Recovered artifacts are written separately from the
-original evidence.
-"""
-
-from __future__ import annotations
-
-import hashlib
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any
-
-from .signatures import Signature
-from .validators import validate_artifact
-
-
-class CarvingError(Exception):
-    pass
-
-
-class CarvingOutputError(CarvingError):
-    pass
-
-
-class CarvingLimitError(CarvingError):
-    pass
-
-
-@dataclass(frozen=True, slots=True)
-class CarvedArtifact:
-
-    artifact_id: str
-    type: str
-    extension: str
-
-    offset: int
-    size: int
-
-    output: str
-
-    sha256: str
-
-    status: str
-    confidence: int
-
-    validation_message: str
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-
-def _prepare_output_directory(
-    output_dir: Path,
-) -> Path:
-
-    output_dir = Path(output_dir)
-
-    try:
-        output_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-    except OSError as exc:
-        raise CarvingOutputError(
-            f"Unable to create output directory: {exc}"
-        ) from exc
-
-    if not output_dir.is_dir():
-        raise CarvingOutputError(
-            "Carving output path is not a directory."
-        )
-
-    return output_dir.resolve()
-
-
-def _artifact_filename(
-    index: int,
-    signature: Signature,
-) -> str:
-
-    return (
-        f"carved_{index:05d}"
-        f"{signature.extension}"
-    )
-
-
-def _find_footer_in_file(
-    evidence_path: Path,
-    start: int,
-    signature: Signature,
-    evidence_size: int,
-    chunk_size: int = 4 * 1024 * 1024,
-) -> int | None:
-
-    if signature.footer is None:
-        return None
-
-    search_start = start + len(signature.header)
-
-    search_end = min(
-        start + signature.max_size,
-        evidence_size,
-    )
-
-    if search_start >= search_end:
-        return None
-
-    footer = signature.footer
-
-    overlap = len(footer) - 1
-
-    position = search_start
-
-    previous = b""
-
-    with evidence_path.open("rb") as evidence:
-
-        evidence.seek(search_start)
-
-        while position < search_end:
-
-            to_read = min(
-                chunk_size,
-                search_end - position,
-            )
-
-            chunk = evidence.read(to_read)
-
-            if not chunk:
-                break
-
-            data = previous + chunk
-
-            found = data.find(footer)
-
-            if found != -1:
-
-                absolute = (
-                    position
-                    - len(previous)
-                    + found
-                )
-
-                return absolute + len(footer)
-
-            previous = (
-                data[-overlap:]
-                if overlap > 0
-                else b""
-            )
-
-            position += len(chunk)
-
-    return None
-
-
-def _copy_range(
-    evidence_path: Path,
-    output_path: Path,
-    start: int,
-    end: int,
-    chunk_size: int = 4 * 1024 * 1024,
-) -> str:
-
-    if end <= start:
-        raise CarvingError(
-            "Invalid carving range."
-        )
-
-    size = end - start
-
-    sha256 = hashlib.sha256()
-
-    with (
-        evidence_path.open("rb") as source,
-        output_path.open("xb") as destination,
-    ):
-
-        source.seek(start)
-
-        remaining = size
-
-        while remaining > 0:
-
-            chunk = source.read(
-                min(chunk_size, remaining)
-            )
-
-            if not chunk:
-                raise CarvingError(
-                    "Unexpected end of evidence while carving."
-                )
-
-            destination.write(chunk)
-
-            sha256.update(chunk)
-
-            remaining -= len(chunk)
-
-    return sha256.hexdigest()
-
-
-def carve_ranges(
-    evidence_path: Path,
-    hits: list[tuple[int, Signature]],
-    output_dir: Path,
-    *,
-    max_artifacts: int = 10000,
-) -> list[dict[str, Any]]:
-
-    evidence_path = Path(evidence_path)
-
-    output_dir = _prepare_output_directory(
-        output_dir
-    )
-
-    if max_artifacts <= 0:
-        raise ValueError(
-            "max_artifacts must be greater than zero"
-        )
-
-    if not evidence_path.exists():
-        raise CarvingError(
-            f"Evidence does not exist: {evidence_path}"
-        )
-
-    evidence_size = evidence_path.stat().st_size
-
-    results: list[dict[str, Any]] = []
-
-    # Remove duplicate detection hits.
-    unique_hits: dict[
-        tuple[int, str],
-        tuple[int, Signature],
-    ] = {}
-
-    for offset, signature in hits:
-
-        unique_hits[
-            (
-                offset,
-                signature.name,
-            )
-        ] = (
-            offset,
-            signature,
-        )
-
-    ordered_hits = sorted(
-        unique_hits.values(),
-        key=lambda item: (
-            item[0],
-            item[1].name,
-        ),
-    )
-
-    for offset, signature in ordered_hits:
-
-        if len(results) >= max_artifacts:
-            break
-
-        if offset < 0:
-            continue
-
-        if offset >= evidence_size:
-            continue
-
-        header_end = (
-            offset
-            + len(signature.header)
-        )
-
-        if header_end > evidence_size:
-            continue
-
-        # Determine end using format footer if available.
-        end = _find_footer_in_file(
-            evidence_path,
-            offset,
-            signature,
-            evidence_size,
-        )
-
-        if end is None:
-
-            # If no footer exists, do NOT consume the
-            # entire evidence image.
-
-            end = min(
-                offset + signature.max_size,
-                evidence_size,
-            )
-
-            # If another signature occurs before this
-            # maximum range, stop at that candidate.
-            for next_offset, _ in ordered_hits:
-
-                if next_offset > offset:
-
-                    end = min(
-                        end,
-                        next_offset,
-                    )
-
+import os
+import uuid
+import math
+from typing import List, Dict, Any, Optional, Tuple
+from .signatures import DEFAULT_SIGNATURES, FileSignature
+from ..acquisition.hashing import CryptographicHasher
+
+class FileCarver:
+    """
+    Real signature-based file carver.
+    Scans binary data or disk images, detects file headers/footers,
+    extracts fragments, validates entropy, and outputs recovered files.
+    """
+    def __init__(self, output_dir: str, signatures: Optional[List[FileSignature]] = None):
+        self.output_dir = os.path.abspath(output_dir)
+        self.signatures = signatures if signatures else DEFAULT_SIGNATURES
+        os.makedirs(self.output_dir, exist_ok=True)
+
+    def calculate_entropy(self, data: bytes) -> float:
+        """
+        Calculates Shannon Entropy of a byte buffer (0.0 - 8.0).
+        """
+        if not data:
+            return 0.0
+        entropy = 0.0
+        length = len(data)
+        byte_counts = [0] * 256
+        for b in data:
+            byte_counts[b] += 1
+        for count in byte_counts:
+            if count > 0:
+                p = count / length
+                entropy -= p * math.log2(p)
+        return round(entropy, 3)
+
+    def carve_buffer(self, buffer: bytes, start_offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Scans an in-memory byte buffer for signature matches and carves embedded files.
+        """
+        carved_results = []
+        buf_len = len(buffer)
+        
+        for sig in self.signatures:
+            hdr_len = len(sig.header)
+            pos = 0
+            
+            while pos < buf_len:
+                # Find next occurrence of header
+                pos = buffer.find(sig.header, pos)
+                if pos == -1:
                     break
+                
+                header_offset = start_offset + pos
+                carve_end = -1
+                
+                if sig.footer:
+                    ftr_len = len(sig.footer)
+                    search_end = min(buf_len, pos + sig.max_size)
+                    ftr_pos = buffer.find(sig.footer, pos + hdr_len, search_end)
+                    if ftr_pos != -1:
+                        carve_end = ftr_pos + ftr_len
+                
+                if carve_end == -1:
+                    # Heuristic size fallback if no footer found or defined
+                    carve_end = min(buf_len, pos + min(1048576, sig.max_size))
+                
+                file_bytes = buffer[pos:carve_end]
+                if len(file_bytes) >= hdr_len + 4:
+                    file_id = f"CARVED_{uuid.uuid4().hex[:8].upper()}"
+                    filename = f"{file_id}.{sig.extension}"
+                    filepath = os.path.join(self.output_dir, filename)
+                    
+                    with open(filepath, 'wb') as f:
+                        f.write(file_bytes)
+                    
+                    hashes = CryptographicHasher.calculate_bytes_hashes(file_bytes)
+                    entropy = self.calculate_entropy(file_bytes)
+                    
+                    carved_results.append({
+                        "id": file_id,
+                        "name": filename,
+                        "type": sig.name,
+                        "category": sig.category,
+                        "extension": sig.extension,
+                        "offset": header_offset,
+                        "size": len(file_bytes),
+                        "sha256": hashes["sha256"],
+                        "md5": hashes["md5"],
+                        "entropy": entropy,
+                        "file_path": filepath,
+                        "status": "Recovered",
+                        "integrity": "High" if entropy > 3.0 and entropy < 7.9 else "Moderate"
+                    })
+                    
+                # Advance search position past header
+                pos += hdr_len
 
-        if end <= offset:
-            continue
+        return carved_results
 
-        size = end - offset
+    def carve_file(self, target_path: str, chunk_size: int = 4194304) -> List[Dict[str, Any]]:
+        """
+        Scans a disk image or evidence file sequentially using sliding chunk buffers.
+        """
+        if not os.path.exists(target_path):
+            raise FileNotFoundError(f"Target file for carving not found: {target_path}")
 
-        if size > signature.max_size:
-            raise CarvingLimitError(
-                f"Artifact exceeds maximum size: "
-                f"{signature.name}"
-            )
+        results = []
+        file_size = os.path.getsize(target_path)
+        
+        with open(target_path, 'rb') as f:
+            offset = 0
+            overlap = 65536  # Overlap buffer to catch signatures across chunk boundaries
+            prev_tail = b""
+            
+            while offset < file_size:
+                f.seek(offset)
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                
+                full_buf = prev_tail + chunk
+                buf_start_offset = max(0, offset - len(prev_tail))
+                
+                carved_in_chunk = self.carve_buffer(full_buf, start_offset=buf_start_offset)
+                results.extend(carved_in_chunk)
+                
+                prev_tail = chunk[-overlap:] if len(chunk) >= overlap else chunk
+                offset += len(chunk)
 
-        filename = _artifact_filename(
-            len(results),
-            signature,
-        )
+        # De-duplicate results with identical hashes/offsets
+        unique_results = {}
+        for r in results:
+            key = f"{r['sha256']}_{r['offset']}"
+            if key not in unique_results:
+                unique_results[key] = r
 
-        output_path = (
-            output_dir / filename
-        )
-
-        # Carve bytes from the evidence.
-        digest = _copy_range(
-            evidence_path,
-            output_path,
-            offset,
-            end,
-        )
-
-        validation = validate_artifact(
-            output_path,
-            signature.name,
-        )
-
-        artifact = CarvedArtifact(
-            artifact_id=(
-                f"CARVED-"
-                f"{len(results) + 1:05d}"
-            ),
-            type=signature.name,
-            extension=signature.extension,
-            offset=offset,
-            size=size,
-            output=str(output_path),
-            sha256=digest,
-            status=str(
-                validation["status"]
-            ),
-            confidence=int(
-                validation["confidence"]
-            ),
-            validation_message=str(
-                validation["message"]
-            ),
-        )
-
-        results.append(
-            artifact.to_dict()
-        )
-
-    return results
-
-
-def carve_bytes(
-    data: bytes,
-    output_dir: Path,
-    *,
-    overwrite: bool = False,
-    max_artifacts: int | None = None,
-) -> list[dict[str, Any]]:
-    """
-    Compatibility function for existing tests/code.
-
-    This retains the original API.
-    """
-
-    from .signatures import find_signatures
-
-    if not isinstance(
-        data,
-        (bytes, bytearray, memoryview),
-    ):
-        raise TypeError(
-            "data must be bytes-like"
-        )
-
-    output_dir = _prepare_output_directory(
-        output_dir
-    )
-
-    raw = bytes(data)
-
-    hits = find_signatures(raw)
-
-    if not hits:
-        return []
-
-    results: list[dict[str, Any]] = []
-
-    for offset, signature in hits:
-
-        if (
-            max_artifacts is not None
-            and len(results) >= max_artifacts
-        ):
-            break
-
-        maximum_end = min(
-            offset + signature.max_size,
-            len(raw),
-        )
-
-        end = None
-
-        if signature.footer:
-
-            footer_position = raw.find(
-                signature.footer,
-                offset + len(signature.header),
-                maximum_end,
-            )
-
-            if footer_position != -1:
-                end = (
-                    footer_position
-                    + len(signature.footer)
-                )
-
-        if end is None:
-
-            next_positions = [
-                p
-                for p, _ in hits
-                if p > offset
-            ]
-
-            end = min(
-                [maximum_end]
-                + next_positions
-            )
-
-        if end <= offset:
-            continue
-
-        filename = _artifact_filename(
-            len(results),
-            signature,
-        )
-
-        output_path = output_dir / filename
-
-        if output_path.exists():
-
-            if not overwrite:
-                raise CarvingError(
-                    f"Artifact already exists: "
-                    f"{output_path}"
-                )
-
-            output_path.unlink()
-
-        output_path.write_bytes(
-            raw[offset:end]
-        )
-
-        digest = hashlib.sha256(
-            raw[offset:end]
-        ).hexdigest()
-
-        validation = validate_artifact(
-            output_path,
-            signature.name,
-        )
-
-        artifact = CarvedArtifact(
-            artifact_id=(
-                f"CARVED-"
-                f"{len(results) + 1:05d}"
-            ),
-            type=signature.name,
-            extension=signature.extension,
-            offset=offset,
-            size=end - offset,
-            output=str(output_path),
-            sha256=digest,
-            status=str(
-                validation["status"]
-            ),
-            confidence=int(
-                validation["confidence"]
-            ),
-            validation_message=str(
-                validation["message"]
-            ),
-        )
-
-        results.append(
-            artifact.to_dict()
-        )
-
-    return results
+        return list(unique_results.values())
