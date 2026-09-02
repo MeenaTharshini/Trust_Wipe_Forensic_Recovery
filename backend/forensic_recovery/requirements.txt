@@ -1,3 +1,5 @@
-# backend/forensic_recovery/requirements.txt
-
-# No external Python dependencies required.
+# TrustWipe Commercial Forensic Recovery Engine Requirements
+# Uses standard Python library by default (hashlib, struct, os, sys, json, re, math, ctypes)
+# Optional extensions for advanced image parsing:
+pillow>=10.0.0
+pypdf>=3.0.0
