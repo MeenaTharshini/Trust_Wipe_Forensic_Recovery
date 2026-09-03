@@ -1,0 +1,3721 @@
+{
+  "report_metadata": {
+    "generated_utc": "2026-09-03T08:38:22Z",
+    "job_id": "JOB-0848EAC2",
+    "case_id": "CASE-2026-1788422681222-S9HSIO",
+    "investigator": "Meena Tharshini I",
+    "engine_version": "TrustWipe Forensic Engine 2.4"
+  },
+  "evidence_target": {
+    "path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\evidence\\Team_Innovatrix_SIH.pptx",
+    "total_recovered_artifacts": 105
+  },
+  "summary_by_category": {
+    "Images": 6,
+    "Archives": 64,
+    "Audio": 30,
+    "Executables": 5
+  },
+  "carved_artifacts": [
+    {
+      "artifact_id": "ART-39C8B7468E9B",
+      "name": "ART-39C8B7468E9B.jpg",
+      "type": "JPEG Image",
+      "category": "Images",
+      "extension": "jpg",
+      "mime_type": "image/jpeg",
+      "offset": 257009,
+      "source_offset": 257009,
+      "size": 12782,
+      "sha256": "29c70747cf9ebe9cea514d86e3a5387f234f9fd23da0bbf2a4861162dc335010",
+      "md5": "a7b088f72ad712527b16e4f4d1358334",
+      "entropy": 7.947,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-39C8B7468E9B.jpg",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-39C8B7468E9B.jpg",
+        "extension": "jpg",
+        "size_bytes": 12782,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:20Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "type": "JPEG Image",
+          "format": "JFIF"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-3BE2CD18A631",
+      "name": "ART-3BE2CD18A631.jpg",
+      "type": "JPEG Image",
+      "category": "Images",
+      "extension": "jpg",
+      "mime_type": "image/jpeg",
+      "offset": 326902,
+      "source_offset": 326902,
+      "size": 17388,
+      "sha256": "d5d5322251684f234235adab68c6616526abb9fc4195cc770e37c87357b97250",
+      "md5": "7b048379771b84c216f5d93879ef26f3",
+      "entropy": 7.66,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-3BE2CD18A631.jpg",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-3BE2CD18A631.jpg",
+        "extension": "jpg",
+        "size_bytes": 17388,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:20Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "type": "JPEG Image"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-D15B3E4C5815",
+      "name": "ART-D15B3E4C5815.png",
+      "type": "PNG Image",
+      "category": "Images",
+      "extension": "png",
+      "mime_type": "image/png",
+      "offset": 51582,
+      "source_offset": 51582,
+      "size": 17603,
+      "sha256": "383704b5ab2a8d5fd97e03127cb39fde31934eb861666c99bb170ca76ff5452c",
+      "md5": "9311b77d272213d55bc17c5213490c7d",
+      "entropy": 7.975,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-D15B3E4C5815.png",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-D15B3E4C5815.png",
+        "extension": "png",
+        "size_bytes": 17603,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:20Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "dimensions": "181x92",
+          "color_depth": "8/16-bit PNG"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-9FEA81BDD07C",
+      "name": "ART-9FEA81BDD07C.png",
+      "type": "PNG Image",
+      "category": "Images",
+      "extension": "png",
+      "mime_type": "image/png",
+      "offset": 70888,
+      "source_offset": 70888,
+      "size": 182377,
+      "sha256": "b0dfd96ebec43bb864352b5dfd8b6b121094424b84f15ecbefefe9694e90201f",
+      "md5": "4e34939fbbfeb595f060e0dc985477e4",
+      "entropy": 7.962,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-9FEA81BDD07C.png",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-9FEA81BDD07C.png",
+        "extension": "png",
+        "size_bytes": 182377,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:20Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "dimensions": "2048x878",
+          "color_depth": "8/16-bit PNG"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-E6E0944E0D6A",
+      "name": "ART-E6E0944E0D6A.png",
+      "type": "PNG Image",
+      "category": "Images",
+      "extension": "png",
+      "mime_type": "image/png",
+      "offset": 269841,
+      "source_offset": 269841,
+      "size": 269690,
+      "sha256": "3fb6cc0b4bb5689d08f918a450de39df792a58b149d911ecf2297dc60dd642a3",
+      "md5": "aca81f54c752a5f84e647499e192eb2a",
+      "entropy": 7.725,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-E6E0944E0D6A.png",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-E6E0944E0D6A.png",
+        "extension": "png",
+        "size_bytes": 269690,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:20Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "dimensions": "1699x3128",
+          "color_depth": "8/16-bit PNG"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-786E1CA3B71F",
+      "name": "ART-786E1CA3B71F.bmp",
+      "type": "BMP Image",
+      "category": "Images",
+      "extension": "bmp",
+      "mime_type": "image/bmp",
+      "offset": 112669,
+      "source_offset": 112669,
+      "size": 435519,
+      "sha256": "d5c0c60974692b339e2bfd10f105fae7624c5883160bb62b14bfd5c09cdeacaf",
+      "md5": "c18a06faa6a690639e81d40cea00e320",
+      "entropy": 7.855,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-786E1CA3B71F.bmp",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-786E1CA3B71F.bmp",
+        "extension": "bmp",
+        "size_bytes": 435519,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:20Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-555E1D7009A2",
+      "name": "ART-555E1D7009A2.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 0,
+      "source_offset": 0,
+      "size": 548170,
+      "sha256": "9ced0a10d200ab123009a422012a9ef4b1e357aafbb925d6f938ca74eba6f635",
+      "md5": "a079fdf4a3d48ee153665b30e7b8d22a",
+      "entropy": 7.882,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-555E1D7009A2.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-555E1D7009A2.zip",
+        "extension": "zip",
+        "size_bytes": 548170,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-AA42035B9875",
+      "name": "ART-AA42035B9875.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 1095,
+      "source_offset": 1095,
+      "size": 547075,
+      "sha256": "4408a267d088199b981689952a3663724145371a1f2759f398a70b8d983590c3",
+      "md5": "483f1a41cfc9c409019756f71603c329",
+      "entropy": 7.885,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-AA42035B9875.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-AA42035B9875.zip",
+        "extension": "zip",
+        "size_bytes": 547075,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-715FD4F9ED57",
+      "name": "ART-715FD4F9ED57.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 1915,
+      "source_offset": 1915,
+      "size": 546255,
+      "sha256": "e4a16e6fae7eef1ff174c9438a860a18263a1dad679f1b0650cad5666f148c31",
+      "md5": "fb8ce691b86dc27a39db41175f320da6",
+      "entropy": 7.887,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-715FD4F9ED57.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-715FD4F9ED57.zip",
+        "extension": "zip",
+        "size_bytes": 546255,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-558899A502A3",
+      "name": "ART-558899A502A3.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 2900,
+      "source_offset": 2900,
+      "size": 545270,
+      "sha256": "0495dc26261028cb4432a1be96d5d424af81b9b58ab4b219caa1096d625b685a",
+      "md5": "ccd9b588073dbb40ca868fb05250ab72",
+      "entropy": 7.887,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-558899A502A3.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-558899A502A3.zip",
+        "extension": "zip",
+        "size_bytes": 545270,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-CEA0DC730AFD",
+      "name": "ART-CEA0DC730AFD.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 8067,
+      "source_offset": 8067,
+      "size": 540103,
+      "sha256": "4062279df952e3d69d4fc7db96c090048dc44beaa17bd2cceafd28293c4cd187",
+      "md5": "42cf16fcf3bbfcf3f9478e65794c0eef",
+      "entropy": 7.885,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-CEA0DC730AFD.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-CEA0DC730AFD.zip",
+        "extension": "zip",
+        "size_bytes": 540103,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-6B62A6687E41",
+      "name": "ART-6B62A6687E41.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 11867,
+      "source_offset": 11867,
+      "size": 536303,
+      "sha256": "ec074939e79134bb95c0cc2760a1d1cda927559f19efdbc851c5735d6a659344",
+      "md5": "71dd60c9d3fb4d7fcddad52260f070a3",
+      "entropy": 7.884,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-6B62A6687E41.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-6B62A6687E41.zip",
+        "extension": "zip",
+        "size_bytes": 536303,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-DB5B38DECF5A",
+      "name": "ART-DB5B38DECF5A.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 14405,
+      "source_offset": 14405,
+      "size": 533765,
+      "sha256": "74de023101e921efbec8c72143ed91360edc291aa0dfba6a4fbf3e6c8500e952",
+      "md5": "7caa8c79ce13499cf0e17479d573b1da",
+      "entropy": 7.883,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-DB5B38DECF5A.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-DB5B38DECF5A.zip",
+        "extension": "zip",
+        "size_bytes": 533765,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-63A217059DC9",
+      "name": "ART-63A217059DC9.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 18136,
+      "source_offset": 18136,
+      "size": 530034,
+      "sha256": "1f32dc1dbe267bd7bad131c73b20c90144eea6b935877cd2dedcf3e5563b27a1",
+      "md5": "49a63d3524b9a87dc62f1da6aa59c2dc",
+      "entropy": 7.882,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-63A217059DC9.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-63A217059DC9.zip",
+        "extension": "zip",
+        "size_bytes": 530034,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-4E3CB5775E96",
+      "name": "ART-4E3CB5775E96.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 21642,
+      "source_offset": 21642,
+      "size": 526528,
+      "sha256": "41ce4c6d3b997f1947705f4d8a3db7c1880dbd3fb4eb0d095efac0d2c1823a68",
+      "md5": "22921ec60423c639ad24f77ef691f7d1",
+      "entropy": 7.88,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-4E3CB5775E96.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-4E3CB5775E96.zip",
+        "extension": "zip",
+        "size_bytes": 526528,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-E9B2E9FED37B",
+      "name": "ART-E9B2E9FED37B.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 24809,
+      "source_offset": 24809,
+      "size": 523361,
+      "sha256": "3f5d17a6a00eb2aa06b038243c7fde336e5b9f7f1439f03e992ab3164ba79450",
+      "md5": "0b114025606c2fc7ccac966d3cd8d704",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-E9B2E9FED37B.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-E9B2E9FED37B.zip",
+        "extension": "zip",
+        "size_bytes": 523361,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-2C4A7D24258D",
+      "name": "ART-2C4A7D24258D.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 25201,
+      "source_offset": 25201,
+      "size": 522969,
+      "sha256": "a34b745c827c1dfd20b60424c42ae3f570a4baf84dd2f82e3af67b749760eb46",
+      "md5": "589787a21df5e34a2bd3e55e0e82ae92",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-2C4A7D24258D.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-2C4A7D24258D.zip",
+        "extension": "zip",
+        "size_bytes": 522969,
+        "created_utc": "2026-09-03T08:38:17Z",
+        "modified_utc": "2026-09-03T08:38:17Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-53BE098F33CC",
+      "name": "ART-53BE098F33CC.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 25497,
+      "source_offset": 25497,
+      "size": 522673,
+      "sha256": "ce1b92ee79e8be629aa071c7ea85db91dfc527f6c6150389cd4c97b684c5298e",
+      "md5": "da0a53113204e7f91eba6768aa7b4d2b",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-53BE098F33CC.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-53BE098F33CC.zip",
+        "extension": "zip",
+        "size_bytes": 522673,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-D061AC9E4740",
+      "name": "ART-D061AC9E4740.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 25793,
+      "source_offset": 25793,
+      "size": 522377,
+      "sha256": "0540384411395ae494c88734fafdcd97b9e6b42a4f16e529b0a16fed91eacf3f",
+      "md5": "d13a231acfb30d59fca92b9747077d1d",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-D061AC9E4740.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-D061AC9E4740.zip",
+        "extension": "zip",
+        "size_bytes": 522377,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-750B683D16C2",
+      "name": "ART-750B683D16C2.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 26097,
+      "source_offset": 26097,
+      "size": 522073,
+      "sha256": "84ab3fd582b302470eedb329ede182b6389358a597c5e61c0b8d7f541a2776be",
+      "md5": "c35d759c72c7de66bd38a35fdf5d7976",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-750B683D16C2.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-750B683D16C2.zip",
+        "extension": "zip",
+        "size_bytes": 522073,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-85950F8164E9",
+      "name": "ART-85950F8164E9.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 26393,
+      "source_offset": 26393,
+      "size": 521777,
+      "sha256": "207e699e6e6c94aa0c40286276d51e70b25f02c3f25e53326d278cb7f523d522",
+      "md5": "7ef73aedeb69780861c4e6d1c479aab7",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-85950F8164E9.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-85950F8164E9.zip",
+        "extension": "zip",
+        "size_bytes": 521777,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-5C6CEB88C70F",
+      "name": "ART-5C6CEB88C70F.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 26676,
+      "source_offset": 26676,
+      "size": 521494,
+      "sha256": "60a4eb609b8663f7edfec54ddf35a716ac099cde90f1ea1f1771a48e4738d857",
+      "md5": "7ecd732b8d1f144034c9a0caa40a5e90",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-5C6CEB88C70F.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-5C6CEB88C70F.zip",
+        "extension": "zip",
+        "size_bytes": 521494,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-DB56681FB875",
+      "name": "ART-DB56681FB875.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 27319,
+      "source_offset": 27319,
+      "size": 520851,
+      "sha256": "2e4877858297d029ec3374b153f3e7006937cba67de51d06c18186b032521a30",
+      "md5": "865ba0e1ce5395d867e033cbf58f5cd8",
+      "entropy": 7.88,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-DB56681FB875.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-DB56681FB875.zip",
+        "extension": "zip",
+        "size_bytes": 520851,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-57F04E700D23",
+      "name": "ART-57F04E700D23.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 28410,
+      "source_offset": 28410,
+      "size": 519760,
+      "sha256": "527cadb182d46cd1020bc7f8e376a33498d12330bcbf5f3456ca652c02523bab",
+      "md5": "106e8dd3ff891eeb90bd3a4c1666a1aa",
+      "entropy": 7.88,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-57F04E700D23.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-57F04E700D23.zip",
+        "extension": "zip",
+        "size_bytes": 519760,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-FAD304458B13",
+      "name": "ART-FAD304458B13.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 29313,
+      "source_offset": 29313,
+      "size": 518857,
+      "sha256": "c2e89b204ff012cd2849d2733eade840490a9b6fb42008fddab79b6d80bc8fed",
+      "md5": "413d969dec17a71a722769a3c20aa063",
+      "entropy": 7.88,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-FAD304458B13.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-FAD304458B13.zip",
+        "extension": "zip",
+        "size_bytes": 518857,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-06C6B5C97989",
+      "name": "ART-06C6B5C97989.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 30455,
+      "source_offset": 30455,
+      "size": 517715,
+      "sha256": "03fdc5b6743c33d5fe29e29271d7e64d2b9a055fe1bdbee00283a0e04e26de76",
+      "md5": "9d026ca5ac76ced3c5cc91b474d97e0e",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-06C6B5C97989.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-06C6B5C97989.zip",
+        "extension": "zip",
+        "size_bytes": 517715,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-DA0E68E492EA",
+      "name": "ART-DA0E68E492EA.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 31501,
+      "source_offset": 31501,
+      "size": 516669,
+      "sha256": "ed0dc42f4d59f1f9ceb649aabf9ee05eee8b8186561329f6cfa1f7f4236a8f20",
+      "md5": "4dc686b5a474e0d616569cd8280bd2ba",
+      "entropy": 7.879,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-DA0E68E492EA.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-DA0E68E492EA.zip",
+        "extension": "zip",
+        "size_bytes": 516669,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-A8EA784C7A18",
+      "name": "ART-A8EA784C7A18.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 32775,
+      "source_offset": 32775,
+      "size": 515395,
+      "sha256": "94c25bf73ea778f3c7c7b04ba07df1651fb9adae9b637b9b6eb2e0f9864bca48",
+      "md5": "7a78563e72cc4e27aba1e3e646585095",
+      "entropy": 7.878,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-A8EA784C7A18.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-A8EA784C7A18.zip",
+        "extension": "zip",
+        "size_bytes": 515395,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-7914E5601BD4",
+      "name": "ART-7914E5601BD4.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 33584,
+      "source_offset": 33584,
+      "size": 514586,
+      "sha256": "e690ec44ed9ed312dc0881d67f015174ae113850bb1823f059914c8d6b95b14b",
+      "md5": "be213c73a277e15e4e929ae9cd898c24",
+      "entropy": 7.878,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-7914E5601BD4.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-7914E5601BD4.zip",
+        "extension": "zip",
+        "size_bytes": 514586,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-39E197DBF13C",
+      "name": "ART-39E197DBF13C.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 34347,
+      "source_offset": 34347,
+      "size": 513823,
+      "sha256": "31cde824d83218a8ee4f364b97f12b8c112457751602de84e32a5af0642cadc5",
+      "md5": "60c25a5d26693f84486da165cf2d7850",
+      "entropy": 7.878,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-39E197DBF13C.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-39E197DBF13C.zip",
+        "extension": "zip",
+        "size_bytes": 513823,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-CC5B166E9BCD",
+      "name": "ART-CC5B166E9BCD.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 35574,
+      "source_offset": 35574,
+      "size": 512596,
+      "sha256": "66190d13dc828560de33a2e969dca1ec14d846f11e7231c8220d709d13804f75",
+      "md5": "3147370541d8cb505385be0321ccee77",
+      "entropy": 7.878,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-CC5B166E9BCD.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-CC5B166E9BCD.zip",
+        "extension": "zip",
+        "size_bytes": 512596,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-F8409B8C0418",
+      "name": "ART-F8409B8C0418.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 36779,
+      "source_offset": 36779,
+      "size": 511391,
+      "sha256": "6a7a59f8325a430992701f2d90f07248dedf27a7fbae039a548a6d3185f82bcf",
+      "md5": "f29affd152d10a2eb09d1f34419965b3",
+      "entropy": 7.877,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-F8409B8C0418.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-F8409B8C0418.zip",
+        "extension": "zip",
+        "size_bytes": 511391,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-6A33F31C1009",
+      "name": "ART-6A33F31C1009.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 37709,
+      "source_offset": 37709,
+      "size": 510461,
+      "sha256": "a353ab19eb4846e5a9d0824f4bb69cd4b98514eb9665e709e52014efb6f7c50d",
+      "md5": "58e2b0d2292b01a7f799656b8708c362",
+      "entropy": 7.877,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-6A33F31C1009.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-6A33F31C1009.zip",
+        "extension": "zip",
+        "size_bytes": 510461,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-BB8F61C9A6A6",
+      "name": "ART-BB8F61C9A6A6.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 38695,
+      "source_offset": 38695,
+      "size": 509475,
+      "sha256": "210d13391a472dd29f7df8617a194f0b3dd9191ed85cf4ea743884d20f724a36",
+      "md5": "86d14ceeb808c79bb0d2337e87a4e735",
+      "entropy": 7.877,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-BB8F61C9A6A6.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-BB8F61C9A6A6.zip",
+        "extension": "zip",
+        "size_bytes": 509475,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-E52F4E5E6F2C",
+      "name": "ART-E52F4E5E6F2C.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 40009,
+      "source_offset": 40009,
+      "size": 508161,
+      "sha256": "d85db22a881133f9f477042bdc85002b32f1ab2aa2646921cb194eff2c798c03",
+      "md5": "ec13439afd7f7e2272d84cd4e0fd740a",
+      "entropy": 7.876,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-E52F4E5E6F2C.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-E52F4E5E6F2C.zip",
+        "extension": "zip",
+        "size_bytes": 508161,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-4C393B8391B4",
+      "name": "ART-4C393B8391B4.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 41040,
+      "source_offset": 41040,
+      "size": 507130,
+      "sha256": "823e4055db3803182b3b304517d2ffa9c8ffdb6c47665909759c40c5b6dcec2b",
+      "md5": "acb815104c3fd8a84cef6799a74dd9a0",
+      "entropy": 7.876,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-4C393B8391B4.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-4C393B8391B4.zip",
+        "extension": "zip",
+        "size_bytes": 507130,
+        "created_utc": "2026-09-03T08:38:18Z",
+        "modified_utc": "2026-09-03T08:38:18Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-4C71632B019F",
+      "name": "ART-4C71632B019F.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 42079,
+      "source_offset": 42079,
+      "size": 506091,
+      "sha256": "06300d5db2b77f768d0c82ad1853e76defd119b01e70072f8c204b1061b848e4",
+      "md5": "5b35699a5d3f77b662de6a725a53f346",
+      "entropy": 7.875,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-4C71632B019F.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-4C71632B019F.zip",
+        "extension": "zip",
+        "size_bytes": 506091,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-6EEF63930377",
+      "name": "ART-6EEF63930377.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 43391,
+      "source_offset": 43391,
+      "size": 504779,
+      "sha256": "8b9afeb0ae55e55a32cc5c270974d3f7178ed225bc37d5e874b52474d069ab07",
+      "md5": "441c1a57bfcf7c024c383855698feeab",
+      "entropy": 7.875,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-6EEF63930377.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-6EEF63930377.zip",
+        "extension": "zip",
+        "size_bytes": 504779,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-DB7F9745027F",
+      "name": "ART-DB7F9745027F.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 43742,
+      "source_offset": 43742,
+      "size": 504428,
+      "sha256": "175309ee7d484b2ede324e711a533e462e941ded65167b9e48f5952cdb1dfa99",
+      "md5": "4dad127f44cc0de6fa1a04fa813dfe8f",
+      "entropy": 7.875,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-DB7F9745027F.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-DB7F9745027F.zip",
+        "extension": "zip",
+        "size_bytes": 504428,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-988DFD29BDC8",
+      "name": "ART-988DFD29BDC8.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 45053,
+      "source_offset": 45053,
+      "size": 503117,
+      "sha256": "da7c0b190b6f57057a7a48611fead16bf6504990fe40cbb92aefc2a0846bdef1",
+      "md5": "329d6fbaffa5f7b47c37fc0a29aad460",
+      "entropy": 7.874,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-988DFD29BDC8.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-988DFD29BDC8.zip",
+        "extension": "zip",
+        "size_bytes": 503117,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-E05A7A37180F",
+      "name": "ART-E05A7A37180F.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 45315,
+      "source_offset": 45315,
+      "size": 502855,
+      "sha256": "687ea9f95a91a55af688672824c41f3986d813cf103e2a5c3a14f201c6288972",
+      "md5": "4fe85fcb4f4629578bf63ef7ceb1218b",
+      "entropy": 7.874,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-E05A7A37180F.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-E05A7A37180F.zip",
+        "extension": "zip",
+        "size_bytes": 502855,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-990173FB0556",
+      "name": "ART-990173FB0556.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 45577,
+      "source_offset": 45577,
+      "size": 502593,
+      "sha256": "e7f19f9f97122db6bb41d2efac492da2c87491f2f14aae07ff368f674d623bf4",
+      "md5": "42c2c6d82d1eff37c41e12af02ca22fb",
+      "entropy": 7.874,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-990173FB0556.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-990173FB0556.zip",
+        "extension": "zip",
+        "size_bytes": 502593,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-9C2BF39F3D0E",
+      "name": "ART-9C2BF39F3D0E.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 47757,
+      "source_offset": 47757,
+      "size": 500413,
+      "sha256": "d73bf9997c9e7d1b53ecd85e26224982da2e8fbc7885f8cf7fdefed6d2f53ed2",
+      "md5": "e20e9fdff0a72f7cb28875ccc137e423",
+      "entropy": 7.874,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-9C2BF39F3D0E.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-9C2BF39F3D0E.zip",
+        "extension": "zip",
+        "size_bytes": 500413,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-A8F729D1F168",
+      "name": "ART-A8F729D1F168.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 48019,
+      "source_offset": 48019,
+      "size": 500151,
+      "sha256": "fbca17fed8fd73441530d3e8dba30464ee746016aff400a2f697be81fa035c7d",
+      "md5": "6b5608738b98ae53102fa06de31ae1d9",
+      "entropy": 7.874,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-A8F729D1F168.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-A8F729D1F168.zip",
+        "extension": "zip",
+        "size_bytes": 500151,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-EE5477C2A91E",
+      "name": "ART-EE5477C2A91E.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 48281,
+      "source_offset": 48281,
+      "size": 499889,
+      "sha256": "98374ca9e10b0e57e69830a871d064f15ec192261e71abc4a7288422452e95d3",
+      "md5": "f611377ff139c41a066acd540e1e69ef",
+      "entropy": 7.874,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-EE5477C2A91E.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-EE5477C2A91E.zip",
+        "extension": "zip",
+        "size_bytes": 499889,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-72BFF410D2D5",
+      "name": "ART-72BFF410D2D5.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 48543,
+      "source_offset": 48543,
+      "size": 499627,
+      "sha256": "d40dab71f58eb7cd4e23998f944bb6469aa4b0c6f60c1a76abc45e16a65b5705",
+      "md5": "56a3123e772f1e768d76e34f30fceab2",
+      "entropy": 7.874,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-72BFF410D2D5.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-72BFF410D2D5.zip",
+        "extension": "zip",
+        "size_bytes": 499627,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-A30A22346938",
+      "name": "ART-A30A22346938.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 48805,
+      "source_offset": 48805,
+      "size": 499365,
+      "sha256": "030d8484e992e2040c08e02d66f3cf30d5426cedd9ce8d007cbeef055ee7c843",
+      "md5": "74d5cb78a3cda719af7e972914f3f8f0",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-A30A22346938.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-A30A22346938.zip",
+        "extension": "zip",
+        "size_bytes": 499365,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-0C9ECA212BF4",
+      "name": "ART-0C9ECA212BF4.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 49067,
+      "source_offset": 49067,
+      "size": 499103,
+      "sha256": "55f72063ca11aa1c0c9fecfb7ab57ace6b1cf46da2837c5bb500c2affb841dd1",
+      "md5": "234d7747f8ac5e82d3bb225ebd83fc07",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-0C9ECA212BF4.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-0C9ECA212BF4.zip",
+        "extension": "zip",
+        "size_bytes": 499103,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-FA54FE3B432F",
+      "name": "ART-FA54FE3B432F.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 49329,
+      "source_offset": 49329,
+      "size": 498841,
+      "sha256": "a121907ef841fa5ac2cb58e1920d789ead4f769bc75ef69208c14dd07723e35b",
+      "md5": "31614d50c556182541eca7a13becaca2",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-FA54FE3B432F.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-FA54FE3B432F.zip",
+        "extension": "zip",
+        "size_bytes": 498841,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-26278011CBDF",
+      "name": "ART-26278011CBDF.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 49591,
+      "source_offset": 49591,
+      "size": 498579,
+      "sha256": "eb11b82dfdf3cc750aab847e93bc0e307002cf1c4924b3dc8e5deb0ad46e3b2a",
+      "md5": "f1fde8a0c97c664795ba0b3a14764fb8",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-26278011CBDF.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-26278011CBDF.zip",
+        "extension": "zip",
+        "size_bytes": 498579,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-2B33FC624377",
+      "name": "ART-2B33FC624377.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 49854,
+      "source_offset": 49854,
+      "size": 498316,
+      "sha256": "5d8afd704a5239742a06f3af740b5331bed95b1dc45ad830aa332a9adcdb90cf",
+      "md5": "d4d39e8850057485eae4091cca64bd51",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-2B33FC624377.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-2B33FC624377.zip",
+        "extension": "zip",
+        "size_bytes": 498316,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-F222C7EBEFF6",
+      "name": "ART-F222C7EBEFF6.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 50137,
+      "source_offset": 50137,
+      "size": 498033,
+      "sha256": "def998da66cc213a058e6ac8c8c008994f195e3dd578b2c57f7c36d44bd12365",
+      "md5": "2e174d29a7cde70ca9a5247f0f4f4bc8",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-F222C7EBEFF6.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-F222C7EBEFF6.zip",
+        "extension": "zip",
+        "size_bytes": 498033,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-12934C2FEB47",
+      "name": "ART-12934C2FEB47.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 50420,
+      "source_offset": 50420,
+      "size": 497750,
+      "sha256": "aece63f80405e3f0ad49676214275d95c6443afda563fb8402a3a8496faad292",
+      "md5": "ee6e3c424dfc70191e885c168cfd2a66",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-12934C2FEB47.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-12934C2FEB47.zip",
+        "extension": "zip",
+        "size_bytes": 497750,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-8F39AF121B31",
+      "name": "ART-8F39AF121B31.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 50703,
+      "source_offset": 50703,
+      "size": 497467,
+      "sha256": "6337c90cfc85c040a47e1a388cb75416ca630b9229db5fd453e9ffe13c3aa612",
+      "md5": "f6d2064f90f824bec7e25b1aef0b082d",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-8F39AF121B31.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-8F39AF121B31.zip",
+        "extension": "zip",
+        "size_bytes": 497467,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-275F6C803934",
+      "name": "ART-275F6C803934.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 50986,
+      "source_offset": 50986,
+      "size": 497184,
+      "sha256": "8dbb5245d4738c242309869d8731200e2028b43b6700a60ae43efe7571d89f93",
+      "md5": "e270cf9b57c98d351864b784337cb380",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-275F6C803934.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-275F6C803934.zip",
+        "extension": "zip",
+        "size_bytes": 497184,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-BCD38392D01E",
+      "name": "ART-BCD38392D01E.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 51269,
+      "source_offset": 51269,
+      "size": 496901,
+      "sha256": "8d4ac327d1c5f3f8cde3638504f541f00eb58269eb944e07e413a815e222ee39",
+      "md5": "e278dfde73f4d1c0864de06ec43ce49b",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-BCD38392D01E.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-BCD38392D01E.zip",
+        "extension": "zip",
+        "size_bytes": 496901,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-12EE283B9023",
+      "name": "ART-12EE283B9023.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 51532,
+      "source_offset": 51532,
+      "size": 496638,
+      "sha256": "50c93210d58b642b4ddb470caadc3d31015d29d69df79915eda7cfaa166fa0b0",
+      "md5": "425d868fa34c9e3f06da95c260be8d0e",
+      "entropy": 7.873,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-12EE283B9023.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-12EE283B9023.zip",
+        "extension": "zip",
+        "size_bytes": 496638,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-FC1C93A5A8E0",
+      "name": "ART-FC1C93A5A8E0.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 69185,
+      "source_offset": 69185,
+      "size": 478985,
+      "sha256": "a099fdfcb0705640a790f32b253fe5b651433c63fe36cb1f7918e13be3d0b777",
+      "md5": "1f0317967d3eab272019e7967772b338",
+      "entropy": 7.866,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-FC1C93A5A8E0.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-FC1C93A5A8E0.zip",
+        "extension": "zip",
+        "size_bytes": 478985,
+        "created_utc": "2026-09-03T08:38:19Z",
+        "modified_utc": "2026-09-03T08:38:19Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-FA508E6722ED",
+      "name": "ART-FA508E6722ED.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 70838,
+      "source_offset": 70838,
+      "size": 477332,
+      "sha256": "7a8ef8040e23128f89aa9e7bf8980a67c0d799450f50e46015f79039a71b35d8",
+      "md5": "bbca22e7868fbd7bf2748d1fe276b09b",
+      "entropy": 7.865,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-FA508E6722ED.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-FA508E6722ED.zip",
+        "extension": "zip",
+        "size_bytes": 477332,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-39446134DE01",
+      "name": "ART-39446134DE01.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 253265,
+      "source_offset": 253265,
+      "size": 294905,
+      "sha256": "0f39ec5f862fc168fc5feb6af55b333236db3a24c08a7a652f7925bdc0c8fadd",
+      "md5": "12d10224e5c463c36f62d6c0d79c87ed",
+      "entropy": 7.737,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-39446134DE01.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-39446134DE01.zip",
+        "extension": "zip",
+        "size_bytes": 294905,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-435B9442AC31",
+      "name": "ART-435B9442AC31.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 254918,
+      "source_offset": 254918,
+      "size": 293252,
+      "sha256": "f00aa1c4e9184f481e543f918c68b79dc08e63ed6b2799d7b5eff80626c7e3a9",
+      "md5": "717e177a0465c46ed13a2f00d8137517",
+      "entropy": 7.734,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-435B9442AC31.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-435B9442AC31.zip",
+        "extension": "zip",
+        "size_bytes": 293252,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-E19AD9245D3F",
+      "name": "ART-E19AD9245D3F.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 256697,
+      "source_offset": 256697,
+      "size": 291473,
+      "sha256": "f81af7a3138390f106919d9059442a9c75fce5f48133c7d5e5906231b028f5bb",
+      "md5": "6b5cd18731825d7d1bde2bf36a95a9d4",
+      "entropy": 7.732,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-E19AD9245D3F.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-E19AD9245D3F.zip",
+        "extension": "zip",
+        "size_bytes": 291473,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-FCECD50610D8",
+      "name": "ART-FCECD50610D8.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 256956,
+      "source_offset": 256956,
+      "size": 291214,
+      "sha256": "72d0161d4dda9af3f7be805eb67dd8dadf7115916033f8783e3479de8101bfdc",
+      "md5": "d3cfbc3439696275ffa79fb18c090ae1",
+      "entropy": 7.732,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-FCECD50610D8.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-FCECD50610D8.zip",
+        "extension": "zip",
+        "size_bytes": 291214,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-8E78037EC2F7",
+      "name": "ART-8E78037EC2F7.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 269791,
+      "source_offset": 269791,
+      "size": 278379,
+      "sha256": "4ebae33be9cc7328d03c693bbb8d290f56cb4a75a0c70adcf6aafc4556605077",
+      "md5": "b382d5aa1fed751bbeef697feab0321b",
+      "entropy": 7.713,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-8E78037EC2F7.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-8E78037EC2F7.zip",
+        "extension": "zip",
+        "size_bytes": 278379,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:21Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-692A19EBFD52",
+      "name": "ART-692A19EBFD52.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 539531,
+      "source_offset": 539531,
+      "size": 8639,
+      "sha256": "a5e4bee702d9bc34cf6c0299ab1e67c85da97e845103ac7691cfd06ab02b7a0d",
+      "md5": "1ebd4d72c2dd5d87f6326ca2ad9445e6",
+      "entropy": 6.215,
+      "entropy_class": "Normal",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-692A19EBFD52.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-692A19EBFD52.zip",
+        "extension": "zip",
+        "size_bytes": 8639,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-FF873A58A518",
+      "name": "ART-FF873A58A518.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 540326,
+      "source_offset": 540326,
+      "size": 7844,
+      "sha256": "036c3da066e2bd4ede735c98cc17d84d68fba5bd36ceb986c80fd11da299a068",
+      "md5": "2d32f89628f24b60e3859e17b1a3f90d",
+      "entropy": 5.963,
+      "entropy_class": "Normal",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-FF873A58A518.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-FF873A58A518.zip",
+        "extension": "zip",
+        "size_bytes": 7844,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-A77F01E8D6DA",
+      "name": "ART-A77F01E8D6DA.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 540790,
+      "source_offset": 540790,
+      "size": 7380,
+      "sha256": "b5435bd61bc04634e1e512c6df81d8aae2c54b5a0fbbf19deb290ffa9a7fb80b",
+      "md5": "6bc8f7a58881030a782135b6612c2f1c",
+      "entropy": 5.788,
+      "entropy_class": "Normal",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-A77F01E8D6DA.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-A77F01E8D6DA.zip",
+        "extension": "zip",
+        "size_bytes": 7380,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-8747F4292676",
+      "name": "ART-8747F4292676.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 541427,
+      "source_offset": 541427,
+      "size": 6743,
+      "sha256": "b5046e1ce3b2766afa101275bd7e4b6ff656b3610f3b83124b243146d86d40d1",
+      "md5": "dfa26ff51342a4f6d4dc47099485247c",
+      "entropy": 5.503,
+      "entropy_class": "Normal",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-8747F4292676.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-8747F4292676.zip",
+        "extension": "zip",
+        "size_bytes": 6743,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-114AF3BB22D7",
+      "name": "ART-114AF3BB22D7.zip",
+      "type": "ZIP Archive",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 542164,
+      "source_offset": 542164,
+      "size": 6006,
+      "sha256": "e154735d24d433874dd255d006df81024305e4c61da569196cd4d67c139cfbc5",
+      "md5": "9b84c06178fbb56754d2784852744053",
+      "entropy": 5.385,
+      "entropy_class": "Normal",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-114AF3BB22D7.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-114AF3BB22D7.zip",
+        "extension": "zip",
+        "size_bytes": 6006,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-3192ED07928E",
+      "name": "ART-3192ED07928E.zip",
+      "type": "ZIP Archive Empty",
+      "category": "Archives",
+      "extension": "zip",
+      "mime_type": "application/zip",
+      "offset": 548166,
+      "source_offset": 548166,
+      "size": 22,
+      "sha256": "54a2638fa02b828a6f4162838cac367f1b4ff32d1ec402161632b1fd89f15d69",
+      "md5": "42d1a3ea4aff57233d49357c15a7a979",
+      "entropy": 2.639,
+      "entropy_class": "Low",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-3192ED07928E.zip",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-3192ED07928E.zip",
+        "extension": "zip",
+        "size_bytes": 22,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-5B5ABAB45AA7",
+      "name": "ART-5B5ABAB45AA7.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 8418,
+      "source_offset": 8418,
+      "size": 539770,
+      "sha256": "f1432c2f8612c828d72258f2c532df193963c2ff49af50b81be1f08cdf513d79",
+      "md5": "43c4e4a45673c5c0ae536b5ddd0f3cf9",
+      "entropy": 7.885,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-5B5ABAB45AA7.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-5B5ABAB45AA7.mp3",
+        "extension": "mp3",
+        "size_bytes": 539770,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-D810C4596747",
+      "name": "ART-D810C4596747.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 13636,
+      "source_offset": 13636,
+      "size": 534552,
+      "sha256": "6a15bbfa462e3b1021b2f943728c267da7cd7ffd98d99c76602e54f984edad15",
+      "md5": "456d7a384181f66c5eb697cd3fca7587",
+      "entropy": 7.883,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-D810C4596747.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-D810C4596747.mp3",
+        "extension": "mp3",
+        "size_bytes": 534552,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-3F87F81947C8",
+      "name": "ART-3F87F81947C8.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 19231,
+      "source_offset": 19231,
+      "size": 528957,
+      "sha256": "829e6539398dfdc39acac878d874b98b6f0a4624d6ecef6b700e0f612531ab42",
+      "md5": "6214faa3a7b403d29435a40378c302cf",
+      "entropy": 7.881,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-3F87F81947C8.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-3F87F81947C8.mp3",
+        "extension": "mp3",
+        "size_bytes": 528957,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-ADBEC5873CB7",
+      "name": "ART-ADBEC5873CB7.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 76878,
+      "source_offset": 76878,
+      "size": 471310,
+      "sha256": "9e2539637c572d4c6311d60f379f0f2cc1c0835f22bf55b574780157f8626df7",
+      "md5": "d50fe7754677a30ae55442806f829762",
+      "entropy": 7.872,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-ADBEC5873CB7.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-ADBEC5873CB7.mp3",
+        "extension": "mp3",
+        "size_bytes": 471310,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-BA1F5D3D117A",
+      "name": "ART-BA1F5D3D117A.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 84694,
+      "source_offset": 84694,
+      "size": 463494,
+      "sha256": "0606a70b57d17461545d011c6362865e31222a8b0519b27928197bfb16e5c7d3",
+      "md5": "867c1ea3134e96571879503d159f15a0",
+      "entropy": 7.868,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-BA1F5D3D117A.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-BA1F5D3D117A.mp3",
+        "extension": "mp3",
+        "size_bytes": 463494,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-C2791658F27B",
+      "name": "ART-C2791658F27B.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 130651,
+      "source_offset": 130651,
+      "size": 417537,
+      "sha256": "2d6610174c40d5438b6e1cb53be94a6bacb542cd7d52017d37253d5aeafdc515",
+      "md5": "e3f0e4fb797ebab848dd66d91b109b49",
+      "entropy": 7.846,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-C2791658F27B.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-C2791658F27B.mp3",
+        "extension": "mp3",
+        "size_bytes": 417537,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-9619322D16E1",
+      "name": "ART-9619322D16E1.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 136748,
+      "source_offset": 136748,
+      "size": 411440,
+      "sha256": "01a1100069046a0354eeab56f8e0b9ae0ce6478f453b90555a1570a5958a175d",
+      "md5": "aec839089cfc1d86f21546972eb7b81c",
+      "entropy": 7.842,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-9619322D16E1.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-9619322D16E1.mp3",
+        "extension": "mp3",
+        "size_bytes": 411440,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-8CEE7F150BA3",
+      "name": "ART-8CEE7F150BA3.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 137896,
+      "source_offset": 137896,
+      "size": 410292,
+      "sha256": "11356d0b0052a14fa6211d7c470c015747d71bcb30ad2c6d3766f514361aa282",
+      "md5": "7cc8210435bbfc4ba6924c3902fe6145",
+      "entropy": 7.842,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-8CEE7F150BA3.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-8CEE7F150BA3.mp3",
+        "extension": "mp3",
+        "size_bytes": 410292,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-5CF891A15AB3",
+      "name": "ART-5CF891A15AB3.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 162243,
+      "source_offset": 162243,
+      "size": 385945,
+      "sha256": "00fe1327b97954d7cb8d22b35713f4ab46ffd2dfe69e2c7fc0b41c72e1b7800f",
+      "md5": "5b7c71ebd003751d4f5bdc494cad5400",
+      "entropy": 7.826,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-5CF891A15AB3.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-5CF891A15AB3.mp3",
+        "extension": "mp3",
+        "size_bytes": 385945,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-A414C8CDDCE4",
+      "name": "ART-A414C8CDDCE4.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 227469,
+      "source_offset": 227469,
+      "size": 320719,
+      "sha256": "8aa3605c4de8f9f1a87eca7bf477582a685ae59e0d8f7bbca38f691108e5de5a",
+      "md5": "9283fa327a0b11e27e97b2362fed4570",
+      "entropy": 7.768,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-A414C8CDDCE4.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-A414C8CDDCE4.mp3",
+        "extension": "mp3",
+        "size_bytes": 320719,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-325D8838BADB",
+      "name": "ART-325D8838BADB.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 233172,
+      "source_offset": 233172,
+      "size": 315016,
+      "sha256": "b45c00f8508cc0aceea80e5461cd28fe1cb83bb47d5c66abf9dd24a4999f0ff7",
+      "md5": "9aaa6966da0d67642c627a38b3d1ba04",
+      "entropy": 7.761,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-325D8838BADB.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-325D8838BADB.mp3",
+        "extension": "mp3",
+        "size_bytes": 315016,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-FA5202E1D0C6",
+      "name": "ART-FA5202E1D0C6.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 281074,
+      "source_offset": 281074,
+      "size": 267114,
+      "sha256": "174ec686af7079a006ca716e7321e47d509653b2f65c587ad907a5c98b47a7d9",
+      "md5": "494522763e8cf06966daf17c435348ba",
+      "entropy": 7.735,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-FA5202E1D0C6.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-FA5202E1D0C6.mp3",
+        "extension": "mp3",
+        "size_bytes": 267114,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-CDB540E5552B",
+      "name": "ART-CDB540E5552B.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 283705,
+      "source_offset": 283705,
+      "size": 264483,
+      "sha256": "0b0d0b9067f25af108254adb2f4435fb09fc79c08da8a7be2c64da0de2863cba",
+      "md5": "33b59559858a07bbdb130a1a6a6a34ad",
+      "entropy": 7.732,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-CDB540E5552B.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-CDB540E5552B.mp3",
+        "extension": "mp3",
+        "size_bytes": 264483,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-517A9300EC33",
+      "name": "ART-517A9300EC33.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 292989,
+      "source_offset": 292989,
+      "size": 255199,
+      "sha256": "8a669c99fad453d076f79cf84e26f3a4a9d58af7ef8fe0eed59f173e66da439c",
+      "md5": "a52bebd0bdda4c50a752bd37d474c99a",
+      "entropy": 7.747,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-517A9300EC33.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-517A9300EC33.mp3",
+        "extension": "mp3",
+        "size_bytes": 255199,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-A098BC254E9F",
+      "name": "ART-A098BC254E9F.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 296071,
+      "source_offset": 296071,
+      "size": 252117,
+      "sha256": "5ca6f259e4b03f33d4102859991d631cc590520b27313db836837dcbd5436b7f",
+      "md5": "3370ce12cb7ade4b01668e60fc78dbc2",
+      "entropy": 7.742,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-A098BC254E9F.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-A098BC254E9F.mp3",
+        "extension": "mp3",
+        "size_bytes": 252117,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-50EA70A1A64E",
+      "name": "ART-50EA70A1A64E.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 297703,
+      "source_offset": 297703,
+      "size": 250485,
+      "sha256": "d1bbc8b70b10d820bf1becaa746c92e60085ca48701579a9cf3d60e6f65c3341",
+      "md5": "16bbee100f9ae0db0e3e967d67d94313",
+      "entropy": 7.74,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-50EA70A1A64E.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-50EA70A1A64E.mp3",
+        "extension": "mp3",
+        "size_bytes": 250485,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-6FFFA12E20B3",
+      "name": "ART-6FFFA12E20B3.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 306216,
+      "source_offset": 306216,
+      "size": 241972,
+      "sha256": "64d89a7364b12b873a5f4410bf9f7239239a1545f8ecf2af8694ebec024c8bc4",
+      "md5": "5f348dd17a37a3bbd92606959433999b",
+      "entropy": 7.756,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-6FFFA12E20B3.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-6FFFA12E20B3.mp3",
+        "extension": "mp3",
+        "size_bytes": 241972,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-109E938F10C4",
+      "name": "ART-109E938F10C4.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 344852,
+      "source_offset": 344852,
+      "size": 203336,
+      "sha256": "7f502aa2c3e029aafe88f4947cd969db26bd2957038dfa623402fcef67db3965",
+      "md5": "dd395d44f9545c1a7900dcff070e4438",
+      "entropy": 7.735,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-109E938F10C4.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-109E938F10C4.mp3",
+        "extension": "mp3",
+        "size_bytes": 203336,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-16998812A74F",
+      "name": "ART-16998812A74F.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 349502,
+      "source_offset": 349502,
+      "size": 198686,
+      "sha256": "e3355216225507e40e9979d7777a0e18318996355d76c1b8310e3185dadf67e1",
+      "md5": "d19de0d82e9320561ae41c776a3baad9",
+      "entropy": 7.724,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-16998812A74F.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-16998812A74F.mp3",
+        "extension": "mp3",
+        "size_bytes": 198686,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-FC95EFDEC189",
+      "name": "ART-FC95EFDEC189.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 366789,
+      "source_offset": 366789,
+      "size": 181399,
+      "sha256": "214658e685600e9256c498749d2823bdc8cf6cfa9568e10f3e1193972cf2dc43",
+      "md5": "cd943b301f34cc4fa175f529d40e92d0",
+      "entropy": 7.733,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-FC95EFDEC189.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-FC95EFDEC189.mp3",
+        "extension": "mp3",
+        "size_bytes": 181399,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-2B8CE2ADA3BF",
+      "name": "ART-2B8CE2ADA3BF.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 367972,
+      "source_offset": 367972,
+      "size": 180216,
+      "sha256": "34b577491dabc8329715c668b9914b6dba025048b409b0908a928c3eeacb40d7",
+      "md5": "c8c14bf16ddd0416573f37c525a714e1",
+      "entropy": 7.73,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-2B8CE2ADA3BF.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-2B8CE2ADA3BF.mp3",
+        "extension": "mp3",
+        "size_bytes": 180216,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-6955839FD599",
+      "name": "ART-6955839FD599.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 368560,
+      "source_offset": 368560,
+      "size": 179628,
+      "sha256": "585fcbdc98da246c58d47d70410ca5871421cdcb64f619a287ae4ace5d443bf8",
+      "md5": "e5779917254a78d1d1128fb998f088a0",
+      "entropy": 7.729,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-6955839FD599.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-6955839FD599.mp3",
+        "extension": "mp3",
+        "size_bytes": 179628,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-1CD4FD1D8CD7",
+      "name": "ART-1CD4FD1D8CD7.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 387040,
+      "source_offset": 387040,
+      "size": 161148,
+      "sha256": "0f88b627afd73b8ada2de9c97c8523f9259385eaaeed39f44afc44ebcad84a29",
+      "md5": "e7385cd1a7659ccaa27c24aa27dbebde",
+      "entropy": 7.734,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-1CD4FD1D8CD7.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-1CD4FD1D8CD7.mp3",
+        "extension": "mp3",
+        "size_bytes": 161148,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-3B096B1DEE2A",
+      "name": "ART-3B096B1DEE2A.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 390446,
+      "source_offset": 390446,
+      "size": 157742,
+      "sha256": "11402ff0aabd1256fb06e2f9e823c58d7bd702502afd153f3a4fba635e1f0c7c",
+      "md5": "ad337e28a0fe4234d7725108bda460ee",
+      "entropy": 7.726,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-3B096B1DEE2A.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-3B096B1DEE2A.mp3",
+        "extension": "mp3",
+        "size_bytes": 157742,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-1592963D049D",
+      "name": "ART-1592963D049D.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 390869,
+      "source_offset": 390869,
+      "size": 157319,
+      "sha256": "5f779bbbf025a813bde0b507e9fc9424db4a3455f995a7fe14895af07873fc75",
+      "md5": "8930d6cdc07d20590719013e5f5dd27a",
+      "entropy": 7.725,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-1592963D049D.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-1592963D049D.mp3",
+        "extension": "mp3",
+        "size_bytes": 157319,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-69822AB6F88E",
+      "name": "ART-69822AB6F88E.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 391179,
+      "source_offset": 391179,
+      "size": 157009,
+      "sha256": "dae77738f9f2689713c717f2ffcdfe5ba6acecf64bef3fa237fb280db51994b7",
+      "md5": "d4665ea982a77960eb346decdef5e93e",
+      "entropy": 7.724,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-69822AB6F88E.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-69822AB6F88E.mp3",
+        "extension": "mp3",
+        "size_bytes": 157009,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-C3F65DF56FBC",
+      "name": "ART-C3F65DF56FBC.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 424621,
+      "source_offset": 424621,
+      "size": 123567,
+      "sha256": "3bb738d17451803d5b64c9aab311d5faeeb493a09a8778a1f27c4018759b4800",
+      "md5": "2a69415c65a1f8077647f027538a6b0c",
+      "entropy": 7.746,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-C3F65DF56FBC.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-C3F65DF56FBC.mp3",
+        "extension": "mp3",
+        "size_bytes": 123567,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-2AC0BF0D992D",
+      "name": "ART-2AC0BF0D992D.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 431508,
+      "source_offset": 431508,
+      "size": 116680,
+      "sha256": "58568ac203acd8bb6e12f171b7c0d08fb6394a592c2a6527d25c779b2e931b53",
+      "md5": "58781d0278db3fce8314bddef2e36a96",
+      "entropy": 7.722,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-2AC0BF0D992D.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-2AC0BF0D992D.mp3",
+        "extension": "mp3",
+        "size_bytes": 116680,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-D1B7D5756C6A",
+      "name": "ART-D1B7D5756C6A.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 480426,
+      "source_offset": 480426,
+      "size": 67762,
+      "sha256": "7c0dd6d2d95868109ae6c635ca6ab8477ddd9013c3f43f164e2a272e40956d74",
+      "md5": "1080d3c2d279a64802e3e4fc5bb8e17d",
+      "entropy": 7.74,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-D1B7D5756C6A.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-D1B7D5756C6A.mp3",
+        "extension": "mp3",
+        "size_bytes": 67762,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-2AC013ACC0CB",
+      "name": "ART-2AC013ACC0CB.mp3",
+      "type": "MPEG Audio",
+      "category": "Audio",
+      "extension": "mp3",
+      "mime_type": "audio/mpeg",
+      "offset": 539618,
+      "source_offset": 539618,
+      "size": 8570,
+      "sha256": "c0a6daa1bfc39eac4ef45873cec2c7a680d73db67ec3afc787bf27039832ebe9",
+      "md5": "088b804d6da4c3c9b43ac7a4bff99264",
+      "entropy": 6.202,
+      "entropy_class": "Normal",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-2AC013ACC0CB.mp3",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-2AC013ACC0CB.mp3",
+        "extension": "mp3",
+        "size_bytes": 8570,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-A7435C88DE60",
+      "name": "ART-A7435C88DE60.exe",
+      "type": "Windows PE Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "mime_type": "application/vnd.microsoft.portable-executable",
+      "offset": 176671,
+      "source_offset": 176671,
+      "size": 371517,
+      "sha256": "ebab2b422538e92e905ed3545155dd4905da5df682688dc354473af8cc1c7f45",
+      "md5": "873bbbd210df1f372b3b2f6707a88343",
+      "entropy": 7.815,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-A7435C88DE60.exe",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-A7435C88DE60.exe",
+        "extension": "exe",
+        "size_bytes": 371517,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-00E3866BB906",
+      "name": "ART-00E3866BB906.exe",
+      "type": "Windows PE Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "mime_type": "application/vnd.microsoft.portable-executable",
+      "offset": 180145,
+      "source_offset": 180145,
+      "size": 368043,
+      "sha256": "580856f41d4ec3ffbb49d77facfcc507fd582900e4119b0925d1732a3db49e7a",
+      "md5": "f47e8b7c4adbf0a4853dc14b0e54e009",
+      "entropy": 7.812,
+      "entropy_class": "Very High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-00E3866BB906.exe",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-00E3866BB906.exe",
+        "extension": "exe",
+        "size_bytes": 368043,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-D7334008D055",
+      "name": "ART-D7334008D055.exe",
+      "type": "Windows PE Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "mime_type": "application/vnd.microsoft.portable-executable",
+      "offset": 285509,
+      "source_offset": 285509,
+      "size": 262679,
+      "sha256": "17b159c1e0be8e935552850c92979b5fc51cf0de98afcebdd246a7da7c37b08a",
+      "md5": "5bc569228857d3b41d5094803c06be4d",
+      "entropy": 7.729,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-D7334008D055.exe",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-D7334008D055.exe",
+        "extension": "exe",
+        "size_bytes": 262679,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-CAE34A40E77B",
+      "name": "ART-CAE34A40E77B.exe",
+      "type": "Windows PE Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "mime_type": "application/vnd.microsoft.portable-executable",
+      "offset": 362745,
+      "source_offset": 362745,
+      "size": 185443,
+      "sha256": "bd61cd63e381e8f50cd1d854c3e0e4cae8bd9fa741b9a051514e055d5fd07d30",
+      "md5": "84d28943e320859a7a42f3e9f90df6ea",
+      "entropy": 7.741,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-CAE34A40E77B.exe",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-CAE34A40E77B.exe",
+        "extension": "exe",
+        "size_bytes": 185443,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "artifact_id": "ART-7DBAD5181978",
+      "name": "ART-7DBAD5181978.exe",
+      "type": "Windows PE Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "mime_type": "application/vnd.microsoft.portable-executable",
+      "offset": 485916,
+      "source_offset": 485916,
+      "size": 62272,
+      "sha256": "8ac6c4c12fbee8fb28b0eae5302bdf2b731111fa8de950def5785ab6691994d1",
+      "md5": "cac6889c7b8f41626f7f5971cb61e745",
+      "entropy": 7.701,
+      "entropy_class": "High",
+      "recovery_method": "SIGNATURE_CARVING",
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\ART-7DBAD5181978.exe",
+      "status": "RECOVERED",
+      "validation_status": "VALIDATED",
+      "validationStatus": "VALIDATED",
+      "metadata": {
+        "filename": "ART-7DBAD5181978.exe",
+        "extension": "exe",
+        "size_bytes": 62272,
+        "created_utc": "2026-09-03T08:38:20Z",
+        "modified_utc": "2026-09-03T08:38:20Z",
+        "accessed_utc": "2026-09-03T08:38:22Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    }
+  ],
+  "chain_of_custody": [
+    {
+      "entry_id": "COC-SYS-816FA6",
+      "timestamp_utc": "2026-09-03T08:38:17Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "CASE_INITIALIZED",
+      "details": "Case CASE-2026-1788422681222-S9HSIO registered by investigator Meena Tharshini I",
+      "evidence_hash": "N/A_SYSTEM_INIT"
+    },
+    {
+      "entry_id": "COC-7B219E",
+      "timestamp_utc": "2026-09-03T08:38:17Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "SCAN_STARTED",
+      "details": "Target: C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\evidence\\Team_Innovatrix_SIH.pptx; Total Bytes: 548188",
+      "evidence_hash": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925"
+    },
+    {
+      "entry_id": "COC-5EA81F",
+      "timestamp_utc": "2026-09-03T08:38:22Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "SCAN_COMPLETED",
+      "details": "Recovered 105 artifacts; validated 105 artifacts; elapsed 5.18 seconds.",
+      "evidence_hash": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925"
+    }
+  ]
+}

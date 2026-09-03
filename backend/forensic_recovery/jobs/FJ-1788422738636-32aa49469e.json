@@ -1,0 +1,28 @@
+{
+  "jobId": "FJ-1788422738636-32aa49469e",
+  "operationId": "OP-1788422738638-5a8d4ad238",
+  "caseId": "CASE-2026-1788422681222-S9HSIO",
+  "examiner": "Meena Tharshini I",
+  "agentId": null,
+  "operation": "FORENSIC_SCAN",
+  "status": "FAILED",
+  "progress": 5,
+  "bytesScanned": 0,
+  "bytesTotal": 548188,
+  "artifactsFound": 0,
+  "artifactsValidated": 0,
+  "evidenceId": "EV-1788422713288-59e6931b71b3",
+  "fileName": "Team_Innovatrix_SIH.pptx",
+  "evidenceHash": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925",
+  "source": null,
+  "executionMode": "local",
+  "createdAt": "2026-09-03T08:05:38.638Z",
+  "startedAt": "2026-09-03T08:05:38.655Z",
+  "completedAt": "2026-09-03T08:05:39.315Z",
+  "updatedAt": "2026-09-03T08:05:39.318Z",
+  "error": {
+    "code": "FORENSIC_ENGINE_FAILED",
+    "message": "usage: cli.py [-h] [--list-drives] [--scan] [--target TARGET]\r\n              [--output OUTPUT] [--case CASE] [--investigator INVESTIGATOR]\r\n              [--json]\r\ncli.py: error: unrecognized arguments: scan --input C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\evidence\\Team_Innovatrix_SIH.pptx --examiner Meena Tharshini I"
+  },
+  "result": null
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 3,
+  "evidence_id": "EV-1788422713288-59e6931b71b3",
+  "file_name": "Team_Innovatrix_SIH.pptx",
+  "original_name": "Team Innovatrix SIH.pptx",
+  "acquired_at": "2026-09-03T08:05:13.288Z",
+  "size": 548188,
+  "modified_at": "2026-09-03T08:05:13.265Z",
+  "sha256": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925",
+  "hash_algorithm": "SHA-256",
+  "acquisition_status": "ACQUIRED",
+  "integrity_baseline": true,
+  "baseline_created_at": "2026-09-03T08:05:13.288Z",
+  "acquisition_method": "TRUSTWIPE_FORENSIC_UPLOAD"
+}

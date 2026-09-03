@@ -1,0 +1,106 @@
+{
+  "schema_version": 3,
+  "product": "TrustWipe Forensics",
+  "report_type": "DIGITAL_FORENSIC_EVIDENCE_REPORT",
+  "case_id": "CASE-2026-1788422681222-S9HSIO",
+  "examiner": "Meena Tharshini I",
+  "generated_at": "2026-09-03T08:08:41.740Z",
+  "evidence": {
+    "evidence_id": "EV-1788422713288-59e6931b71b3",
+    "file_name": "Team_Innovatrix_SIH.pptx",
+    "size": 548188,
+    "modified_at": "2026-09-03T08:05:13.265Z",
+    "sha256": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925",
+    "hash_algorithm": "SHA-256",
+    "acquired_at": "2026-09-03T08:05:13.288Z"
+  },
+  "integrity": {
+    "status": "VERIFIED",
+    "verified": true,
+    "hash_match": true,
+    "size_match": true,
+    "acquisition_hash": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925",
+    "current_hash": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925",
+    "original_source_modified": false,
+    "message": "Evidence integrity verified."
+  },
+  "analysis": {
+    "job_id": "FJ-1788422906811-1330aa9b9c",
+    "operation_id": "OP-1788422906812-d8956b2309",
+    "status": "COMPLETED",
+    "artifacts_recovered": 1,
+    "artifacts": [
+      {
+        "artifactId": "CASE-2026-1788422681222-S9HSIO-report_JOB-541D1C4E.json",
+        "name": "report_JOB-541D1C4E.json",
+        "size": 85966,
+        "type": "JSON",
+        "modifiedAt": "2026-09-03T08:08:31.007Z",
+        "validationStatus": "VALIDATED",
+        "sha256": "e2415d1a42d8e30f62f4b9f9c1b334db34776743a690e70cbed3f91cdede60ac",
+        "status": "RECOVERED",
+        "recoveryMethod": "SIGNATURE_CARVING",
+        "path": "/api/forensic/recovered/CASE-2026-1788422681222-S9HSIO/report_JOB-541D1C4E.json"
+      }
+    ]
+  },
+  "methodology": {
+    "acquisition": "SHA-256 acquisition baseline",
+    "integrity": "SHA-256 and file-size comparison",
+    "recovery": "TrustWipe forensic recovery engine",
+    "evidence_handling": "Case-isolated evidence analysis and chain-of-custody recording"
+  },
+  "chain_of_custody": [
+    {
+      "eventId": "COC-1788422738674-87b02431d8",
+      "caseId": "CASE-2026-1788422681222-S9HSIO",
+      "timestamp": "2026-09-03T08:05:38.675Z",
+      "action": "FORENSIC_ANALYSIS_STARTED",
+      "details": {
+        "jobId": "FJ-1788422738636-32aa49469e",
+        "evidenceId": "EV-1788422713288-59e6931b71b3",
+        "evidenceHash": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925"
+      }
+    },
+    {
+      "eventId": "COC-1788422739324-93124213a4",
+      "caseId": "CASE-2026-1788422681222-S9HSIO",
+      "timestamp": "2026-09-03T08:05:39.324Z",
+      "action": "FORENSIC_ANALYSIS_FAILED",
+      "details": {
+        "jobId": "FJ-1788422738636-32aa49469e",
+        "errorCode": "FORENSIC_ENGINE_FAILED",
+        "error": "usage: cli.py [-h] [--list-drives] [--scan] [--target TARGET]\r\n              [--output OUTPUT] [--case CASE] [--investigator INVESTIGATOR]\r\n              [--json]\r\ncli.py: error: unrecognized arguments: scan --input C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\evidence\\Team_Innovatrix_SIH.pptx --examiner Meena Tharshini I"
+      }
+    },
+    {
+      "eventId": "COC-1788422906853-67af183e32",
+      "caseId": "CASE-2026-1788422681222-S9HSIO",
+      "timestamp": "2026-09-03T08:08:26.853Z",
+      "action": "FORENSIC_ANALYSIS_STARTED",
+      "details": {
+        "jobId": "FJ-1788422906811-1330aa9b9c",
+        "evidenceId": "EV-1788422713288-59e6931b71b3",
+        "evidenceHash": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925"
+      }
+    },
+    {
+      "eventId": "COC-1788422911043-f95dc8bdf6",
+      "caseId": "CASE-2026-1788422681222-S9HSIO",
+      "timestamp": "2026-09-03T08:08:31.043Z",
+      "action": "FORENSIC_ANALYSIS_COMPLETED",
+      "details": {
+        "jobId": "FJ-1788422906811-1330aa9b9c",
+        "evidenceId": "EV-1788422713288-59e6931b71b3",
+        "evidenceHash": "c3a9d91f95710406c871e29ee7cfe9c656ceae3420142131495855713bebd925",
+        "recoveredCount": 1,
+        "artifactsValidated": 0
+      }
+    }
+  ],
+  "compliance": {
+    "reference": "NIST SP 800-88",
+    "status": "REFERENCE_ONLY",
+    "note": "This forensic report records evidence integrity, recovery activity, and chain-of-custody metadata. It does not by itself certify physical media sanitization or regulatory compliance."
+  }
+}
