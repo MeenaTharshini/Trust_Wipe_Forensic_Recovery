@@ -1,0 +1,44 @@
+{
+  "report_metadata": {
+    "generated_utc": "2026-09-03T13:29:30Z",
+    "job_id": "JOB-EB0D4522",
+    "case_id": "CASE-2026-1788422681222-S9HSIO",
+    "investigator": "Meena Tharshini I",
+    "engine_version": "TrustWipe Forensic Engine 2.4"
+  },
+  "evidence_target": {
+    "path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\evidence\\new_6_1.txt",
+    "total_recovered_artifacts": 0
+  },
+  "summary_by_category": {},
+  "carved_artifacts": [],
+  "chain_of_custody": [
+    {
+      "entry_id": "COC-SYS-B814A9",
+      "timestamp_utc": "2026-09-03T13:29:30Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "CASE_INITIALIZED",
+      "details": "Case CASE-2026-1788422681222-S9HSIO registered by investigator Meena Tharshini I",
+      "evidence_hash": "N/A_SYSTEM_INIT"
+    },
+    {
+      "entry_id": "COC-5A2E9E",
+      "timestamp_utc": "2026-09-03T13:29:30Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "SCAN_STARTED",
+      "details": "Target: C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\evidence\\new_6_1.txt; Total Bytes: 93545",
+      "evidence_hash": "8f87ab2d03a5c7f0edbfde9b1e6b61f83d0026d3f41df0e1a5dc442c043a9a07"
+    },
+    {
+      "entry_id": "COC-63ECF8",
+      "timestamp_utc": "2026-09-03T13:29:30Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "SCAN_COMPLETED",
+      "details": "Recovered 0 artifacts; validated 0 artifacts; elapsed 0.04 seconds.",
+      "evidence_hash": "8f87ab2d03a5c7f0edbfde9b1e6b61f83d0026d3f41df0e1a5dc442c043a9a07"
+    }
+  ]
+}
