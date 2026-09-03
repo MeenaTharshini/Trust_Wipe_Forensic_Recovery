@@ -1,0 +1,15 @@
+{
+  "schema_version": 3,
+  "evidence_id": "EV-1788427322132-4fb587bae036",
+  "file_name": "TrustWipe_&_Recovery.zip",
+  "original_name": "TrustWipe & Recovery.zip",
+  "acquired_at": "2026-09-03T09:22:02.135Z",
+  "size": 195343959,
+  "modified_at": "2026-09-03T09:22:01.795Z",
+  "sha256": "9b19e62add18c09ff2bedf597e5fdaa525e745943269c584ef0046305b74c976",
+  "hash_algorithm": "SHA-256",
+  "acquisition_status": "ACQUIRED",
+  "integrity_baseline": true,
+  "baseline_created_at": "2026-09-03T09:22:02.135Z",
+  "acquisition_method": "TRUSTWIPE_FORENSIC_UPLOAD"
+}
