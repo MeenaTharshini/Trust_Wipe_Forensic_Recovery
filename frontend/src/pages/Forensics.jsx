@@ -13,8 +13,11 @@ import "./Forensics.css";
    ============================================================================ */
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ||
-  "http://localhost:5000";
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
+
+if (!API_BASE) {
+  throw new Error("VITE_API_BASE_URL is not configured.");
+}
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
 
 const STEPS = {

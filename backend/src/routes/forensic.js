@@ -784,7 +784,19 @@ async function discoverEvidence() {
 
   return evidence;
 }
+/* ==========================================================================
+   TEST
+   ========================================================================== */
 
+router.get(
+  "/test",
+  (_req, res) => {
+    return res.status(200).json({
+      success: true,
+      message: "Forensic router is working",
+    });
+  }
+);
 /* ==========================================================================
    STATUS
    ========================================================================== */
@@ -1483,36 +1495,6 @@ router.post(
   }
 );
 
-/* ==========================================================================
-   EXPORTS FOR INTERNAL USE
-   ========================================================================== */
-
-export {
-  calculateSHA256,
-  calculateMD5,
-  getFileIntegrity,
-  saveJob,
-  readJob,
-  updateJob,
-  getJob,
-  discoverJobs,
-  saveCase,
-  readCase,
-  saveManifest,
-  readManifest,
-  createJobId,
-  createOperationId,
-  createEvidenceId,
-  createCaseId,
-  EVIDENCE_DIR,
-  RECOVERED_DIR,
-  REPORTS_DIR,
-  MANIFESTS_DIR,
-  CASES_DIR,
-  JOBS_DIR,
-  FORENSIC_ROOT,
-  CLI_PATH,
-};
 /* ==========================================================================
    PART 2 — FORENSIC JOB EXECUTION
    ========================================================================== */
