@@ -143,3 +143,10 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 ```
+# Forensic evidence / generated files
+backend/forensic_recovery/evidence/
+backend/forensic_recovery/recovered/
+backend/forensic_recovery/reports/
+
+# Large archives
+*.zip
