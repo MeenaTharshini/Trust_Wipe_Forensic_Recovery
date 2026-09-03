@@ -1,0 +1,2296 @@
+{
+  "report_metadata": {
+    "generated_utc": "2026-09-03T08:08:30Z",
+    "job_id": "JOB-541D1C4E",
+    "case_id": "CASE-2026-1788422681222-S9HSIO",
+    "investigator": "Meena Tharshini I",
+    "engine_version": "TrustWipe Forensic Engine 2.4"
+  },
+  "evidence_target": {
+    "path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\evidence\\Team_Innovatrix_SIH.pptx",
+    "total_recovered_artifacts": 73
+  },
+  "summary_by_category": {
+    "Images": 5,
+    "Archives": 63,
+    "Executables": 5
+  },
+  "carved_artifacts": [
+    {
+      "id": "CARVED_FF5A1594",
+      "name": "CARVED_FF5A1594.jpg",
+      "type": "JPEG Image",
+      "category": "Images",
+      "extension": "jpg",
+      "offset": 257009,
+      "size": 12782,
+      "sha256": "29c70747cf9ebe9cea514d86e3a5387f234f9fd23da0bbf2a4861162dc335010",
+      "md5": "a7b088f72ad712527b16e4f4d1358334",
+      "entropy": 7.947,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_FF5A1594.jpg",
+      "status": "Recovered",
+      "integrity": "Moderate",
+      "metadata": {
+        "filename": "CARVED_FF5A1594.jpg",
+        "extension": "jpg",
+        "size_bytes": 12782,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "type": "JPEG Image",
+          "format": "JFIF"
+        }
+      }
+    },
+    {
+      "id": "CARVED_65604617",
+      "name": "CARVED_65604617.jpg",
+      "type": "JPEG Image",
+      "category": "Images",
+      "extension": "jpg",
+      "offset": 326902,
+      "size": 17388,
+      "sha256": "d5d5322251684f234235adab68c6616526abb9fc4195cc770e37c87357b97250",
+      "md5": "7b048379771b84c216f5d93879ef26f3",
+      "entropy": 7.66,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_65604617.jpg",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_65604617.jpg",
+        "extension": "jpg",
+        "size_bytes": 17388,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "type": "JPEG Image"
+        }
+      }
+    },
+    {
+      "id": "CARVED_0ADE504E",
+      "name": "CARVED_0ADE504E.png",
+      "type": "PNG Image",
+      "category": "Images",
+      "extension": "png",
+      "offset": 51582,
+      "size": 17603,
+      "sha256": "383704b5ab2a8d5fd97e03127cb39fde31934eb861666c99bb170ca76ff5452c",
+      "md5": "9311b77d272213d55bc17c5213490c7d",
+      "entropy": 7.975,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_0ADE504E.png",
+      "status": "Recovered",
+      "integrity": "Moderate",
+      "metadata": {
+        "filename": "CARVED_0ADE504E.png",
+        "extension": "png",
+        "size_bytes": 17603,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "dimensions": "181x92",
+          "color_depth": "8/16-bit PNG"
+        }
+      }
+    },
+    {
+      "id": "CARVED_01E6A93F",
+      "name": "CARVED_01E6A93F.png",
+      "type": "PNG Image",
+      "category": "Images",
+      "extension": "png",
+      "offset": 70888,
+      "size": 182377,
+      "sha256": "b0dfd96ebec43bb864352b5dfd8b6b121094424b84f15ecbefefe9694e90201f",
+      "md5": "4e34939fbbfeb595f060e0dc985477e4",
+      "entropy": 7.962,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_01E6A93F.png",
+      "status": "Recovered",
+      "integrity": "Moderate",
+      "metadata": {
+        "filename": "CARVED_01E6A93F.png",
+        "extension": "png",
+        "size_bytes": 182377,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "dimensions": "2048x878",
+          "color_depth": "8/16-bit PNG"
+        }
+      }
+    },
+    {
+      "id": "CARVED_0430A51B",
+      "name": "CARVED_0430A51B.png",
+      "type": "PNG Image",
+      "category": "Images",
+      "extension": "png",
+      "offset": 269841,
+      "size": 269690,
+      "sha256": "3fb6cc0b4bb5689d08f918a450de39df792a58b149d911ecf2297dc60dd642a3",
+      "md5": "aca81f54c752a5f84e647499e192eb2a",
+      "entropy": 7.725,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_0430A51B.png",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_0430A51B.png",
+        "extension": "png",
+        "size_bytes": 269690,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "dimensions": "1699x3128",
+          "color_depth": "8/16-bit PNG"
+        }
+      }
+    },
+    {
+      "id": "CARVED_B015D700",
+      "name": "CARVED_B015D700.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 0,
+      "size": 548170,
+      "sha256": "9ced0a10d200ab123009a422012a9ef4b1e357aafbb925d6f938ca74eba6f635",
+      "md5": "a079fdf4a3d48ee153665b30e7b8d22a",
+      "entropy": 7.882,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_B015D700.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_B015D700.zip",
+        "extension": "zip",
+        "size_bytes": 548170,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_F4396546",
+      "name": "CARVED_F4396546.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 1095,
+      "size": 547075,
+      "sha256": "4408a267d088199b981689952a3663724145371a1f2759f398a70b8d983590c3",
+      "md5": "483f1a41cfc9c409019756f71603c329",
+      "entropy": 7.885,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_F4396546.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_F4396546.zip",
+        "extension": "zip",
+        "size_bytes": 547075,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_E56876AC",
+      "name": "CARVED_E56876AC.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 1915,
+      "size": 546255,
+      "sha256": "e4a16e6fae7eef1ff174c9438a860a18263a1dad679f1b0650cad5666f148c31",
+      "md5": "fb8ce691b86dc27a39db41175f320da6",
+      "entropy": 7.887,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_E56876AC.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_E56876AC.zip",
+        "extension": "zip",
+        "size_bytes": 546255,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_9996EFC7",
+      "name": "CARVED_9996EFC7.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 2900,
+      "size": 545270,
+      "sha256": "0495dc26261028cb4432a1be96d5d424af81b9b58ab4b219caa1096d625b685a",
+      "md5": "ccd9b588073dbb40ca868fb05250ab72",
+      "entropy": 7.887,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_9996EFC7.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_9996EFC7.zip",
+        "extension": "zip",
+        "size_bytes": 545270,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_84FD587F",
+      "name": "CARVED_84FD587F.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 8067,
+      "size": 540103,
+      "sha256": "4062279df952e3d69d4fc7db96c090048dc44beaa17bd2cceafd28293c4cd187",
+      "md5": "42cf16fcf3bbfcf3f9478e65794c0eef",
+      "entropy": 7.885,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_84FD587F.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_84FD587F.zip",
+        "extension": "zip",
+        "size_bytes": 540103,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_FA8FA980",
+      "name": "CARVED_FA8FA980.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 11867,
+      "size": 536303,
+      "sha256": "ec074939e79134bb95c0cc2760a1d1cda927559f19efdbc851c5735d6a659344",
+      "md5": "71dd60c9d3fb4d7fcddad52260f070a3",
+      "entropy": 7.884,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_FA8FA980.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_FA8FA980.zip",
+        "extension": "zip",
+        "size_bytes": 536303,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_08D15FFE",
+      "name": "CARVED_08D15FFE.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 14405,
+      "size": 533765,
+      "sha256": "74de023101e921efbec8c72143ed91360edc291aa0dfba6a4fbf3e6c8500e952",
+      "md5": "7caa8c79ce13499cf0e17479d573b1da",
+      "entropy": 7.883,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_08D15FFE.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_08D15FFE.zip",
+        "extension": "zip",
+        "size_bytes": 533765,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_97D89A03",
+      "name": "CARVED_97D89A03.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 18136,
+      "size": 530034,
+      "sha256": "1f32dc1dbe267bd7bad131c73b20c90144eea6b935877cd2dedcf3e5563b27a1",
+      "md5": "49a63d3524b9a87dc62f1da6aa59c2dc",
+      "entropy": 7.882,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_97D89A03.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_97D89A03.zip",
+        "extension": "zip",
+        "size_bytes": 530034,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_F5175F26",
+      "name": "CARVED_F5175F26.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 21642,
+      "size": 526528,
+      "sha256": "41ce4c6d3b997f1947705f4d8a3db7c1880dbd3fb4eb0d095efac0d2c1823a68",
+      "md5": "22921ec60423c639ad24f77ef691f7d1",
+      "entropy": 7.88,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_F5175F26.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_F5175F26.zip",
+        "extension": "zip",
+        "size_bytes": 526528,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_2553517F",
+      "name": "CARVED_2553517F.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 24809,
+      "size": 523361,
+      "sha256": "3f5d17a6a00eb2aa06b038243c7fde336e5b9f7f1439f03e992ab3164ba79450",
+      "md5": "0b114025606c2fc7ccac966d3cd8d704",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_2553517F.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_2553517F.zip",
+        "extension": "zip",
+        "size_bytes": 523361,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_151582A9",
+      "name": "CARVED_151582A9.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 25201,
+      "size": 522969,
+      "sha256": "a34b745c827c1dfd20b60424c42ae3f570a4baf84dd2f82e3af67b749760eb46",
+      "md5": "589787a21df5e34a2bd3e55e0e82ae92",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_151582A9.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_151582A9.zip",
+        "extension": "zip",
+        "size_bytes": 522969,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_E61CB62A",
+      "name": "CARVED_E61CB62A.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 25497,
+      "size": 522673,
+      "sha256": "ce1b92ee79e8be629aa071c7ea85db91dfc527f6c6150389cd4c97b684c5298e",
+      "md5": "da0a53113204e7f91eba6768aa7b4d2b",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_E61CB62A.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_E61CB62A.zip",
+        "extension": "zip",
+        "size_bytes": 522673,
+        "created_utc": "2026-09-03T08:08:27Z",
+        "modified_utc": "2026-09-03T08:08:27Z",
+        "accessed_utc": "2026-09-03T08:08:27Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_D194E309",
+      "name": "CARVED_D194E309.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 25793,
+      "size": 522377,
+      "sha256": "0540384411395ae494c88734fafdcd97b9e6b42a4f16e529b0a16fed91eacf3f",
+      "md5": "d13a231acfb30d59fca92b9747077d1d",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_D194E309.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_D194E309.zip",
+        "extension": "zip",
+        "size_bytes": 522377,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_8A42C6DF",
+      "name": "CARVED_8A42C6DF.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 26097,
+      "size": 522073,
+      "sha256": "84ab3fd582b302470eedb329ede182b6389358a597c5e61c0b8d7f541a2776be",
+      "md5": "c35d759c72c7de66bd38a35fdf5d7976",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_8A42C6DF.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_8A42C6DF.zip",
+        "extension": "zip",
+        "size_bytes": 522073,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_8CF97869",
+      "name": "CARVED_8CF97869.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 26393,
+      "size": 521777,
+      "sha256": "207e699e6e6c94aa0c40286276d51e70b25f02c3f25e53326d278cb7f523d522",
+      "md5": "7ef73aedeb69780861c4e6d1c479aab7",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_8CF97869.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_8CF97869.zip",
+        "extension": "zip",
+        "size_bytes": 521777,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_596B165C",
+      "name": "CARVED_596B165C.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 26676,
+      "size": 521494,
+      "sha256": "60a4eb609b8663f7edfec54ddf35a716ac099cde90f1ea1f1771a48e4738d857",
+      "md5": "7ecd732b8d1f144034c9a0caa40a5e90",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_596B165C.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_596B165C.zip",
+        "extension": "zip",
+        "size_bytes": 521494,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_C7304BD9",
+      "name": "CARVED_C7304BD9.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 27319,
+      "size": 520851,
+      "sha256": "2e4877858297d029ec3374b153f3e7006937cba67de51d06c18186b032521a30",
+      "md5": "865ba0e1ce5395d867e033cbf58f5cd8",
+      "entropy": 7.88,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_C7304BD9.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_C7304BD9.zip",
+        "extension": "zip",
+        "size_bytes": 520851,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_1A1BDC08",
+      "name": "CARVED_1A1BDC08.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 28410,
+      "size": 519760,
+      "sha256": "527cadb182d46cd1020bc7f8e376a33498d12330bcbf5f3456ca652c02523bab",
+      "md5": "106e8dd3ff891eeb90bd3a4c1666a1aa",
+      "entropy": 7.88,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_1A1BDC08.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_1A1BDC08.zip",
+        "extension": "zip",
+        "size_bytes": 519760,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_B0A8DA67",
+      "name": "CARVED_B0A8DA67.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 29313,
+      "size": 518857,
+      "sha256": "c2e89b204ff012cd2849d2733eade840490a9b6fb42008fddab79b6d80bc8fed",
+      "md5": "413d969dec17a71a722769a3c20aa063",
+      "entropy": 7.88,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_B0A8DA67.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_B0A8DA67.zip",
+        "extension": "zip",
+        "size_bytes": 518857,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_9C70CC44",
+      "name": "CARVED_9C70CC44.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 30455,
+      "size": 517715,
+      "sha256": "03fdc5b6743c33d5fe29e29271d7e64d2b9a055fe1bdbee00283a0e04e26de76",
+      "md5": "9d026ca5ac76ced3c5cc91b474d97e0e",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_9C70CC44.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_9C70CC44.zip",
+        "extension": "zip",
+        "size_bytes": 517715,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_50893B09",
+      "name": "CARVED_50893B09.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 31501,
+      "size": 516669,
+      "sha256": "ed0dc42f4d59f1f9ceb649aabf9ee05eee8b8186561329f6cfa1f7f4236a8f20",
+      "md5": "4dc686b5a474e0d616569cd8280bd2ba",
+      "entropy": 7.879,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_50893B09.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_50893B09.zip",
+        "extension": "zip",
+        "size_bytes": 516669,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_BCCCBDED",
+      "name": "CARVED_BCCCBDED.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 32775,
+      "size": 515395,
+      "sha256": "94c25bf73ea778f3c7c7b04ba07df1651fb9adae9b637b9b6eb2e0f9864bca48",
+      "md5": "7a78563e72cc4e27aba1e3e646585095",
+      "entropy": 7.878,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_BCCCBDED.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_BCCCBDED.zip",
+        "extension": "zip",
+        "size_bytes": 515395,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_A37A7FF1",
+      "name": "CARVED_A37A7FF1.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 33584,
+      "size": 514586,
+      "sha256": "e690ec44ed9ed312dc0881d67f015174ae113850bb1823f059914c8d6b95b14b",
+      "md5": "be213c73a277e15e4e929ae9cd898c24",
+      "entropy": 7.878,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_A37A7FF1.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_A37A7FF1.zip",
+        "extension": "zip",
+        "size_bytes": 514586,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_BF109F5F",
+      "name": "CARVED_BF109F5F.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 34347,
+      "size": 513823,
+      "sha256": "31cde824d83218a8ee4f364b97f12b8c112457751602de84e32a5af0642cadc5",
+      "md5": "60c25a5d26693f84486da165cf2d7850",
+      "entropy": 7.878,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_BF109F5F.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_BF109F5F.zip",
+        "extension": "zip",
+        "size_bytes": 513823,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_1D980152",
+      "name": "CARVED_1D980152.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 35574,
+      "size": 512596,
+      "sha256": "66190d13dc828560de33a2e969dca1ec14d846f11e7231c8220d709d13804f75",
+      "md5": "3147370541d8cb505385be0321ccee77",
+      "entropy": 7.878,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_1D980152.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_1D980152.zip",
+        "extension": "zip",
+        "size_bytes": 512596,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_5D10F6BF",
+      "name": "CARVED_5D10F6BF.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 36779,
+      "size": 511391,
+      "sha256": "6a7a59f8325a430992701f2d90f07248dedf27a7fbae039a548a6d3185f82bcf",
+      "md5": "f29affd152d10a2eb09d1f34419965b3",
+      "entropy": 7.877,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_5D10F6BF.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_5D10F6BF.zip",
+        "extension": "zip",
+        "size_bytes": 511391,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_B1373C1D",
+      "name": "CARVED_B1373C1D.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 37709,
+      "size": 510461,
+      "sha256": "a353ab19eb4846e5a9d0824f4bb69cd4b98514eb9665e709e52014efb6f7c50d",
+      "md5": "58e2b0d2292b01a7f799656b8708c362",
+      "entropy": 7.877,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_B1373C1D.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_B1373C1D.zip",
+        "extension": "zip",
+        "size_bytes": 510461,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_8E0C5C5F",
+      "name": "CARVED_8E0C5C5F.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 38695,
+      "size": 509475,
+      "sha256": "210d13391a472dd29f7df8617a194f0b3dd9191ed85cf4ea743884d20f724a36",
+      "md5": "86d14ceeb808c79bb0d2337e87a4e735",
+      "entropy": 7.877,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_8E0C5C5F.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_8E0C5C5F.zip",
+        "extension": "zip",
+        "size_bytes": 509475,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_FDE1D98F",
+      "name": "CARVED_FDE1D98F.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 40009,
+      "size": 508161,
+      "sha256": "d85db22a881133f9f477042bdc85002b32f1ab2aa2646921cb194eff2c798c03",
+      "md5": "ec13439afd7f7e2272d84cd4e0fd740a",
+      "entropy": 7.876,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_FDE1D98F.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_FDE1D98F.zip",
+        "extension": "zip",
+        "size_bytes": 508161,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_91664447",
+      "name": "CARVED_91664447.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 41040,
+      "size": 507130,
+      "sha256": "823e4055db3803182b3b304517d2ffa9c8ffdb6c47665909759c40c5b6dcec2b",
+      "md5": "acb815104c3fd8a84cef6799a74dd9a0",
+      "entropy": 7.876,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_91664447.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_91664447.zip",
+        "extension": "zip",
+        "size_bytes": 507130,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_21F46582",
+      "name": "CARVED_21F46582.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 42079,
+      "size": 506091,
+      "sha256": "06300d5db2b77f768d0c82ad1853e76defd119b01e70072f8c204b1061b848e4",
+      "md5": "5b35699a5d3f77b662de6a725a53f346",
+      "entropy": 7.875,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_21F46582.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_21F46582.zip",
+        "extension": "zip",
+        "size_bytes": 506091,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_C987209A",
+      "name": "CARVED_C987209A.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 43391,
+      "size": 504779,
+      "sha256": "8b9afeb0ae55e55a32cc5c270974d3f7178ed225bc37d5e874b52474d069ab07",
+      "md5": "441c1a57bfcf7c024c383855698feeab",
+      "entropy": 7.875,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_C987209A.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_C987209A.zip",
+        "extension": "zip",
+        "size_bytes": 504779,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_D7B62185",
+      "name": "CARVED_D7B62185.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 43742,
+      "size": 504428,
+      "sha256": "175309ee7d484b2ede324e711a533e462e941ded65167b9e48f5952cdb1dfa99",
+      "md5": "4dad127f44cc0de6fa1a04fa813dfe8f",
+      "entropy": 7.875,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_D7B62185.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_D7B62185.zip",
+        "extension": "zip",
+        "size_bytes": 504428,
+        "created_utc": "2026-09-03T08:08:28Z",
+        "modified_utc": "2026-09-03T08:08:28Z",
+        "accessed_utc": "2026-09-03T08:08:28Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_B01E9697",
+      "name": "CARVED_B01E9697.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 45053,
+      "size": 503117,
+      "sha256": "da7c0b190b6f57057a7a48611fead16bf6504990fe40cbb92aefc2a0846bdef1",
+      "md5": "329d6fbaffa5f7b47c37fc0a29aad460",
+      "entropy": 7.874,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_B01E9697.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_B01E9697.zip",
+        "extension": "zip",
+        "size_bytes": 503117,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_30403A7B",
+      "name": "CARVED_30403A7B.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 45315,
+      "size": 502855,
+      "sha256": "687ea9f95a91a55af688672824c41f3986d813cf103e2a5c3a14f201c6288972",
+      "md5": "4fe85fcb4f4629578bf63ef7ceb1218b",
+      "entropy": 7.874,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_30403A7B.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_30403A7B.zip",
+        "extension": "zip",
+        "size_bytes": 502855,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_5C028315",
+      "name": "CARVED_5C028315.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 45577,
+      "size": 502593,
+      "sha256": "e7f19f9f97122db6bb41d2efac492da2c87491f2f14aae07ff368f674d623bf4",
+      "md5": "42c2c6d82d1eff37c41e12af02ca22fb",
+      "entropy": 7.874,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_5C028315.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_5C028315.zip",
+        "extension": "zip",
+        "size_bytes": 502593,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_E917118D",
+      "name": "CARVED_E917118D.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 47757,
+      "size": 500413,
+      "sha256": "d73bf9997c9e7d1b53ecd85e26224982da2e8fbc7885f8cf7fdefed6d2f53ed2",
+      "md5": "e20e9fdff0a72f7cb28875ccc137e423",
+      "entropy": 7.874,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_E917118D.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_E917118D.zip",
+        "extension": "zip",
+        "size_bytes": 500413,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_617C7D92",
+      "name": "CARVED_617C7D92.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 48019,
+      "size": 500151,
+      "sha256": "fbca17fed8fd73441530d3e8dba30464ee746016aff400a2f697be81fa035c7d",
+      "md5": "6b5608738b98ae53102fa06de31ae1d9",
+      "entropy": 7.874,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_617C7D92.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_617C7D92.zip",
+        "extension": "zip",
+        "size_bytes": 500151,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_BB43F503",
+      "name": "CARVED_BB43F503.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 48281,
+      "size": 499889,
+      "sha256": "98374ca9e10b0e57e69830a871d064f15ec192261e71abc4a7288422452e95d3",
+      "md5": "f611377ff139c41a066acd540e1e69ef",
+      "entropy": 7.874,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_BB43F503.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_BB43F503.zip",
+        "extension": "zip",
+        "size_bytes": 499889,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_21BCF4C5",
+      "name": "CARVED_21BCF4C5.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 48543,
+      "size": 499627,
+      "sha256": "d40dab71f58eb7cd4e23998f944bb6469aa4b0c6f60c1a76abc45e16a65b5705",
+      "md5": "56a3123e772f1e768d76e34f30fceab2",
+      "entropy": 7.874,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_21BCF4C5.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_21BCF4C5.zip",
+        "extension": "zip",
+        "size_bytes": 499627,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_C1C33508",
+      "name": "CARVED_C1C33508.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 48805,
+      "size": 499365,
+      "sha256": "030d8484e992e2040c08e02d66f3cf30d5426cedd9ce8d007cbeef055ee7c843",
+      "md5": "74d5cb78a3cda719af7e972914f3f8f0",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_C1C33508.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_C1C33508.zip",
+        "extension": "zip",
+        "size_bytes": 499365,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_39AC50B3",
+      "name": "CARVED_39AC50B3.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 49067,
+      "size": 499103,
+      "sha256": "55f72063ca11aa1c0c9fecfb7ab57ace6b1cf46da2837c5bb500c2affb841dd1",
+      "md5": "234d7747f8ac5e82d3bb225ebd83fc07",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_39AC50B3.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_39AC50B3.zip",
+        "extension": "zip",
+        "size_bytes": 499103,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_97F789A4",
+      "name": "CARVED_97F789A4.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 49329,
+      "size": 498841,
+      "sha256": "a121907ef841fa5ac2cb58e1920d789ead4f769bc75ef69208c14dd07723e35b",
+      "md5": "31614d50c556182541eca7a13becaca2",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_97F789A4.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_97F789A4.zip",
+        "extension": "zip",
+        "size_bytes": 498841,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_26F3828F",
+      "name": "CARVED_26F3828F.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 49591,
+      "size": 498579,
+      "sha256": "eb11b82dfdf3cc750aab847e93bc0e307002cf1c4924b3dc8e5deb0ad46e3b2a",
+      "md5": "f1fde8a0c97c664795ba0b3a14764fb8",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_26F3828F.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_26F3828F.zip",
+        "extension": "zip",
+        "size_bytes": 498579,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_BDE8BAD7",
+      "name": "CARVED_BDE8BAD7.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 49854,
+      "size": 498316,
+      "sha256": "5d8afd704a5239742a06f3af740b5331bed95b1dc45ad830aa332a9adcdb90cf",
+      "md5": "d4d39e8850057485eae4091cca64bd51",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_BDE8BAD7.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_BDE8BAD7.zip",
+        "extension": "zip",
+        "size_bytes": 498316,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_F03E3AEC",
+      "name": "CARVED_F03E3AEC.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 50137,
+      "size": 498033,
+      "sha256": "def998da66cc213a058e6ac8c8c008994f195e3dd578b2c57f7c36d44bd12365",
+      "md5": "2e174d29a7cde70ca9a5247f0f4f4bc8",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_F03E3AEC.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_F03E3AEC.zip",
+        "extension": "zip",
+        "size_bytes": 498033,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_464DDFA5",
+      "name": "CARVED_464DDFA5.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 50420,
+      "size": 497750,
+      "sha256": "aece63f80405e3f0ad49676214275d95c6443afda563fb8402a3a8496faad292",
+      "md5": "ee6e3c424dfc70191e885c168cfd2a66",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_464DDFA5.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_464DDFA5.zip",
+        "extension": "zip",
+        "size_bytes": 497750,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_F3D8FA95",
+      "name": "CARVED_F3D8FA95.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 50703,
+      "size": 497467,
+      "sha256": "6337c90cfc85c040a47e1a388cb75416ca630b9229db5fd453e9ffe13c3aa612",
+      "md5": "f6d2064f90f824bec7e25b1aef0b082d",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_F3D8FA95.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_F3D8FA95.zip",
+        "extension": "zip",
+        "size_bytes": 497467,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_8C64596D",
+      "name": "CARVED_8C64596D.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 50986,
+      "size": 497184,
+      "sha256": "8dbb5245d4738c242309869d8731200e2028b43b6700a60ae43efe7571d89f93",
+      "md5": "e270cf9b57c98d351864b784337cb380",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_8C64596D.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_8C64596D.zip",
+        "extension": "zip",
+        "size_bytes": 497184,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_2439AF77",
+      "name": "CARVED_2439AF77.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 51269,
+      "size": 496901,
+      "sha256": "8d4ac327d1c5f3f8cde3638504f541f00eb58269eb944e07e413a815e222ee39",
+      "md5": "e278dfde73f4d1c0864de06ec43ce49b",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_2439AF77.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_2439AF77.zip",
+        "extension": "zip",
+        "size_bytes": 496901,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_4C7E91FB",
+      "name": "CARVED_4C7E91FB.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 51532,
+      "size": 496638,
+      "sha256": "50c93210d58b642b4ddb470caadc3d31015d29d69df79915eda7cfaa166fa0b0",
+      "md5": "425d868fa34c9e3f06da95c260be8d0e",
+      "entropy": 7.873,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_4C7E91FB.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_4C7E91FB.zip",
+        "extension": "zip",
+        "size_bytes": 496638,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_FDE178F8",
+      "name": "CARVED_FDE178F8.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 69185,
+      "size": 478985,
+      "sha256": "a099fdfcb0705640a790f32b253fe5b651433c63fe36cb1f7918e13be3d0b777",
+      "md5": "1f0317967d3eab272019e7967772b338",
+      "entropy": 7.866,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_FDE178F8.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_FDE178F8.zip",
+        "extension": "zip",
+        "size_bytes": 478985,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_3C3EA0A2",
+      "name": "CARVED_3C3EA0A2.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 70838,
+      "size": 477332,
+      "sha256": "7a8ef8040e23128f89aa9e7bf8980a67c0d799450f50e46015f79039a71b35d8",
+      "md5": "bbca22e7868fbd7bf2748d1fe276b09b",
+      "entropy": 7.865,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_3C3EA0A2.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_3C3EA0A2.zip",
+        "extension": "zip",
+        "size_bytes": 477332,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_8372DF8B",
+      "name": "CARVED_8372DF8B.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 253265,
+      "size": 294905,
+      "sha256": "0f39ec5f862fc168fc5feb6af55b333236db3a24c08a7a652f7925bdc0c8fadd",
+      "md5": "12d10224e5c463c36f62d6c0d79c87ed",
+      "entropy": 7.737,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_8372DF8B.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_8372DF8B.zip",
+        "extension": "zip",
+        "size_bytes": 294905,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_CD1082C2",
+      "name": "CARVED_CD1082C2.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 254918,
+      "size": 293252,
+      "sha256": "f00aa1c4e9184f481e543f918c68b79dc08e63ed6b2799d7b5eff80626c7e3a9",
+      "md5": "717e177a0465c46ed13a2f00d8137517",
+      "entropy": 7.734,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_CD1082C2.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_CD1082C2.zip",
+        "extension": "zip",
+        "size_bytes": 293252,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_E6CC1865",
+      "name": "CARVED_E6CC1865.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 256697,
+      "size": 291473,
+      "sha256": "f81af7a3138390f106919d9059442a9c75fce5f48133c7d5e5906231b028f5bb",
+      "md5": "6b5cd18731825d7d1bde2bf36a95a9d4",
+      "entropy": 7.732,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_E6CC1865.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_E6CC1865.zip",
+        "extension": "zip",
+        "size_bytes": 291473,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_56FCD913",
+      "name": "CARVED_56FCD913.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 256956,
+      "size": 291214,
+      "sha256": "72d0161d4dda9af3f7be805eb67dd8dadf7115916033f8783e3479de8101bfdc",
+      "md5": "d3cfbc3439696275ffa79fb18c090ae1",
+      "entropy": 7.732,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_56FCD913.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_56FCD913.zip",
+        "extension": "zip",
+        "size_bytes": 291214,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_43578035",
+      "name": "CARVED_43578035.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 269791,
+      "size": 278379,
+      "sha256": "4ebae33be9cc7328d03c693bbb8d290f56cb4a75a0c70adcf6aafc4556605077",
+      "md5": "b382d5aa1fed751bbeef697feab0321b",
+      "entropy": 7.713,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_43578035.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_43578035.zip",
+        "extension": "zip",
+        "size_bytes": 278379,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_44388382",
+      "name": "CARVED_44388382.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 539531,
+      "size": 8639,
+      "sha256": "a5e4bee702d9bc34cf6c0299ab1e67c85da97e845103ac7691cfd06ab02b7a0d",
+      "md5": "1ebd4d72c2dd5d87f6326ca2ad9445e6",
+      "entropy": 6.215,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_44388382.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_44388382.zip",
+        "extension": "zip",
+        "size_bytes": 8639,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_DAEF6ADB",
+      "name": "CARVED_DAEF6ADB.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 540326,
+      "size": 7844,
+      "sha256": "036c3da066e2bd4ede735c98cc17d84d68fba5bd36ceb986c80fd11da299a068",
+      "md5": "2d32f89628f24b60e3859e17b1a3f90d",
+      "entropy": 5.963,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_DAEF6ADB.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_DAEF6ADB.zip",
+        "extension": "zip",
+        "size_bytes": 7844,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_BCD697E7",
+      "name": "CARVED_BCD697E7.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 540790,
+      "size": 7380,
+      "sha256": "b5435bd61bc04634e1e512c6df81d8aae2c54b5a0fbbf19deb290ffa9a7fb80b",
+      "md5": "6bc8f7a58881030a782135b6612c2f1c",
+      "entropy": 5.788,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_BCD697E7.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_BCD697E7.zip",
+        "extension": "zip",
+        "size_bytes": 7380,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_BF43BEBA",
+      "name": "CARVED_BF43BEBA.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 541427,
+      "size": 6743,
+      "sha256": "b5046e1ce3b2766afa101275bd7e4b6ff656b3610f3b83124b243146d86d40d1",
+      "md5": "dfa26ff51342a4f6d4dc47099485247c",
+      "entropy": 5.503,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_BF43BEBA.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_BF43BEBA.zip",
+        "extension": "zip",
+        "size_bytes": 6743,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_BD774301",
+      "name": "CARVED_BD774301.zip",
+      "type": "ZIP / Office Document",
+      "category": "Archives",
+      "extension": "zip",
+      "offset": 542164,
+      "size": 6006,
+      "sha256": "e154735d24d433874dd255d006df81024305e4c61da569196cd4d67c139cfbc5",
+      "md5": "9b84c06178fbb56754d2784852744053",
+      "entropy": 5.385,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_BD774301.zip",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_BD774301.zip",
+        "extension": "zip",
+        "size_bytes": 6006,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {
+          "compression": "Zip Archive",
+          "signature": "PKZip"
+        }
+      }
+    },
+    {
+      "id": "CARVED_FD2851F4",
+      "name": "CARVED_FD2851F4.exe",
+      "type": "Windows Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "offset": 176671,
+      "size": 371517,
+      "sha256": "ebab2b422538e92e905ed3545155dd4905da5df682688dc354473af8cc1c7f45",
+      "md5": "873bbbd210df1f372b3b2f6707a88343",
+      "entropy": 7.815,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_FD2851F4.exe",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_FD2851F4.exe",
+        "extension": "exe",
+        "size_bytes": 371517,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "id": "CARVED_4D4C9BD9",
+      "name": "CARVED_4D4C9BD9.exe",
+      "type": "Windows Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "offset": 180145,
+      "size": 368043,
+      "sha256": "580856f41d4ec3ffbb49d77facfcc507fd582900e4119b0925d1732a3db49e7a",
+      "md5": "f47e8b7c4adbf0a4853dc14b0e54e009",
+      "entropy": 7.812,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_4D4C9BD9.exe",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_4D4C9BD9.exe",
+        "extension": "exe",
+        "size_bytes": 368043,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "id": "CARVED_ABE0031D",
+      "name": "CARVED_ABE0031D.exe",
+      "type": "Windows Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "offset": 285509,
+      "size": 262679,
+      "sha256": "17b159c1e0be8e935552850c92979b5fc51cf0de98afcebdd246a7da7c37b08a",
+      "md5": "5bc569228857d3b41d5094803c06be4d",
+      "entropy": 7.729,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_ABE0031D.exe",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_ABE0031D.exe",
+        "extension": "exe",
+        "size_bytes": 262679,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "id": "CARVED_5735F16B",
+      "name": "CARVED_5735F16B.exe",
+      "type": "Windows Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "offset": 362745,
+      "size": 185443,
+      "sha256": "bd61cd63e381e8f50cd1d854c3e0e4cae8bd9fa741b9a051514e055d5fd07d30",
+      "md5": "84d28943e320859a7a42f3e9f90df6ea",
+      "entropy": 7.741,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_5735F16B.exe",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_5735F16B.exe",
+        "extension": "exe",
+        "size_bytes": 185443,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    },
+    {
+      "id": "CARVED_E7412589",
+      "name": "CARVED_E7412589.exe",
+      "type": "Windows Executable",
+      "category": "Executables",
+      "extension": "exe",
+      "offset": 485916,
+      "size": 62272,
+      "sha256": "8ac6c4c12fbee8fb28b0eae5302bdf2b731111fa8de950def5785ab6691994d1",
+      "md5": "cac6889c7b8f41626f7f5971cb61e745",
+      "entropy": 7.701,
+      "file_path": "C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cases\\CASE-2026-1788422681222-S9HSIO\\recovered\\recovered\\JOB-541D1C4E\\CARVED_E7412589.exe",
+      "status": "Recovered",
+      "integrity": "High",
+      "metadata": {
+        "filename": "CARVED_E7412589.exe",
+        "extension": "exe",
+        "size_bytes": 62272,
+        "created_utc": "2026-09-03T08:08:29Z",
+        "modified_utc": "2026-09-03T08:08:29Z",
+        "accessed_utc": "2026-09-03T08:08:29Z",
+        "attributes": {
+          "readonly": false,
+          "executable": true
+        },
+        "format_details": {}
+      }
+    }
+  ],
+  "chain_of_custody": [
+    {
+      "entry_id": "COC-SYS-196803",
+      "timestamp_utc": "2026-09-03T08:08:27Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "CASE_INITIALIZED",
+      "details": "Case CASE-2026-1788422681222-S9HSIO registered by investigator Meena Tharshini I",
+      "evidence_hash": "N/A_SYSTEM_INIT"
+    },
+    {
+      "entry_id": "COC-DBEE7C",
+      "timestamp_utc": "2026-09-03T08:08:27Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "SCAN_STARTED",
+      "details": "Target: C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\evidence\\Team_Innovatrix_SIH.pptx, Total Bytes: 548188",
+      "evidence_hash": "51baa64fd26577ef0e907136d5ca4cc436e8cec896bbdaca6aa41c7e5e3f34f3"
+    },
+    {
+      "entry_id": "COC-D13536",
+      "timestamp_utc": "2026-09-03T08:08:30Z",
+      "case_id": "CASE-2026-1788422681222-S9HSIO",
+      "investigator": "Meena Tharshini I",
+      "action": "SCAN_COMPLETED",
+      "details": "Recovered 73 artifacts in 3.7 seconds.",
+      "evidence_hash": "d0ee1deacc0d99d9384a1f1b8bf477b2d1a09577ac4d3fc591adaa3a8caa0daa"
+    }
+  ]
+}
