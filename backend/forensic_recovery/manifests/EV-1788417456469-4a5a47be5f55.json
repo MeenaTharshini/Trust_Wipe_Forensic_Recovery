@@ -1,0 +1,15 @@
+{
+  "schema_version": 3,
+  "evidence_id": "EV-1788417456469-4a5a47be5f55",
+  "file_name": "new_6_1.txt",
+  "original_name": "new 6.txt",
+  "acquired_at": "2026-09-03T06:37:36.474Z",
+  "size": 93545,
+  "modified_at": "2026-09-03T06:37:36.451Z",
+  "sha256": "8f87ab2d03a5c7f0edbfde9b1e6b61f83d0026d3f41df0e1a5dc442c043a9a07",
+  "hash_algorithm": "SHA-256",
+  "acquisition_status": "ACQUIRED",
+  "integrity_baseline": true,
+  "baseline_created_at": "2026-09-03T06:37:36.474Z",
+  "acquisition_method": "TRUSTWIPE_FORENSIC_UPLOAD"
+}

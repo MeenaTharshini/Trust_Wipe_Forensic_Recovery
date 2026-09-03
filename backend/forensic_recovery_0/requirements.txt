@@ -1,3 +1,0 @@
-# backend/forensic_recovery/requirements.txt
-
-# No external Python dependencies required.

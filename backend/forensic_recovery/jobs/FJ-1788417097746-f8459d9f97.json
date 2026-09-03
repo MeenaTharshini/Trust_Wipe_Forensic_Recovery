@@ -1,0 +1,28 @@
+{
+  "jobId": "FJ-1788417097746-f8459d9f97",
+  "operationId": "OP-1788417097746-3968f4c7db",
+  "caseId": "CASE-2026-1788416748942-4ZTTMH",
+  "examiner": "Meena Tharshini I",
+  "agentId": null,
+  "operation": "FORENSIC_SCAN",
+  "status": "FAILED",
+  "progress": 5,
+  "bytesScanned": 0,
+  "bytesTotal": 93545,
+  "artifactsFound": 0,
+  "artifactsValidated": 0,
+  "evidenceId": "EV-1788417076400-3b234744010e",
+  "fileName": "new_6.txt",
+  "evidenceHash": "8f87ab2d03a5c7f0edbfde9b1e6b61f83d0026d3f41df0e1a5dc442c043a9a07",
+  "source": null,
+  "executionMode": "local",
+  "createdAt": "2026-09-03T06:31:37.746Z",
+  "startedAt": "2026-09-03T06:31:37.764Z",
+  "completedAt": "2026-09-03T06:31:38.176Z",
+  "updatedAt": "2026-09-03T06:31:38.179Z",
+  "error": {
+    "code": "FORENSIC_ENGINE_FAILED",
+    "message": "Traceback (most recent call last):\r\n  File \"C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\cli.py\", line 13, in <module>\r\n    from engine.scanner import ForensicScanner\r\n  File \"C:\\Users\\Meena Tharshini I\\Downloads\\TrustWipe & Recovery\\Trust_Wipe\\backend\\forensic_recovery\\engine\\scanner.py\", line 7, in <module>\r\n    from ..acquisition.evidence import EvidenceAcquisition\r\nImportError: attempted relative import beyond top-level package"
+  },
+  "result": null
+}
