@@ -8,11 +8,18 @@ import ctypes
 from typing import List, Dict, Any
 
 # Adjust module imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# ---------------------------------------------------------------------------
+# PACKAGE IMPORT CONFIGURATION
+# ---------------------------------------------------------------------------
 
-from engine.scanner import ForensicScanner
-from acquisition.hashing import CryptographicHasher
+FORENSIC_ROOT = os.path.dirname(os.path.abspath(__file__))
+BACKEND_ROOT = os.path.dirname(FORENSIC_ROOT)
 
+if BACKEND_ROOT not in sys.path:
+    sys.path.insert(0, BACKEND_ROOT)
+
+from forensic_recovery.engine.scanner import ForensicScanner
+from forensic_recovery.acquisition.hashing import CryptographicHasher
 def get_available_drives() -> List[Dict[str, Any]]:
     """
     Lists system drives and available storage mount points.

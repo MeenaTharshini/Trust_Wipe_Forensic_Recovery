@@ -1,4 +1,3 @@
-
 import {
   useCallback,
   useEffect,
@@ -9,14 +8,24 @@ import {
 
 import "./Forensics.css";
 
-/* ==========================================================================
+/* ============================================================================
    CONFIGURATION
-   ========================================================================== */
+   ============================================================================ */
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "";
-
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ||
+  "http://localhost:5000";
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
+
+const STEPS = {
+  CASES: "CASES",
+  CREATE_CASE: "CREATE_CASE",
+  EVIDENCE: "EVIDENCE",
+  EXAMINATION: "EXAMINATION",
+  ANALYSIS: "ANALYSIS",
+  RESULTS: "RESULTS",
+  REPORT: "REPORT",
+};
 
 const STATUS = {
   IDLE: "IDLE",
@@ -35,9 +44,11 @@ const INTEGRITY = {
   UNKNOWN: "UNKNOWN",
 };
 
-/* ==========================================================================
-   API
-   ========================================================================== */
+const CASE_STORAGE_KEY = "trustwipe_forensic_cases";
+
+/* ============================================================================
+   API HELPERS
+   ============================================================================ */
 
 function apiUrl(path = "") {
   if (!path) return API_BASE;
@@ -114,9 +125,9 @@ async function apiFetch(path, options = {}) {
   return parseResponse(response);
 }
 
-/* ==========================================================================
-   HELPERS
-   ========================================================================== */
+/* ============================================================================
+   GENERAL HELPERS
+   ============================================================================ */
 
 function firstDefined(...values) {
   return values.find(
@@ -241,9 +252,31 @@ function getIntegrityClass(status) {
   }
 }
 
-/* ==========================================================================
+function extractArray(response, keys = []) {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  for (const key of keys) {
+    if (Array.isArray(response?.[key])) {
+      return response[key];
+    }
+
+    if (Array.isArray(response?.data?.[key])) {
+      return response.data[key];
+    }
+  }
+
+  if (Array.isArray(response?.data)) {
+    return response.data;
+  }
+
+  return [];
+}
+
+/* ============================================================================
    NORMALIZERS
-   ========================================================================== */
+   ============================================================================ */
 
 function normalizeEvidence(item) {
   if (!item || typeof item !== "object") {
@@ -514,15 +547,76 @@ function normalizeRecoveredFile(file) {
   };
 }
 
-/* ==========================================================================
-   COMPONENT
-   ========================================================================== */
+/* ============================================================================
+   CASE STORAGE
+   ============================================================================ */
+
+function loadLocalCases() {
+  try {
+    const raw = localStorage.getItem(
+      CASE_STORAGE_KEY
+    );
+
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalCases(cases) {
+  try {
+    localStorage.setItem(
+      CASE_STORAGE_KEY,
+      JSON.stringify(cases)
+    );
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+/* ============================================================================
+   MAIN COMPONENT
+   ============================================================================ */
 
 export default function Forensics() {
   const fileInputRef = useRef(null);
 
-  const [status, setStatus] =
-    useState(STATUS.IDLE);
+  /* --------------------------------------------------------------------------
+     WORKFLOW
+     -------------------------------------------------------------------------- */
+
+  const [currentStep, setCurrentStep] =
+    useState(STEPS.CASES);
+
+  /* --------------------------------------------------------------------------
+     CASE
+     -------------------------------------------------------------------------- */
+
+  const [cases, setCases] = useState(
+    loadLocalCases
+  );
+
+  const [caseId, setCaseId] = useState("");
+  const [examiner, setExaminer] = useState("");
+
+  const [caseTitle, setCaseTitle] =
+    useState("");
+
+  const [caseDescription, setCaseDescription] =
+    useState("");
+
+  const [currentCase, setCurrentCase] =
+    useState(null);
+
+  /* --------------------------------------------------------------------------
+     ENGINE
+     -------------------------------------------------------------------------- */
 
   const [engine, setEngine] = useState({
     available: false,
@@ -530,32 +624,12 @@ export default function Forensics() {
     message: "Checking forensic engine...",
   });
 
-  const [evidence, setEvidence] = useState([]);
+  /* --------------------------------------------------------------------------
+     STATUS
+     -------------------------------------------------------------------------- */
 
-  const [selectedEvidence, setSelectedEvidence] =
-    useState(null);
-
-  const [integrity, setIntegrity] =
-    useState(null);
-
-  const [recoveredFiles, setRecoveredFiles] =
-    useState([]);
-
-  const [report, setReport] =
-    useState(null);
-
-  const [reportFile, setReportFile] =
-    useState(null);
-
-  const [scanStats, setScanStats] =
-    useState(null);
-
-  const [caseId, setCaseId] = useState(
-    createLocalCaseId()
-  );
-
-  const [examiner, setExaminer] =
-    useState("");
+  const [status, setStatus] =
+    useState(STATUS.IDLE);
 
   const [busy, setBusy] =
     useState(false);
@@ -569,6 +643,33 @@ export default function Forensics() {
   const [notice, setNotice] =
     useState("");
 
+  /* --------------------------------------------------------------------------
+     EVIDENCE
+     -------------------------------------------------------------------------- */
+
+  const [evidence, setEvidence] =
+    useState([]);
+
+  const [selectedEvidence, setSelectedEvidence] =
+    useState(null);
+
+  /* --------------------------------------------------------------------------
+     INTEGRITY
+     -------------------------------------------------------------------------- */
+
+  const [integrity, setIntegrity] =
+    useState(null);
+
+  /* --------------------------------------------------------------------------
+     ANALYSIS
+     -------------------------------------------------------------------------- */
+
+  const [analysisMode, setAnalysisMode] =
+    useState(null);
+
+  const [scanStats, setScanStats] =
+    useState(null);
+
   const [scanOutput, setScanOutput] =
     useState("");
 
@@ -576,6 +677,23 @@ export default function Forensics() {
     useState(null);
 
   const [lastOperation, setLastOperation] =
+    useState(null);
+
+  /* --------------------------------------------------------------------------
+     RECOVERY
+     -------------------------------------------------------------------------- */
+
+  const [recoveredFiles, setRecoveredFiles] =
+    useState([]);
+
+  /* --------------------------------------------------------------------------
+     REPORT
+     -------------------------------------------------------------------------- */
+
+  const [report, setReport] =
+    useState(null);
+
+  const [reportFile, setReportFile] =
     useState(null);
 
   /* ==========================================================================
@@ -594,23 +712,29 @@ export default function Forensics() {
     integrity?.hashMatch === true &&
     integrity?.sizeMatch === true;
 
-  const canVerify =
-    Boolean(selectedEvidence) && !busy;
+  const repositoryStats = useMemo(() => {
+    const totalSize = evidence.reduce(
+      (sum, item) =>
+        sum + Number(item.size || 0),
+      0
+    );
 
-  const canScan =
-    Boolean(selectedEvidence) &&
-    integrityVerified &&
-    engine.available &&
-    Boolean(caseId.trim()) &&
-    Boolean(examiner.trim()) &&
-    !busy;
+    return {
+      total: evidence.length,
+      totalSize,
+    };
+  }, [evidence]);
 
-  const canGenerateReport =
-    Boolean(selectedEvidence) &&
-    integrityVerified &&
-    Boolean(caseId.trim()) &&
-    Boolean(examiner.trim()) &&
-    !busy;
+  const validatedArtifacts = useMemo(
+    () =>
+      recoveredFiles.filter(
+        (file) =>
+          String(
+            file.validationStatus
+          ).toUpperCase() === "VALID"
+      ).length,
+    [recoveredFiles]
+  );
 
   /* ==========================================================================
      ENGINE STATUS
@@ -675,18 +799,10 @@ export default function Forensics() {
           "/api/forensic/evidence"
         );
 
-        const rawItems =
-          Array.isArray(response)
-            ? response
-            : Array.isArray(response?.evidence)
-            ? response.evidence
-            : Array.isArray(response?.data)
-            ? response.data
-            : Array.isArray(
-                response?.data?.evidence
-              )
-            ? response.data.evidence
-            : [];
+        const rawItems = extractArray(
+          response,
+          ["evidence"]
+        );
 
         const items = rawItems
           .map(normalizeEvidence)
@@ -694,20 +810,28 @@ export default function Forensics() {
 
         setEvidence(items);
 
-        setSelectedEvidence((current) => {
-          if (!current) return null;
+        setSelectedEvidence(
+          (current) => {
+            if (!current) return null;
 
-          const refreshed = items.find(
-            (item) =>
-              (current.evidenceId &&
-                item.evidenceId ===
-                  current.evidenceId) ||
-              (!current.evidenceId &&
-                item.name === current.name)
-          );
+            const refreshed =
+              items.find(
+                (item) =>
+                  (
+                    current.evidenceId &&
+                    item.evidenceId ===
+                      current.evidenceId
+                  ) ||
+                  (
+                    !current.evidenceId &&
+                    item.name ===
+                      current.name
+                  )
+              );
 
-          return refreshed || current;
-        });
+            return refreshed || current;
+          }
+        );
       } catch (err) {
         setError(
           err.message ||
@@ -727,6 +851,133 @@ export default function Forensics() {
   ]);
 
   /* ==========================================================================
+     CASE MANAGEMENT
+     ========================================================================== */
+
+  const persistCase = useCallback(
+    (newCase) => {
+      const updated = [
+        newCase,
+        ...cases.filter(
+          (item) =>
+            item.caseId !==
+            newCase.caseId
+        ),
+      ];
+
+      setCases(updated);
+      saveLocalCases(updated);
+    },
+    [cases]
+  );
+
+  const createCase = useCallback(() => {
+    setError("");
+    setNotice("");
+
+    if (!caseTitle.trim()) {
+      setError(
+        "Case title is required."
+      );
+      return;
+    }
+
+    if (!examiner.trim()) {
+      setError(
+        "Examiner name is required."
+      );
+      return;
+    }
+
+    const newCase = {
+      caseId:
+        caseId.trim() ||
+        createLocalCaseId(),
+
+      title:
+        caseTitle.trim(),
+
+      description:
+        caseDescription.trim(),
+
+      examiner:
+        examiner.trim(),
+
+      createdAt:
+        new Date().toISOString(),
+
+      status: "OPEN",
+
+      evidenceCount: 0,
+    };
+
+    persistCase(newCase);
+
+    setCaseId(newCase.caseId);
+    setCurrentCase(newCase);
+
+    setNotice(
+      `Case ${newCase.caseId} created successfully.`
+    );
+
+    setCurrentStep(STEPS.EVIDENCE);
+  }, [
+    caseId,
+    caseTitle,
+    caseDescription,
+    examiner,
+    persistCase,
+  ]);
+
+  const openExistingCase =
+    useCallback((selectedCase) => {
+      setError("");
+      setNotice("");
+
+      setCurrentCase(selectedCase);
+
+      setCaseId(
+        selectedCase.caseId
+      );
+
+      setExaminer(
+        selectedCase.examiner || ""
+      );
+
+      setCaseTitle(
+        selectedCase.title || ""
+      );
+
+      setCaseDescription(
+        selectedCase.description || ""
+      );
+
+      setCurrentStep(
+        STEPS.EVIDENCE
+      );
+    }, []);
+
+  const startNewCaseScreen =
+    useCallback(() => {
+      setError("");
+      setNotice("");
+
+      setCaseId(
+        createLocalCaseId()
+      );
+
+      setCaseTitle("");
+      setCaseDescription("");
+      setExaminer("");
+
+      setCurrentCase(null);
+
+      setCurrentStep(
+        STEPS.CREATE_CASE
+      );
+    }, []);
+
+  /* ==========================================================================
      SELECT EVIDENCE
      ========================================================================== */
 
@@ -739,7 +990,9 @@ export default function Forensics() {
 
       if (!normalized) return;
 
-      setSelectedEvidence(normalized);
+      setSelectedEvidence(
+        normalized
+      );
 
       setIntegrity(null);
       setRecoveredFiles([]);
@@ -749,6 +1002,7 @@ export default function Forensics() {
       setScanOutput("");
       setLastScanDuration(null);
       setLastOperation(null);
+      setAnalysisMode(null);
 
       setError("");
       setNotice("");
@@ -758,6 +1012,10 @@ export default function Forensics() {
           ? STATUS.READY
           : STATUS.IDLE
       );
+
+      setCurrentStep(
+        STEPS.EXAMINATION
+      );
     },
     [busy]
   );
@@ -766,113 +1024,156 @@ export default function Forensics() {
      ACQUIRE EVIDENCE
      ========================================================================== */
 
-  const acquireEvidence = useCallback(
-    async (file) => {
-      if (!file) return;
+  const acquireEvidence =
+    useCallback(
+      async (file) => {
+        if (!file) return;
 
-      setBusy(true);
-      setError("");
-      setNotice("");
-      setStatus(STATUS.ACQUIRING);
-
-      setProgressMessage(
-        "Uploading evidence and establishing SHA-256 acquisition baseline..."
-      );
-
-      setIntegrity(null);
-      setRecoveredFiles([]);
-      setScanStats(null);
-      setReport(null);
-      setReportFile(null);
-      setScanOutput("");
-      setLastOperation(null);
-
-      try {
-        if (file.size > MAX_FILE_SIZE) {
-          throw new Error(
-            "Evidence file exceeds the maximum supported size of 5 GB."
-          );
-        }
-
-        if (file.size === 0) {
-          throw new Error(
-            "Empty evidence files are not accepted."
-          );
-        }
-
-        const formData =
-          new FormData();
-
-        formData.append(
-          "evidence",
-          file,
-          file.name
+        setBusy(true);
+        setError("");
+        setNotice("");
+        setStatus(
+          STATUS.ACQUIRING
         );
 
-        const response = await fetch(
-          apiUrl("/api/forensic/upload"),
-          {
-            method: "POST",
-            headers: authHeaders(),
-            body: formData,
+        setProgressMessage(
+          "Uploading evidence and establishing SHA-256 acquisition baseline..."
+        );
+
+        setIntegrity(null);
+        setRecoveredFiles([]);
+        setScanStats(null);
+        setReport(null);
+        setReportFile(null);
+        setScanOutput("");
+        setLastOperation(null);
+
+        try {
+          if (
+            file.size >
+            MAX_FILE_SIZE
+          ) {
+            throw new Error(
+              "Evidence file exceeds the maximum supported size of 5 GB."
+            );
           }
-        );
 
-        const result =
-          await parseResponse(response);
+          if (file.size === 0) {
+            throw new Error(
+              "Empty evidence files are not accepted."
+            );
+          }
 
-        const acquired =
-          normalizeEvidence(
-            result?.evidence ||
-              result?.data?.evidence ||
-              result?.data ||
-              result
+          const formData =
+            new FormData();
+
+          formData.append(
+            "evidence",
+            file,
+            file.name
           );
 
-        if (!acquired) {
-          throw new Error(
-            "Server returned invalid evidence acquisition data."
+          const response =
+            await fetch(
+              apiUrl(
+                "/api/forensic/upload"
+              ),
+              {
+                method: "POST",
+                headers:
+                  authHeaders(),
+                body: formData,
+              }
+            );
+
+          const result =
+            await parseResponse(
+              response
+            );
+
+          const acquired =
+            normalizeEvidence(
+              result?.evidence ||
+                result?.data?.evidence ||
+                result?.data ||
+                result
+            );
+
+          if (!acquired) {
+            throw new Error(
+              "Server returned invalid evidence acquisition data."
+            );
+          }
+
+          setSelectedEvidence(
+            acquired
           );
-        }
 
-        if (!acquired.name) {
-          throw new Error(
-            "Server returned incomplete evidence metadata."
+          if (
+            !acquired.acquisitionHash
+          ) {
+            setStatus(
+              STATUS.FAILED
+            );
+
+            setError(
+              "Evidence was uploaded, but no acquisition SHA-256 baseline was returned."
+            );
+          } else {
+            setStatus(
+              STATUS.READY
+            );
+
+            setNotice(
+              result?.message ||
+                "Evidence acquired successfully. Continue to integrity verification."
+            );
+          }
+
+          await loadEvidence();
+
+          if (currentCase) {
+            const updatedCase = {
+              ...currentCase,
+              evidenceCount:
+                Number(
+                  currentCase.evidenceCount ||
+                    0
+                ) + 1,
+            };
+
+            setCurrentCase(
+              updatedCase
+            );
+
+            persistCase(
+              updatedCase
+            );
+          }
+
+          setCurrentStep(
+            STEPS.EXAMINATION
           );
-        }
-
-        setSelectedEvidence(acquired);
-
-        if (!acquired.acquisitionHash) {
-          setStatus(STATUS.FAILED);
+        } catch (err) {
+          setStatus(
+            STATUS.FAILED
+          );
 
           setError(
-            "Evidence was uploaded, but no acquisition SHA-256 baseline was returned."
+            err.message ||
+              "Evidence acquisition failed."
           );
-        } else {
-          setStatus(STATUS.READY);
-
-          setNotice(
-            result?.message ||
-              "Evidence acquired successfully. Verify SHA-256 before recovery."
-          );
+        } finally {
+          setBusy(false);
+          setProgressMessage("");
         }
-
-        await loadEvidence();
-      } catch (err) {
-        setStatus(STATUS.FAILED);
-
-        setError(
-          err.message ||
-            "Evidence acquisition failed."
-        );
-      } finally {
-        setBusy(false);
-        setProgressMessage("");
-      }
-    },
-    [loadEvidence]
-  );
+      },
+      [
+        loadEvidence,
+        currentCase,
+        persistCase,
+      ]
+    );
 
   const handleFileChange =
     useCallback(
@@ -883,7 +1184,9 @@ export default function Forensics() {
         event.target.value = "";
 
         if (file) {
-          await acquireEvidence(file);
+          await acquireEvidence(
+            file
+          );
         }
       },
       [acquireEvidence]
@@ -896,14 +1199,19 @@ export default function Forensics() {
   const verifyIntegrity =
     useCallback(async () => {
       if (!selectedEvidence) {
-        setError("Select evidence first.");
-        return;
+        setError(
+          "Select evidence first."
+        );
+        return false;
       }
 
       setBusy(true);
       setError("");
       setNotice("");
-      setStatus(STATUS.VERIFYING);
+
+      setStatus(
+        STATUS.VERIFYING
+      );
 
       setProgressMessage(
         "Calculating current SHA-256 and comparing it with the acquisition baseline..."
@@ -915,17 +1223,22 @@ export default function Forensics() {
             "/api/forensic/verify-integrity",
             {
               method: "POST",
+
               headers: {
                 "Content-Type":
                   "application/json",
               },
+
               body: JSON.stringify({
                 evidenceId:
                   selectedEvidenceId,
+
                 evidence_id:
                   selectedEvidenceId,
+
                 fileName:
                   selectedFileName,
+
                 file_name:
                   selectedFileName,
               }),
@@ -948,33 +1261,46 @@ export default function Forensics() {
 
         setIntegrity(result);
 
-        if (
+        const verified =
           result.status ===
             INTEGRITY.VERIFIED &&
           result.verified === true &&
           result.hashMatch === true &&
-          result.sizeMatch === true
-        ) {
-          setStatus(STATUS.READY);
+          result.sizeMatch === true;
+
+        if (verified) {
+          setStatus(
+            STATUS.READY
+          );
 
           setNotice(
-            "Evidence integrity VERIFIED. Forensic recovery is now unlocked."
+            "Evidence integrity VERIFIED. Forensic analysis is now unlocked."
           );
-        } else {
-          setStatus(STATUS.FAILED);
 
-          setError(
-            result.message ||
-              "Evidence integrity verification failed."
-          );
+          return true;
         }
+
+        setStatus(
+          STATUS.FAILED
+        );
+
+        setError(
+          result.message ||
+            "Evidence integrity verification failed."
+        );
+
+        return false;
       } catch (err) {
-        setStatus(STATUS.FAILED);
+        setStatus(
+          STATUS.FAILED
+        );
 
         setError(
           err.message ||
             "Integrity verification failed."
         );
+
+        return false;
       } finally {
         setBusy(false);
         setProgressMessage("");
@@ -990,336 +1316,376 @@ export default function Forensics() {
      ========================================================================== */
 
   const runForensicScan =
-    useCallback(async () => {
-      if (!selectedEvidence) {
-        setError(
-          "Select evidence before starting recovery."
+    useCallback(
+      async (mode = "recover") => {
+        if (!selectedEvidence) {
+          setError(
+            "Select evidence before starting analysis."
+          );
+          return;
+        }
+
+        if (!integrityVerified) {
+          setError(
+            "Analysis is blocked until evidence integrity is VERIFIED."
+          );
+          return;
+        }
+
+        if (!engine.available) {
+          setError(
+            "The Python forensic engine is unavailable."
+          );
+          return;
+        }
+
+        if (!caseId.trim()) {
+          setError(
+            "Case ID is required."
+          );
+          return;
+        }
+
+        if (!examiner.trim()) {
+          setError(
+            "Examiner name is required."
+          );
+          return;
+        }
+
+        setBusy(true);
+        setError("");
+        setNotice("");
+
+        setStatus(
+          STATUS.SCANNING
         );
-        return;
-      }
 
-      if (!integrityVerified) {
-        setError(
-          "Recovery is blocked until evidence integrity is VERIFIED."
+        setAnalysisMode(
+          mode
         );
-        return;
-      }
 
-      if (!engine.available) {
-        setError(
-          "The Python forensic engine is unavailable."
+        setRecoveredFiles([]);
+        setScanStats(null);
+        setReport(null);
+        setReportFile(null);
+        setScanOutput("");
+        setLastOperation(null);
+
+        const messages = {
+          scan:
+            "Scanning the evidence image and discovering forensic signatures...",
+
+          recover:
+            "Scanning verified evidence, carving candidate ranges and validating recovered artifacts...",
+
+          analyze:
+            "Performing forensic analysis of the verified evidence image...",
+        };
+
+        setProgressMessage(
+          messages[mode] ||
+            messages.recover
         );
-        return;
-      }
 
-      if (!caseId.trim()) {
-        setError("Case ID is required.");
-        return;
-      }
+        const started =
+          performance.now();
 
-      if (!examiner.trim()) {
-        setError(
-          "Examiner name is required."
-        );
-        return;
-      }
+        try {
+          const response =
+            await apiFetch(
+              "/api/forensic/scan",
+              {
+                method: "POST",
 
-      setBusy(true);
-      setError("");
-      setNotice("");
-      setStatus(STATUS.SCANNING);
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
 
-      setRecoveredFiles([]);
-      setScanStats(null);
-      setReport(null);
-      setReportFile(null);
-      setScanOutput("");
-      setLastOperation(null);
+                body: JSON.stringify({
+                  evidenceId:
+                    selectedEvidenceId,
 
-      setProgressMessage(
-        "Scanning verified evidence. Detecting signatures, carving ranges and validating artifacts..."
-      );
+                  evidence_id:
+                    selectedEvidenceId,
 
-      const started =
-        performance.now();
+                  fileName:
+                    selectedFileName,
 
-      try {
-        const response =
-          await apiFetch(
-            "/api/forensic/scan",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-              body: JSON.stringify({
-                evidenceId:
-                  selectedEvidenceId,
-                evidence_id:
-                  selectedEvidenceId,
+                  file_name:
+                    selectedFileName,
 
-                fileName:
-                  selectedFileName,
-                file_name:
-                  selectedFileName,
+                  caseId:
+                    caseId.trim(),
 
-                caseId:
-                  caseId.trim(),
+                  case_id:
+                    caseId.trim(),
 
-                case_id:
-                  caseId.trim(),
+                  examiner:
+                    examiner.trim(),
 
-                examiner:
-                  examiner.trim(),
-              }),
+                  operation:
+                    mode,
+                }),
+              }
+            );
+
+          const duration =
+            Math.round(
+              performance.now() -
+                started
+            );
+
+          const stats =
+            response?.scanStats ||
+            response?.scan_stats ||
+            response?.statistics ||
+            response?.stats ||
+            response?.data?.scanStats ||
+            response?.data?.scan_stats ||
+            {};
+
+          const durationMs =
+            response?.durationMs ??
+            response?.duration_ms ??
+            stats?.durationMs ??
+            stats?.duration_ms ??
+            duration;
+
+          setLastScanDuration(
+            durationMs
+          );
+
+          setScanStats({
+            evidenceSize:
+              stats?.evidenceSize ??
+              stats?.evidence_size ??
+              selectedEvidence.size,
+
+            chunkSize:
+              stats?.chunkSize ??
+              stats?.chunk_size ??
+              null,
+
+            overlapSize:
+              stats?.overlapSize ??
+              stats?.overlap_size ??
+              null,
+
+            chunksScanned:
+              stats?.chunksScanned ??
+              stats?.chunks_scanned ??
+              null,
+
+            bytesScanned:
+              stats?.bytesScanned ??
+              stats?.bytes_scanned ??
+              null,
+
+            signaturesDetected:
+              stats?.signaturesDetected ??
+              stats?.signatures_detected ??
+              response?.signaturesDetected ??
+              response?.signatures_detected ??
+              0,
+
+            candidatesFound:
+              stats?.candidatesFound ??
+              stats?.candidates_found ??
+              response?.candidateCount ??
+              response?.candidate_count ??
+              stats?.candidateRanges ??
+              stats?.candidate_ranges ??
+              0,
+
+            artifactsCarved:
+              stats?.artifactsCarved ??
+              stats?.artifacts_carved ??
+              0,
+
+            artifactsValidated:
+              stats?.artifactsValidated ??
+              stats?.artifacts_validated ??
+              response?.validatedCount ??
+              response?.validated_count ??
+              0,
+
+            durationMs,
+
+            status:
+              stats?.status ||
+              response?.scanStatus ||
+              response?.scan_status ||
+              "COMPLETED",
+          });
+
+          const rawRecovered =
+            response?.recoveredFiles ||
+            response?.recovered_files ||
+            response?.artifacts ||
+            response?.data?.recoveredFiles ||
+            response?.data?.recovered_files ||
+            response?.data?.artifacts ||
+            [];
+
+          const normalizedRecovered =
+            (
+              Array.isArray(
+                rawRecovered
+              )
+                ? rawRecovered
+                : []
+            )
+              .map(
+                normalizeRecoveredFile
+              )
+              .filter(Boolean);
+
+          setRecoveredFiles(
+            normalizedRecovered
+          );
+
+          setScanOutput(
+            response?.output ||
+              response?.stdout ||
+              response?.consoleOutput ||
+              response?.console_output ||
+              response?.data?.output ||
+              ""
+          );
+
+          /* --------------------------------------------------------------
+             POST-SCAN INTEGRITY
+             -------------------------------------------------------------- */
+
+          const postScanIntegrity =
+            response?.integrity ||
+            response?.postScanIntegrity ||
+            response?.post_scan_integrity ||
+            response?.data?.integrity ||
+            response?.data?.postScanIntegrity ||
+            response?.data?.post_scan_integrity;
+
+          const postScan =
+            normalizeIntegrity(
+              postScanIntegrity
+            );
+
+          if (postScan) {
+            setIntegrity(
+              postScan
+            );
+
+            if (
+              postScan.status !==
+                INTEGRITY.VERIFIED ||
+              postScan.verified !==
+                true ||
+              postScan.hashMatch !==
+                true ||
+              postScan.sizeMatch !==
+                true
+            ) {
+              setStatus(
+                STATUS.FAILED
+              );
+
+              setError(
+                "Evidence integrity changed or could not be verified after forensic processing."
+              );
+
+              return;
             }
+          }
+
+          const finalCaseId =
+            response?.caseId ||
+            response?.case_id ||
+            caseId.trim();
+
+          const finalExaminer =
+            response?.examiner ||
+            examiner.trim();
+
+          setLastOperation({
+            caseId:
+              finalCaseId,
+
+            examiner:
+              finalExaminer,
+
+            operation:
+              mode,
+
+            completedAt:
+              new Date().toISOString(),
+          });
+
+          setStatus(
+            STATUS.COMPLETED
           );
 
-        const duration =
-          Math.round(
-            performance.now() - started
-          );
-
-        const stats =
-          response?.scanStats ||
-          response?.scan_stats ||
-          response?.statistics ||
-          response?.stats ||
-          response?.data?.scanStats ||
-          response?.data?.scan_stats ||
-          {};
-
-        const durationMs =
-          response?.durationMs ??
-          response?.duration_ms ??
-          stats?.durationMs ??
-          stats?.duration_ms ??
-          duration;
-
-        setLastScanDuration(
-          durationMs
-        );
-
-        setScanStats({
-          evidenceSize:
-            stats?.evidenceSize ??
-            stats?.evidence_size ??
-            selectedEvidence.size,
-
-          chunkSize:
-            stats?.chunkSize ??
-            stats?.chunk_size ??
-            null,
-
-          overlapSize:
-            stats?.overlapSize ??
-            stats?.overlap_size ??
-            null,
-
-          chunksScanned:
-            stats?.chunksScanned ??
-            stats?.chunks_scanned ??
-            null,
-
-          bytesScanned:
-            stats?.bytesScanned ??
-            stats?.bytes_scanned ??
-            null,
-
-          signaturesDetected:
-            stats?.signaturesDetected ??
-            stats?.signatures_detected ??
-            response?.signaturesDetected ??
-            response?.signatures_detected ??
-            0,
-
-          candidatesFound:
-            stats?.candidatesFound ??
-            stats?.candidates_found ??
-            response?.candidateCount ??
-            response?.candidate_count ??
-            0,
-
-          artifactsCarved:
-            stats?.artifactsCarved ??
-            stats?.artifacts_carved ??
-            0,
-
-          artifactsValidated:
-            stats?.artifactsValidated ??
-            stats?.artifacts_validated ??
+          const validatedCount =
             response?.validatedCount ??
             response?.validated_count ??
-            0,
+            stats?.artifactsValidated ??
+            stats?.artifacts_validated ??
+            normalizedRecovered.length;
 
-          durationMs,
+          const candidateCount =
+            response?.candidateCount ??
+            response?.candidate_count ??
+            stats?.candidatesFound ??
+            stats?.candidates_found ??
+            stats?.candidateRanges ??
+            stats?.candidate_ranges ??
+            0;
 
-          status:
-            stats?.status ||
-            response?.scanStatus ||
-            response?.scan_status ||
-            "COMPLETED",
-        });
-
-        const rawRecovered =
-          response?.recoveredFiles ||
-          response?.recovered_files ||
-          response?.artifacts ||
-          response?.data?.recoveredFiles ||
-          response?.data?.recovered_files ||
-          response?.data?.artifacts ||
-          [];
-
-        const normalizedRecovered =
-          (
-            Array.isArray(
-              rawRecovered
-            )
-              ? rawRecovered
-              : []
-          )
-            .map(
-              normalizeRecoveredFile
-            )
-            .filter(Boolean);
-
-        setRecoveredFiles(
-          normalizedRecovered
-        );
-
-        setScanOutput(
-          response?.output ||
-            response?.stdout ||
-            response?.consoleOutput ||
-            response?.console_output ||
-            response?.data?.output ||
-            ""
-        );
-
-        /* ---------------------------------------------------------------
-           POST-SCAN INTEGRITY
-           --------------------------------------------------------------- */
-
-        const postScanIntegrity =
-          response?.integrity ||
-          response?.postScanIntegrity ||
-          response?.post_scan_integrity ||
-          response?.data?.integrity ||
-          response?.data?.postScanIntegrity ||
-          response?.data?.post_scan_integrity;
-
-        const postScan =
-          normalizeIntegrity(
-            postScanIntegrity
+          setNotice(
+            response?.message ||
+              `Forensic processing completed. ${candidateCount} candidate range(s) identified and ${validatedCount} artifact(s) validated.`
           );
 
-        if (!postScan) {
+          setCurrentStep(
+            STEPS.RESULTS
+          );
+        } catch (err) {
           setStatus(
             STATUS.FAILED
           );
 
-          setError(
-            "Forensic scan completed, but post-scan integrity verification was not returned."
-          );
+          const serverIntegrity =
+            err.response?.integrity ||
+            err.response?.data?.integrity;
 
-          return;
-        }
-
-        setIntegrity(postScan);
-
-        if (
-          postScan.status !==
-            INTEGRITY.VERIFIED ||
-          postScan.verified !== true ||
-          postScan.hashMatch !== true ||
-          postScan.sizeMatch !== true
-        ) {
-          setStatus(
-            STATUS.FAILED
-          );
+          if (serverIntegrity) {
+            setIntegrity(
+              normalizeIntegrity(
+                serverIntegrity
+              )
+            );
+          }
 
           setError(
-            "Evidence integrity changed or could not be verified after recovery. Recovered artifacts must not be treated as verified evidence."
+            err.message ||
+              "Forensic processing failed."
           );
-
-          return;
+        } finally {
+          setBusy(false);
+          setProgressMessage("");
         }
-
-        const finalCaseId =
-          response?.caseId ||
-          response?.case_id ||
-          caseId.trim();
-
-        const finalExaminer =
-          response?.examiner ||
-          examiner.trim();
-
-        setLastOperation({
-          caseId:
-            finalCaseId,
-          examiner:
-            finalExaminer,
-          completedAt:
-            new Date().toISOString(),
-        });
-
-        setStatus(
-          STATUS.COMPLETED
-        );
-
-        const validatedCount =
-          response?.validatedCount ??
-          response?.validated_count ??
-          stats?.artifactsValidated ??
-          stats?.artifacts_validated ??
-          normalizedRecovered.length;
-
-        const candidateCount =
-          response?.candidateCount ??
-          response?.candidate_count ??
-          stats?.candidatesFound ??
-          stats?.candidates_found ??
-          0;
-
-        setNotice(
-          response?.message ||
-            `Forensic recovery completed. ${candidateCount} candidate range(s) identified and ${validatedCount} artifact(s) validated.`
-        );
-      } catch (err) {
-        setStatus(
-          STATUS.FAILED
-        );
-
-        const serverIntegrity =
-          err.response?.integrity ||
-          err.response?.data?.integrity;
-
-        if (serverIntegrity) {
-          setIntegrity(
-            normalizeIntegrity(
-              serverIntegrity
-            )
-          );
-        }
-
-        setError(
-          err.message ||
-            "Forensic recovery failed."
-        );
-      } finally {
-        setBusy(false);
-        setProgressMessage("");
-      }
-    }, [
-      selectedEvidence,
-      selectedEvidenceId,
-      selectedFileName,
-      integrityVerified,
-      engine.available,
-      caseId,
-      examiner,
-    ]);
+      },
+      [
+        selectedEvidence,
+        selectedEvidenceId,
+        selectedFileName,
+        integrityVerified,
+        engine.available,
+        caseId,
+        examiner,
+      ]
+    );
 
   /* ==========================================================================
      REPORT
@@ -1359,29 +1725,38 @@ export default function Forensics() {
       setError("");
       setNotice("");
 
+      setProgressMessage(
+        "Generating the forensic case report and evidence audit record..."
+      );
+
       try {
         const response =
           await apiFetch(
             "/api/forensic/report",
             {
               method: "POST",
+
               headers: {
                 "Content-Type":
                   "application/json",
               },
+
               body: JSON.stringify({
                 evidenceId:
                   selectedEvidenceId,
+
                 evidence_id:
                   selectedEvidenceId,
 
                 fileName:
                   selectedFileName,
+
                 file_name:
                   selectedFileName,
 
                 caseId:
                   caseId.trim(),
+
                 case_id:
                   caseId.trim(),
 
@@ -1428,7 +1803,9 @@ export default function Forensics() {
           generatedReportFile
         );
 
-        if (generatedReport.integrity) {
+        if (
+          generatedReport.integrity
+        ) {
           const normalized =
             normalizeIntegrity(
               generatedReport.integrity
@@ -1442,9 +1819,12 @@ export default function Forensics() {
             if (
               normalized.status !==
                 INTEGRITY.VERIFIED ||
-              normalized.verified !== true ||
-              normalized.hashMatch !== true ||
-              normalized.sizeMatch !== true
+              normalized.verified !==
+                true ||
+              normalized.hashMatch !==
+                true ||
+              normalized.sizeMatch !==
+                true
             ) {
               setStatus(
                 STATUS.FAILED
@@ -1459,9 +1839,17 @@ export default function Forensics() {
           }
         }
 
+        setStatus(
+          STATUS.COMPLETED
+        );
+
         setNotice(
           response?.message ||
             "Forensic evidence report generated successfully."
+        );
+
+        setCurrentStep(
+          STEPS.REPORT
         );
       } catch (err) {
         setError(
@@ -1470,6 +1858,7 @@ export default function Forensics() {
         );
       } finally {
         setBusy(false);
+        setProgressMessage("");
       }
     }, [
       selectedEvidence,
@@ -1481,40 +1870,7 @@ export default function Forensics() {
     ]);
 
   /* ==========================================================================
-     RESET
-     ========================================================================== */
-
-  const resetWorkspace =
-    useCallback(() => {
-      if (busy) return;
-
-      setSelectedEvidence(null);
-      setIntegrity(null);
-      setRecoveredFiles([]);
-      setScanStats(null);
-      setReport(null);
-      setReportFile(null);
-      setScanOutput("");
-
-      setError("");
-      setNotice("");
-
-      setStatus(
-        STATUS.IDLE
-      );
-
-      setLastScanDuration(null);
-      setLastOperation(null);
-
-      setCaseId(
-        createLocalCaseId()
-      );
-
-      setExaminer("");
-    }, [busy]);
-
-  /* ==========================================================================
-     DOWNLOADS
+     DOWNLOAD RECOVERED ARTIFACT
      ========================================================================== */
 
   const downloadRecoveredFile =
@@ -1536,6 +1892,10 @@ export default function Forensics() {
       []
     );
 
+  /* ==========================================================================
+     DOWNLOAD REPORT
+     ========================================================================== */
+
   const downloadReport =
     useCallback(() => {
       if (!reportFile) {
@@ -1549,7 +1909,9 @@ export default function Forensics() {
         String(reportFile);
 
       const url =
-        reportPath.startsWith("/api/")
+        reportPath.startsWith(
+          "/api/"
+        )
           ? reportPath
           : `/api/forensic/report/${encodeURIComponent(
               reportPath
@@ -1563,99 +1925,201 @@ export default function Forensics() {
     }, [reportFile]);
 
   /* ==========================================================================
-     STATISTICS
+     RESET CASE WORKSPACE
      ========================================================================== */
 
-  const repositoryStats =
-    useMemo(() => {
-      const totalSize =
-        evidence.reduce(
-          (sum, item) =>
-            sum +
-            Number(item.size || 0),
-          0
+  const resetWorkspace =
+    useCallback(() => {
+      if (busy) return;
+
+      setSelectedEvidence(null);
+      setIntegrity(null);
+      setRecoveredFiles([]);
+      setScanStats(null);
+      setReport(null);
+      setReportFile(null);
+      setScanOutput("");
+      setLastScanDuration(null);
+      setLastOperation(null);
+      setAnalysisMode(null);
+
+      setError("");
+      setNotice("");
+
+      setStatus(
+        STATUS.IDLE
+      );
+
+      setCurrentCase(null);
+
+      setCaseId("");
+      setCaseTitle("");
+      setCaseDescription("");
+      setExaminer("");
+
+      setCurrentStep(
+        STEPS.CASES
+      );
+    }, [busy]);
+
+  /* ==========================================================================
+     NAVIGATION
+     ========================================================================== */
+
+  const goBack = useCallback(() => {
+    if (busy) return;
+
+    setError("");
+    setNotice("");
+
+    switch (currentStep) {
+      case STEPS.CREATE_CASE:
+        setCurrentStep(
+          STEPS.CASES
         );
+        break;
 
-      return {
-        total: evidence.length,
-        totalSize,
-      };
-    }, [evidence]);
+      case STEPS.EVIDENCE:
+        setCurrentStep(
+          STEPS.CASES
+        );
+        break;
 
-  const validatedArtifacts =
-    useMemo(
-      () =>
-        recoveredFiles.filter(
-          (file) =>
-            String(
-              file.validationStatus
-            ).toUpperCase() ===
-            "VALID"
-        ).length,
-      [recoveredFiles]
+      case STEPS.EXAMINATION:
+        setCurrentStep(
+          STEPS.EVIDENCE
+        );
+        break;
+
+      case STEPS.ANALYSIS:
+        setCurrentStep(
+          STEPS.EXAMINATION
+        );
+        break;
+
+      case STEPS.RESULTS:
+        setCurrentStep(
+          STEPS.ANALYSIS
+        );
+        break;
+
+      case STEPS.REPORT:
+        setCurrentStep(
+          STEPS.RESULTS
+        );
+        break;
+
+      default:
+        setCurrentStep(
+          STEPS.CASES
+        );
+    }
+  }, [
+    currentStep,
+    busy,
+  ]);
+
+  /* ==========================================================================
+     STEP DEFINITIONS
+     ========================================================================== */
+
+  const stepItems = [
+    {
+      key: STEPS.CASES,
+      label: "Case",
+    },
+    {
+      key: STEPS.EVIDENCE,
+      label: "Evidence",
+    },
+    {
+      key: STEPS.EXAMINATION,
+      label: "Examination",
+    },
+    {
+      key: STEPS.ANALYSIS,
+      label: "Analysis",
+    },
+    {
+      key: STEPS.RESULTS,
+      label: "Results",
+    },
+    {
+      key: STEPS.REPORT,
+      label: "Report",
+    },
+  ];
+
+  const currentStepIndex =
+    Math.max(
+      0,
+      stepItems.findIndex(
+        (item) =>
+          item.key ===
+          currentStep
+      )
     );
 
   /* ==========================================================================
-     RENDER
+     RENDER HELPERS
      ========================================================================== */
 
-  return (
-    <div className="forensics-page">
+  const renderHeader = () => (
+    <header className="forensics-header">
+      <div>
+        <div className="forensics-eyebrow">
+          SECURITY OPERATIONS CENTER
+        </div>
 
-      {/* HEADER */}
+        <h1>
+          TrustWipe Digital Forensics
+        </h1>
 
-      <header className="forensics-header">
+        <p>
+          Authorized evidence acquisition,
+          integrity verification, forensic
+          recovery and evidence reporting.
+        </p>
+      </div>
+
+      <div className="engine-status">
+        <span
+          className={
+            engine.available
+              ? "status-dot online"
+              : "status-dot offline"
+          }
+        />
+
         <div>
-          <div className="forensics-eyebrow">
-            SECURITY OPERATIONS CENTER
-          </div>
+          <strong>
+            {engine.available
+              ? "FORENSIC ENGINE ONLINE"
+              : "FORENSIC ENGINE OFFLINE"}
+          </strong>
 
-          <h1>
-            TrustWipe Digital Forensics
-          </h1>
-
-          <p>
-            Secure evidence acquisition,
-            integrity verification, forensic
-            recovery and evidence reporting.
-          </p>
+          <small>
+            {engine.version ||
+              engine.message}
+          </small>
         </div>
 
-        <div className="engine-status">
-          <span
-            className={
-              engine.available
-                ? "status-dot online"
-                : "status-dot offline"
-            }
-          />
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={
+            loadEngineStatus
+          }
+          disabled={busy}
+        >
+          Refresh
+        </button>
+      </div>
+    </header>
+  );
 
-          <div>
-            <strong>
-              {engine.available
-                ? "FORENSIC ENGINE ONLINE"
-                : "FORENSIC ENGINE OFFLINE"}
-            </strong>
-
-            <small>
-              {engine.version ||
-                engine.message}
-            </small>
-          </div>
-
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={loadEngineStatus}
-            disabled={busy}
-          >
-            Refresh
-          </button>
-        </div>
-      </header>
-
-      {/* ALERTS */}
-
+  const renderAlerts = () => (
+    <>
       {error && (
         <div
           className="forensics-alert danger"
@@ -1682,86 +2146,365 @@ export default function Forensics() {
         </div>
       )}
 
-      {/* SUMMARY */}
+      {progressMessage && (
+        <div className="operation-progress">
+          <span className="spinner" />
 
-      <section className="forensics-summary">
+          <span>
+            {progressMessage}
+          </span>
+        </div>
+      )}
+    </>
+  );
 
-        <div className="summary-card">
-          <span>Evidence Assets</span>
+  const renderProgress = () => (
+    <div className="forensics-workflow">
+      {stepItems.map(
+        (item, index) => {
+          const completed =
+            index <
+            currentStepIndex;
+
+          const active =
+            item.key ===
+            currentStep;
+
+          return (
+            <button
+              type="button"
+              key={item.key}
+              className={[
+                "workflow-step",
+                active
+                  ? "active"
+                  : "",
+                completed
+                  ? "completed"
+                  : "",
+              ]
+                .join(" ")
+                .trim()}
+              onClick={() => {
+                if (
+                  busy ||
+                  index >
+                    currentStepIndex
+                ) {
+                  return;
+                }
+
+                setCurrentStep(
+                  item.key
+                );
+              }}
+              disabled={
+                busy ||
+                index >
+                  currentStepIndex
+              }
+            >
+              <span className="workflow-number">
+                {completed
+                  ? "✓"
+                  : index + 1}
+              </span>
+
+              <span>
+                {item.label}
+              </span>
+            </button>
+          );
+        }
+      )}
+    </div>
+  );
+
+  /* ==========================================================================
+     CASE SELECTION
+     ========================================================================== */
+
+  const renderCaseSelection = () => (
+    <section className="forensics-panel">
+      <div className="panel-header">
+        <div>
+          <span className="panel-kicker">
+            FORENSIC CASE MANAGEMENT
+          </span>
+
+          <h2>
+            Select Investigation
+          </h2>
+
+          <p>
+            Create a new forensic case or
+            continue an existing investigation.
+          </p>
+        </div>
+      </div>
+
+      <div className="case-selection-grid">
+        <button
+          type="button"
+          className="case-action-card"
+          onClick={
+            startNewCaseScreen
+          }
+          disabled={busy}
+        >
+          <div className="case-action-icon">
+            +
+          </div>
 
           <strong>
-            {repositoryStats.total}
+            Create New Case
           </strong>
 
+          <span>
+            Start a new authorized forensic
+            investigation.
+          </span>
+
           <small>
-            {formatBytes(
-              repositoryStats.totalSize
-            )}{" "}
-            total
+            Generate case ID →
+          </small>
+        </button>
+
+        <div className="case-action-card existing">
+          <div className="case-action-icon">
+            ▣
+          </div>
+
+          <strong>
+            Existing Cases
+          </strong>
+
+          <span>
+            Continue an investigation from the
+            case repository.
+          </span>
+
+          <small>
+            {cases.length} saved case
+            {cases.length === 1
+              ? ""
+              : "s"}
           </small>
         </div>
+      </div>
 
-        <div className="summary-card">
-          <span>Integrity</span>
+      <div className="case-list-section">
+        <div className="repository-header">
+          <div>
+            <strong>
+              CASE REPOSITORY
+            </strong>
 
-          <strong
-            className={
-              integrity
-                ? getIntegrityClass(
-                    integrity.status
+            <span>
+              {cases.length} Cases
+            </span>
+          </div>
+        </div>
+
+        {cases.length === 0 ? (
+          <div className="empty-state">
+            No forensic cases have been
+            created yet.
+          </div>
+        ) : (
+          <div className="case-list">
+            {cases.map((item) => (
+              <button
+                type="button"
+                key={item.caseId}
+                className="case-list-item"
+                onClick={() =>
+                  openExistingCase(
+                    item
                   )
-                : ""
+                }
+                disabled={busy}
+              >
+                <div className="case-id">
+                  {item.caseId}
+                </div>
+
+                <div className="case-details">
+                  <strong>
+                    {item.title ||
+                      "Untitled Investigation"}
+                  </strong>
+
+                  <span>
+                    Examiner:{" "}
+                    {item.examiner ||
+                      "—"}
+                  </span>
+
+                  <span>
+                    Created:{" "}
+                    {formatDate(
+                      item.createdAt
+                    )}
+                  </span>
+                </div>
+
+                <div className="case-meta">
+                  <span className="state-badge ready">
+                    {item.status ||
+                      "OPEN"}
+                  </span>
+
+                  <span>
+                    {item.evidenceCount ||
+                      0}{" "}
+                    evidence
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  /* ==========================================================================
+     CREATE CASE
+     ========================================================================== */
+
+  const renderCreateCase = () => (
+    <section className="forensics-panel">
+      <div className="panel-header">
+        <div>
+          <span className="panel-kicker">
+            STEP 01 • CASE CREATION
+          </span>
+
+          <h2>
+            Create New Forensic Case
+          </h2>
+
+          <p>
+            Establish the investigation identity
+            before acquiring evidence.
+          </p>
+        </div>
+      </div>
+
+      <div className="case-form">
+        <div className="form-field">
+          <label>
+            Case ID
+          </label>
+
+          <input
+            type="text"
+            value={caseId}
+            onChange={(event) =>
+              setCaseId(
+                event.target.value
+              )
             }
-          >
-            {integrity?.status ||
-              "NOT VERIFIED"}
-          </strong>
+            placeholder="CASE-2026-XXXX"
+          />
 
           <small>
-            SHA-256 baseline control
+            Unique identifier for the forensic
+            investigation.
           </small>
         </div>
 
-        <div className="summary-card">
-          <span>Validated Artifacts</span>
+        <div className="form-field">
+          <label>
+            Case Title
+          </label>
 
-          <strong>
-            {validatedArtifacts}
-          </strong>
-
-          <small>
-            Current investigation
-          </small>
+          <input
+            type="text"
+            value={caseTitle}
+            onChange={(event) =>
+              setCaseTitle(
+                event.target.value
+              )
+            }
+            placeholder="Enterprise Evidence Investigation"
+          />
         </div>
 
-        <div className="summary-card">
-          <span>Engine</span>
+        <div className="form-field">
+          <label>
+            Examiner
+          </label>
 
-          <strong>
-            {engine.available
-              ? "READY"
-              : "OFFLINE"}
-          </strong>
-
-          <small>
-            Python forensic engine
-          </small>
+          <input
+            type="text"
+            value={examiner}
+            onChange={(event) =>
+              setExaminer(
+                event.target.value
+              )
+            }
+            placeholder="Authorized forensic examiner"
+          />
         </div>
 
-      </section>
+        <div className="form-field full">
+          <label>
+            Case Description
+          </label>
 
-      {/* MAIN GRID */}
+          <textarea
+            value={
+              caseDescription
+            }
+            onChange={(event) =>
+              setCaseDescription(
+                event.target.value
+              )
+            }
+            rows={4}
+            placeholder="Investigation purpose, scope and authorization details..."
+          />
+        </div>
+      </div>
 
-      <div className="forensics-grid">
+      <div className="action-row">
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={goBack}
+          disabled={busy}
+        >
+          ← Back
+        </button>
 
-        {/* EVIDENCE */}
+        <button
+          type="button"
+          className="primary-button"
+          onClick={
+            createCase
+          }
+          disabled={busy}
+        >
+          CREATE CASE →
+        </button>
+      </div>
+    </section>
+  );
 
-        <section className="forensics-panel evidence-panel">
+  /* ==========================================================================
+     EVIDENCE ACQUISITION
+     ========================================================================== */
 
+  const renderEvidenceAcquisition =
+    () => (
+      <>
+        <section className="forensics-panel">
           <div className="panel-header">
             <div>
               <span className="panel-kicker">
-                EVIDENCE MANAGEMENT
+                STEP 02 • EVIDENCE ACQUISITION
               </span>
 
               <h2>
@@ -1776,15 +2519,41 @@ export default function Forensics() {
             </div>
 
             <span className="secure-badge">
-              SECURE
+              AUTHORIZED
             </span>
+          </div>
+
+          <div className="case-context">
+            <div>
+              <span>
+                CASE
+              </span>
+
+              <strong>
+                {caseId ||
+                  "Not selected"}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                EXAMINER
+              </span>
+
+              <strong>
+                {examiner ||
+                  "Not assigned"}
+              </strong>
+            </div>
           </div>
 
           <input
             ref={fileInputRef}
             type="file"
             hidden
-            onChange={handleFileChange}
+            onChange={
+              handleFileChange
+            }
             disabled={busy}
           />
 
@@ -1812,17 +2581,9 @@ export default function Forensics() {
               BROWSE EVIDENCE
             </span>
           </button>
+        </section>
 
-          {progressMessage && (
-            <div className="operation-progress">
-              <span className="spinner" />
-
-              <span>
-                {progressMessage}
-              </span>
-            </div>
-          )}
-
+        <section className="forensics-panel">
           <div className="repository-header">
             <div>
               <strong>
@@ -1830,14 +2591,19 @@ export default function Forensics() {
               </strong>
 
               <span>
-                {evidence.length} Assets
+                {evidence.length} Assets •{" "}
+                {formatBytes(
+                  repositoryStats.totalSize
+                )}
               </span>
             </div>
 
             <button
               type="button"
               className="icon-button"
-              onClick={loadEvidence}
+              onClick={
+                loadEvidence
+              }
               disabled={busy}
               title="Refresh evidence"
             >
@@ -1846,102 +2612,592 @@ export default function Forensics() {
           </div>
 
           <div className="evidence-list">
-
             {evidence.length === 0 ? (
               <div className="empty-state">
-                No evidence has been acquired.
+                No evidence has been
+                acquired.
               </div>
             ) : (
-              evidence.map((item) => {
+              evidence.map(
+                (item) => {
+                  const selected =
+                    item.evidenceId &&
+                    selectedEvidenceId
+                      ? item.evidenceId ===
+                        selectedEvidenceId
+                      : item.name ===
+                        selectedFileName;
 
-                const selected =
-                  item.evidenceId &&
-                  selectedEvidenceId
-                    ? item.evidenceId ===
-                      selectedEvidenceId
-                    : item.name ===
-                      selectedFileName;
+                  return (
+                    <button
+                      type="button"
+                      key={
+                        item.evidenceId ||
+                        item.id
+                      }
+                      className={
+                        selected
+                          ? "evidence-item selected"
+                          : "evidence-item"
+                      }
+                      onClick={() =>
+                        selectEvidence(
+                          item
+                        )
+                      }
+                      disabled={busy}
+                    >
+                      <div className="evidence-type">
+                        {getFileType(
+                          item.name
+                        )}
+                      </div>
 
-                return (
-                  <button
-                    type="button"
-                    key={
-                      item.evidenceId ||
-                      item.id
-                    }
-                    className={
-                      selected
-                        ? "evidence-item selected"
-                        : "evidence-item"
-                    }
-                    onClick={() =>
-                      selectEvidence(item)
-                    }
-                    disabled={busy}
-                  >
+                      <div className="evidence-details">
+                        <strong>
+                          {item.name}
+                        </strong>
 
-                    <div className="evidence-type">
-                      {getFileType(
-                        item.name
-                      )}
-                    </div>
-
-                    <div className="evidence-details">
-
-                      <strong>
-                        {item.name}
-                      </strong>
-
-                      <small>
-                        {formatBytes(
-                          item.size
-                        )}{" "}
-                        • {item.type}
-                      </small>
-
-                      {item.evidenceId && (
                         <small>
-                          {item.evidenceId}
+                          {formatBytes(
+                            item.size
+                          )}{" "}
+                          •{" "}
+                          {item.type}
                         </small>
-                      )}
 
-                    </div>
+                        {item.evidenceId && (
+                          <small>
+                            {
+                              item.evidenceId
+                            }
+                          </small>
+                        )}
+                      </div>
 
-                    <div className="evidence-state">
-                      {item.acquisitionHash ? (
-                        <span className="mini-verified">
-                          ✓
-                        </span>
-                      ) : (
-                        <span className="mini-warning">
-                          !
-                        </span>
-                      )}
-                    </div>
-
-                  </button>
-                );
-              })
+                      <div className="evidence-state">
+                        {item.acquisitionHash ? (
+                          <span className="mini-verified">
+                            ✓
+                          </span>
+                        ) : (
+                          <span className="mini-warning">
+                            !
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                }
+              )
             )}
-
           </div>
         </section>
 
-        {/* ACTIVE EVIDENCE */}
+        <div className="action-row">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={goBack}
+            disabled={busy}
+          >
+            ← Case Selection
+          </button>
+        </div>
+      </>
+    );
 
-        <section className="forensics-panel active-panel">
+  /* ==========================================================================
+     EXAMINATION
+     ========================================================================== */
 
+  const renderExamination =
+    () => (
+      <section className="forensics-panel">
+        <div className="panel-header">
+          <div>
+            <span className="panel-kicker">
+              STEP 03 • EXAMINATION
+            </span>
+
+            <h2>
+              Evidence Examination
+            </h2>
+
+            <p>
+              Confirm the evidence identity and
+              cryptographic integrity before
+              forensic processing.
+            </p>
+          </div>
+
+          <span
+            className={`state-badge ${status.toLowerCase()}`}
+          >
+            {status}
+          </span>
+        </div>
+
+        {!selectedEvidence ? (
+          <div className="empty-active-state">
+            <div className="empty-icon">
+              ◇
+            </div>
+
+            <h3>
+              No evidence selected
+            </h3>
+
+            <p>
+              Return to Evidence Acquisition
+              and select an evidence asset.
+            </p>
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() =>
+                setCurrentStep(
+                  STEPS.EVIDENCE
+                )
+              }
+            >
+              ← Select Evidence
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="active-evidence-banner">
+              <div>
+                <span>
+                  ACTIVE EVIDENCE
+                </span>
+
+                <strong>
+                  {
+                    selectedEvidence.name
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  EVIDENCE ID
+                </span>
+
+                <strong>
+                  {
+                    selectedEvidence.evidenceId ||
+                    "—"
+                  }
+                </strong>
+              </div>
+            </div>
+
+            <div className="metadata-grid">
+              <div>
+                <span>
+                  SIZE
+                </span>
+
+                <strong>
+                  {formatBytes(
+                    selectedEvidence.size
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  TYPE
+                </span>
+
+                <strong>
+                  {
+                    selectedEvidence.type
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  ACQUIRED
+                </span>
+
+                <strong>
+                  {formatDate(
+                    selectedEvidence.acquiredAt
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  BASELINE
+                </span>
+
+                <strong>
+                  {selectedEvidence.acquisitionHash
+                    ? "SHA-256 PRESENT"
+                    : "MISSING"}
+                </strong>
+              </div>
+            </div>
+
+            <div className="integrity-card">
+              <div className="integrity-card-header">
+                <div>
+                  <span className="panel-kicker">
+                    CRYPTOGRAPHIC INTEGRITY
+                  </span>
+
+                  <h3>
+                    SHA-256 Verification
+                  </h3>
+                </div>
+
+                <strong
+                  className={
+                    integrity
+                      ? getIntegrityClass(
+                          integrity.status
+                        )
+                      : ""
+                  }
+                >
+                  {integrity?.status ||
+                    "NOT VERIFIED"}
+                </strong>
+              </div>
+
+              <div className="hash-grid">
+                <div>
+                  <span>
+                    ACQUISITION SHA-256
+                  </span>
+
+                  <code>
+                    {integrity?.originalHash ||
+                      selectedEvidence.acquisitionHash ||
+                      "—"}
+                  </code>
+                </div>
+
+                <div>
+                  <span>
+                    CURRENT SHA-256
+                  </span>
+
+                  <code>
+                    {integrity?.currentHash ||
+                      "Not calculated"}
+                  </code>
+                </div>
+              </div>
+
+              {integrity && (
+                <div className="integrity-checks">
+                  <span
+                    className={
+                      integrity.hashMatch
+                        ? "check-ok"
+                        : "check-failed"
+                    }
+                  >
+                    {integrity.hashMatch
+                      ? "✓"
+                      : "✕"}{" "}
+                    HASH MATCH
+                  </span>
+
+                  <span
+                    className={
+                      integrity.sizeMatch
+                        ? "check-ok"
+                        : "check-failed"
+                    }
+                  >
+                    {integrity.sizeMatch
+                      ? "✓"
+                      : "✕"}{" "}
+                    SIZE MATCH
+                  </span>
+
+                  <span
+                    className={
+                      integrity.verified
+                        ? "check-ok"
+                        : "check-failed"
+                    }
+                  >
+                    {integrity.verified
+                      ? "✓"
+                      : "✕"}{" "}
+                    EVIDENCE VERIFIED
+                  </span>
+                </div>
+              )}
+
+              <div className="action-row">
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={
+                    verifyIntegrity
+                  }
+                  disabled={busy}
+                >
+                  {busy &&
+                  status ===
+                    STATUS.VERIFYING
+                    ? "VERIFYING..."
+                    : "CALCULATE & VERIFY SHA-256"}
+                </button>
+              </div>
+            </div>
+
+            <div className="action-row">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={goBack}
+                disabled={busy}
+              >
+                ← Evidence
+              </button>
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() =>
+                  setCurrentStep(
+                    STEPS.ANALYSIS
+                  )
+                }
+                disabled={
+                  busy ||
+                  !integrityVerified
+                }
+              >
+                CONTINUE TO ANALYSIS →
+              </button>
+            </div>
+          </>
+        )}
+      </section>
+    );
+
+  /* ==========================================================================
+     ANALYSIS
+     ========================================================================== */
+
+  const renderAnalysis =
+    () => (
+      <section className="forensics-panel">
+        <div className="panel-header">
+          <div>
+            <span className="panel-kicker">
+              STEP 04 • FORENSIC ANALYSIS
+            </span>
+
+            <h2>
+              Forensic Control Center
+            </h2>
+
+            <p>
+              Process the verified evidence image
+              using the TrustWipe forensic engine.
+            </p>
+          </div>
+
+          <span className="secure-badge">
+            INTEGRITY VERIFIED
+          </span>
+        </div>
+
+        <div className="analysis-context">
+          <div>
+            <span>
+              CASE
+            </span>
+
+            <strong>
+              {caseId}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              EVIDENCE
+            </span>
+
+            <strong>
+              {selectedFileName}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              ENGINE
+            </span>
+
+            <strong>
+              {engine.available
+                ? "ONLINE"
+                : "OFFLINE"}
+            </strong>
+          </div>
+        </div>
+
+        <div className="analysis-actions">
+          <button
+            type="button"
+            className="analysis-action-card"
+            onClick={() =>
+              runForensicScan(
+                "scan"
+              )
+            }
+            disabled={
+              busy ||
+              !integrityVerified ||
+              !engine.available
+            }
+          >
+            <span>
+              ◉
+            </span>
+
+            <strong>
+              Scan Disk
+            </strong>
+
+            <small>
+              Stream-scan the evidence image and
+              discover forensic signatures.
+            </small>
+          </button>
+
+          <button
+            type="button"
+            className="analysis-action-card"
+            onClick={() =>
+              runForensicScan(
+                "recover"
+              )
+            }
+            disabled={
+              busy ||
+              !integrityVerified ||
+              !engine.available
+            }
+          >
+            <span>
+              ⌁
+            </span>
+
+            <strong>
+              Recover Files
+            </strong>
+
+            <small>
+              Carve candidate ranges and validate
+              recoverable artifacts.
+            </small>
+          </button>
+
+          <button
+            type="button"
+            className="analysis-action-card"
+            onClick={() =>
+              runForensicScan(
+                "analyze"
+              )
+            }
+            disabled={
+              busy ||
+              !integrityVerified ||
+              !engine.available
+            }
+          >
+            <span>
+              ◇
+            </span>
+
+            <strong>
+              Analyze
+            </strong>
+
+            <small>
+              Execute forensic processing and
+              inspect scan and artifact results.
+            </small>
+          </button>
+        </div>
+
+        {!engine.available && (
+          <div className="forensics-alert danger">
+            <strong>
+              Forensic Engine Offline
+            </strong>
+
+            <span>
+              The Python forensic engine must be
+              available before evidence processing
+              can begin.
+            </span>
+          </div>
+        )}
+
+        <div className="forensic-policy-note">
+          <strong>
+            Evidence protection policy
+          </strong>
+
+          <span>
+            Processing is permitted only after
+            SHA-256 integrity verification.
+            The evidence source must remain
+            unchanged throughout examination.
+          </span>
+        </div>
+
+        <div className="action-row">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={goBack}
+            disabled={busy}
+          >
+            ← Examination
+          </button>
+        </div>
+      </section>
+    );
+
+  /* ==========================================================================
+     RESULTS
+     ========================================================================== */
+
+  const renderResults =
+    () => (
+      <>
+        <section className="forensics-panel">
           <div className="panel-header">
-
             <div>
               <span className="panel-kicker">
-                ACTIVE EVIDENCE
+                STEP 05 • RECOVERY RESULTS
               </span>
 
               <h2>
-                {selectedEvidence?.name ||
-                  "No evidence selected"}
+                Recovery & Analysis Results
               </h2>
+
+              <p>
+                Review discovered signatures,
+                candidate ranges and validated
+                forensic artifacts.
+              </p>
             </div>
 
             <span
@@ -1949,905 +3205,689 @@ export default function Forensics() {
             >
               {status}
             </span>
-
           </div>
 
-          {!selectedEvidence ? (
+          {scanStats && (
+            <div className="scan-statistics">
+              <div>
+                <span>
+                  EVIDENCE SIZE
+                </span>
 
-            <div className="empty-active-state">
-
-              <div className="empty-icon">
-                ◇
-              </div>
-
-              <h3>
-                Select evidence to begin
-              </h3>
-
-              <p>
-                Acquire or select a forensic
-                evidence image.
-              </p>
-
-            </div>
-
-          ) : (
-
-            <>
-
-              {/* METADATA */}
-
-              <div className="metadata-grid">
-
-                <div>
-                  <span>SIZE</span>
-
-                  <strong>
-                    {formatBytes(
-                      selectedEvidence.size
-                    )}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>TYPE</span>
-
-                  <strong>
-                    {selectedEvidence.type}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>EVIDENCE ID</span>
-
-                  <strong>
-                    {selectedEvidence.evidenceId ||
-                      "—"}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>ACQUIRED</span>
-
-                  <strong>
-                    {formatDate(
-                      selectedEvidence.acquiredAt
-                    )}
-                  </strong>
-                </div>
-
-              </div>
-
-              {/* CASE */}
-
-              <div className="case-control">
-
-                <div className="section-title">
-                  <span>
-                    CASE CONTROL
-                  </span>
-
-                  <small>
-                    Investigation context
-                  </small>
-                </div>
-
-                <div className="form-grid">
-
-                  <label>
-                    <span>CASE ID</span>
-
-                    <input
-                      value={caseId}
-                      onChange={(event) =>
-                        setCaseId(
-                          event.target.value
-                        )
-                      }
-                      disabled={busy}
-                      maxLength={100}
-                    />
-                  </label>
-
-                  <label>
-                    <span>EXAMINER</span>
-
-                    <input
-                      value={examiner}
-                      onChange={(event) =>
-                        setExaminer(
-                          event.target.value
-                        )
-                      }
-                      disabled={busy}
-                      placeholder="Examiner name"
-                      maxLength={150}
-                    />
-                  </label>
-
-                </div>
-              </div>
-
-              {/* INTEGRITY */}
-
-              <div className="integrity-section">
-
-                <div className="section-title">
-
-                  <span>
-                    EVIDENCE INTEGRITY
-                  </span>
-
-                  {integrity && (
-                    <span
-                      className={getIntegrityClass(
-                        integrity.status
-                      )}
-                    >
-                      {integrity.status}
-                    </span>
+                <strong>
+                  {formatBytes(
+                    scanStats.evidenceSize
                   )}
-
-                </div>
-
-                {!integrity ? (
-
-                  <div className="integrity-empty">
-                    Integrity has not been verified
-                    for this evidence.
-                  </div>
-
-                ) : (
-
-                  <>
-
-                    <div
-                      className={`integrity-banner ${getIntegrityClass(
-                        integrity.status
-                      )}`}
-                    >
-
-                      <strong>
-                        {integrity.status ===
-                        INTEGRITY.VERIFIED
-                          ? "✓ Evidence integrity VERIFIED"
-                          : integrity.status ===
-                            INTEGRITY.TAMPERED
-                          ? "⚠ Evidence integrity FAILED"
-                          : integrity.status ===
-                            INTEGRITY.BASELINE_MISSING
-                          ? "⚠ Acquisition baseline unavailable"
-                          : "⚠ Evidence integrity UNKNOWN"}
-                      </strong>
-
-                      <p>
-                        {integrity.message ||
-                          "Evidence integrity requires review."}
-                      </p>
-
-                      <small>
-                        Hash match:{" "}
-                        {integrity.hashMatch
-                          ? "YES"
-                          : "NO"}
-                        {" • "}
-                        Size match:{" "}
-                        {integrity.sizeMatch
-                          ? "YES"
-                          : "NO"}
-                      </small>
-
-                    </div>
-
-                    <div className="hash-grid">
-
-                      <div className="hash-box">
-                        <span>
-                          ACQUISITION SHA-256
-                        </span>
-
-                        <code>
-                          {integrity.originalHash ||
-                            "—"}
-                        </code>
-                      </div>
-
-                      <div className="hash-box">
-                        <span>
-                          CURRENT SHA-256
-                        </span>
-
-                        <code>
-                          {integrity.currentHash ||
-                            "—"}
-                        </code>
-                      </div>
-
-                    </div>
-
-                  </>
-                )}
-
-                <div className="action-row">
-
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={
-                      verifyIntegrity
-                    }
-                    disabled={!canVerify}
-                  >
-                    Calculate &amp; Verify
-                    SHA-256
-                  </button>
-
-                </div>
-
+                </strong>
               </div>
 
-              {/* FORENSIC CONTROL */}
+              <div>
+                <span>
+                  CHUNKS SCANNED
+                </span>
 
-              <div className="forensic-control">
-
-                <div className="section-title">
-
-                  <div>
-                    <span>
-                      FORENSIC CONTROL CENTER
-                    </span>
-
-                    <small>
-                      Recovery requires verified
-                      evidence integrity.
-                    </small>
-                  </div>
-
-                </div>
-
-                <div className="operation-flow">
-
-                  <div
-                    className={
-                      integrityVerified
-                        ? "flow-step complete"
-                        : "flow-step"
-                    }
-                  >
-                    <span>1</span>
-                    <strong>
-                      Verify
-                    </strong>
-                  </div>
-
-                  <div
-                    className={
-                      status ===
-                        STATUS.SCANNING ||
-                      status ===
-                        STATUS.COMPLETED
-                        ? "flow-step complete"
-                        : "flow-step"
-                    }
-                  >
-                    <span>2</span>
-                    <strong>
-                      Recover
-                    </strong>
-                  </div>
-
-                  <div
-                    className={
-                      report
-                        ? "flow-step complete"
-                        : "flow-step"
-                    }
-                  >
-                    <span>3</span>
-                    <strong>
-                      Report
-                    </strong>
-                  </div>
-
-                </div>
-
-                <div className="action-row">
-
-                  <button
-                    type="button"
-                    className="primary-button"
-                    onClick={
-                      runForensicScan
-                    }
-                    disabled={!canScan}
-                  >
-
-                    {status ===
-                    STATUS.SCANNING ? (
-                      <>
-                        <span className="spinner" />
-                        FORENSIC SCAN RUNNING
-                      </>
-                    ) : (
-                      <>
-                        ◈ START FORENSIC RECOVERY
-                      </>
-                    )}
-
-                  </button>
-
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={
-                      generateReport
-                    }
-                    disabled={
-                      !canGenerateReport
-                    }
-                  >
-                    ▤ GENERATE REPORT
-                  </button>
-
-                  <button
-                    type="button"
-                    className="danger-outline-button"
-                    onClick={
-                      resetWorkspace
-                    }
-                    disabled={busy}
-                  >
-                    RESET
-                  </button>
-
-                </div>
-
+                <strong>
+                  {scanStats.chunksScanned ??
+                    "—"}
+                </strong>
               </div>
 
-            </>
+              <div>
+                <span>
+                  BYTES SCANNED
+                </span>
+
+                <strong>
+                  {formatBytes(
+                    scanStats.bytesScanned
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  SIGNATURES
+                </span>
+
+                <strong>
+                  {
+                    scanStats.signaturesDetected
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  CANDIDATE RANGES
+                </span>
+
+                <strong>
+                  {
+                    scanStats.candidatesFound
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  ARTIFACTS CARVED
+                </span>
+
+                <strong>
+                  {
+                    scanStats.artifactsCarved
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  ARTIFACTS VALIDATED
+                </span>
+
+                <strong>
+                  {
+                    scanStats.artifactsValidated
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  DURATION
+                </span>
+
+                <strong>
+                  {formatDuration(
+                    scanStats.durationMs
+                  )}
+                </strong>
+              </div>
+            </div>
           )}
-
         </section>
-
-      </div>
-
-      {/* SCAN STATISTICS */}
-
-      {scanStats && (
 
         <section className="forensics-panel">
-
-          <div className="panel-header">
-
+          <div className="repository-header">
             <div>
-              <span className="panel-kicker">
-                FORENSIC ANALYSIS
-              </span>
-
-              <h2>
-                Scan Statistics
-              </h2>
-
-              <p>
-                Evidence processing statistics
-                returned by the forensic engine.
-              </p>
-            </div>
-
-            <strong>
-              {scanStats.status}
-            </strong>
-
-          </div>
-
-          <div className="metadata-grid">
-
-            <div>
-              <span>EVIDENCE SIZE</span>
-
               <strong>
-                {formatBytes(
-                  scanStats.evidenceSize
-                )}
+                RECOVERED ARTIFACTS
               </strong>
-            </div>
 
-            <div>
-              <span>CHUNK SIZE</span>
-
-              <strong>
-                {scanStats.chunkSize
-                  ? formatBytes(
-                      scanStats.chunkSize
-                    )
-                  : "—"}
-              </strong>
-            </div>
-
-            <div>
-              <span>CHUNKS SCANNED</span>
-
-              <strong>
-                {scanStats.chunksScanned ??
-                  "—"}
-              </strong>
-            </div>
-
-            <div>
-              <span>BYTES SCANNED</span>
-
-              <strong>
-                {scanStats.bytesScanned
-                  ? formatBytes(
-                      scanStats.bytesScanned
-                    )
-                  : "—"}
-              </strong>
-            </div>
-
-            <div>
               <span>
-                SIGNATURES DETECTED
+                {recoveredFiles.length} Artifacts •{" "}
+                {validatedArtifacts} Validated
               </span>
-
-              <strong>
-                {scanStats.signaturesDetected}
-              </strong>
             </div>
-
-            <div>
-              <span>
-                CANDIDATE RANGES
-              </span>
-
-              <strong>
-                {scanStats.candidatesFound}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                ARTIFACTS CARVED
-              </span>
-
-              <strong>
-                {scanStats.artifactsCarved}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                ARTIFACTS VALIDATED
-              </span>
-
-              <strong>
-                {scanStats.artifactsValidated}
-              </strong>
-            </div>
-
-          </div>
-
-          <div className="compliance-note">
-
-            <strong>
-              Forensic interpretation
-            </strong>
-
-            <p>
-              A detected file signature is only
-              a candidate location. An artifact is
-              reported as recovered only after
-              carving and validation succeed.
-            </p>
-
-          </div>
-
-        </section>
-      )}
-
-      {/* RECOVERED ARTIFACTS */}
-
-      {selectedEvidence && (
-
-        <section className="forensics-panel results-panel">
-
-          <div className="panel-header">
-
-            <div>
-              <span className="panel-kicker">
-                FORENSIC RECOVERY
-              </span>
-
-              <h2>
-                Validated Recovered Artifacts
-              </h2>
-
-              <p>
-                Files successfully carved and
-                format-validated by the forensic
-                engine.
-              </p>
-            </div>
-
-            <strong>
-              {validatedArtifacts}
-            </strong>
-
           </div>
 
           {recoveredFiles.length === 0 ? (
-
-            <div className="empty-results">
-
-              <span>◇</span>
-
-              <div>
-                <strong>
-                  No validated artifacts
-                </strong>
-
-                <p>
-                  The scan did not produce any
-                  artifacts that passed the
-                  recovery and validation stages.
-                </p>
-              </div>
-
+            <div className="empty-state">
+              No recovered artifacts were
+              returned by the forensic engine.
             </div>
-
           ) : (
+            <div className="artifact-table-wrapper">
+              <table className="artifact-table">
+                <thead>
+                  <tr>
+                    <th>
+                      Artifact
+                    </th>
 
-            <div className="recovered-list">
+                    <th>
+                      Type
+                    </th>
 
-              {recoveredFiles.map(
-                (file, index) => (
+                    <th>
+                      Size
+                    </th>
 
-                  <div
-                    className="recovered-item"
-                    key={
-                      file.artifactId ||
-                      `${file.name}-${index}`
+                    <th>
+                      Validation
+                    </th>
+
+                    <th>
+                      Confidence
+                    </th>
+
+                    <th>
+                      SHA-256
+                    </th>
+
+                    <th>
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {recoveredFiles.map(
+                    (file, index) => {
+                      const valid =
+                        String(
+                          file.validationStatus
+                        ).toUpperCase() ===
+                        "VALID";
+
+                      return (
+                        <tr
+                          key={
+                            file.artifactId ||
+                            `${file.name}-${index}`
+                          }
+                        >
+                          <td>
+                            <strong>
+                              {
+                                file.name
+                              }
+                            </strong>
+
+                            {file.sourceOffset !==
+                              null && (
+                              <small>
+                                Offset:{" "}
+                                {
+                                  file.sourceOffset
+                                }
+                              </small>
+                            )}
+                          </td>
+
+                          <td>
+                            {
+                              file.type
+                            }
+                          </td>
+
+                          <td>
+                            {formatBytes(
+                              file.size
+                            )}
+                          </td>
+
+                          <td>
+                            <span
+                              className={
+                                valid
+                                  ? "check-ok"
+                                  : "check-failed"
+                              }
+                            >
+                              {valid
+                                ? "✓ VALID"
+                                : "⚠ " +
+                                  file.validationStatus}
+                            </span>
+                          </td>
+
+                          <td>
+                            {file.confidence ??
+                              "—"}
+                          </td>
+
+                          <td>
+                            <code>
+                              {file.sha256
+                                ? `${file.sha256.slice(
+                                    0,
+                                    12
+                                  )}...`
+                                : "—"}
+                            </code>
+                          </td>
+
+                          <td>
+                            <button
+                              type="button"
+                              className="secondary-button small"
+                              onClick={() =>
+                                downloadRecoveredFile(
+                                  file
+                                )
+                              }
+                              disabled={
+                                !file.path
+                              }
+                            >
+                              EXPORT
+                            </button>
+                          </td>
+                        </tr>
+                      );
                     }
-                  >
-
-                    <div className="recovered-type">
-                      {file.type}
-                    </div>
-
-                    <div className="recovered-details">
-
-                      <strong>
-                        {file.name}
-                      </strong>
-
-                      <small>
-                        {formatBytes(
-                          file.size
-                        )}{" "}
-                        •{" "}
-                        {file.validationStatus}
-
-                        {file.confidence !==
-                          null &&
-                        file.confidence !==
-                          undefined
-                          ? ` • Confidence: ${file.confidence}`
-                          : ""}
-                      </small>
-
-                      {file.sourceOffset !==
-                        null &&
-                        file.sourceOffset !==
-                          undefined && (
-                          <small>
-                            Source offset:{" "}
-                            {file.sourceOffset}
-                          </small>
-                        )}
-
-                      {file.sourceEnd !==
-                        null &&
-                        file.sourceEnd !==
-                          undefined && (
-                          <small>
-                            Source end:{" "}
-                            {file.sourceEnd}
-                          </small>
-                        )}
-
-                      {file.sha256 && (
-                        <code>
-                          SHA-256:{" "}
-                          {file.sha256}
-                        </code>
-                      )}
-
-                    </div>
-
-                    {file.path && (
-
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() =>
-                          downloadRecoveredFile(
-                            file
-                          )
-                        }
-                      >
-                        Download
-                      </button>
-
-                    )}
-
-                  </div>
-
-                )
-              )}
-
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
-
         </section>
-      )}
 
-      {/* ENGINE OUTPUT */}
+        {scanOutput && (
+          <section className="forensics-panel">
+            <div className="panel-header">
+              <div>
+                <span className="panel-kicker">
+                  ENGINE CONSOLE
+                </span>
 
-      {scanOutput && (
-
-        <section className="forensics-panel console-panel">
-
-          <div className="panel-header">
-
-            <div>
-              <span className="panel-kicker">
-                ENGINE OUTPUT
-              </span>
-
-              <h2>
-                Forensic Engine Console
-              </h2>
+                <h2>
+                  Forensic Processing Output
+                </h2>
+              </div>
             </div>
 
-            {lastScanDuration !== null && (
-              <span>
-                {formatDuration(
-                  lastScanDuration
-                )}
-              </span>
-            )}
+            <pre className="forensic-console">
+              {scanOutput}
+            </pre>
+          </section>
+        )}
 
+        <section className="forensics-panel">
+          <div className="integrity-card">
+            <div className="integrity-card-header">
+              <div>
+                <span className="panel-kicker">
+                  POST-PROCESSING INTEGRITY
+                </span>
+
+                <h3>
+                  Evidence Integrity
+                </h3>
+              </div>
+
+              <strong
+                className={
+                  integrity
+                    ? getIntegrityClass(
+                        integrity.status
+                      )
+                    : ""
+                }
+              >
+                {integrity?.status ||
+                  "NOT VERIFIED"}
+              </strong>
+            </div>
+
+            <div className="hash-grid">
+              <div>
+                <span>
+                  ACQUISITION HASH
+                </span>
+
+                <code>
+                  {integrity?.originalHash ||
+                    selectedEvidence?.acquisitionHash ||
+                    "—"}
+                </code>
+              </div>
+
+              <div>
+                <span>
+                  CURRENT HASH
+                </span>
+
+                <code>
+                  {integrity?.currentHash ||
+                    "—"}
+                </code>
+              </div>
+            </div>
           </div>
-
-          <pre className="forensic-console">
-            {scanOutput}
-          </pre>
-
         </section>
-      )}
 
-      {/* REPORT */}
+        <div className="action-row">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={goBack}
+            disabled={busy}
+          >
+            ← Analysis
+          </button>
 
-      {report && (
+          <button
+            type="button"
+            className="primary-button"
+            onClick={
+              generateReport
+            }
+            disabled={
+              busy ||
+              !integrityVerified
+            }
+          >
+            GENERATE FORENSIC REPORT →
+          </button>
+        </div>
+      </>
+    );
 
-        <section className="forensics-panel report-panel">
+  /* ==========================================================================
+     REPORT
+     ========================================================================== */
 
+  const renderReport =
+    () => (
+      <>
+        <section className="forensics-panel">
           <div className="panel-header">
-
             <div>
               <span className="panel-kicker">
-                EVIDENCE REPORT
+                STEP 06 • CASE REPORT
               </span>
 
               <h2>
-                Forensic Evidence Report
+                Forensic Case Report
               </h2>
 
               <p>
-                Generated from acquisition,
-                integrity verification and
-                forensic recovery results.
+                Final investigation record containing
+                case identity, evidence integrity,
+                examination results and recovered
+                artifacts.
               </p>
             </div>
 
-            {reportFile && (
-
-              <button
-                type="button"
-                className="primary-button"
-                onClick={
-                  downloadReport
-                }
-              >
-                DOWNLOAD REPORT
-              </button>
-
-            )}
-
+            <span className="secure-badge">
+              VERIFIED
+            </span>
           </div>
 
-          <div className="report-grid">
-
+          <div className="report-summary-grid">
             <div>
-              <span>CASE ID</span>
+              <span>
+                CASE ID
+              </span>
 
               <strong>
-                {report.case_id ||
-                  report.caseId ||
-                  caseId}
+                {caseId}
               </strong>
             </div>
 
             <div>
-              <span>EXAMINER</span>
+              <span>
+                EXAMINER
+              </span>
 
               <strong>
-                {report.examiner ||
-                  examiner ||
-                  "—"}
+                {examiner}
               </strong>
             </div>
 
             <div>
-              <span>INTEGRITY</span>
+              <span>
+                EVIDENCE
+              </span>
+
+              <strong>
+                {selectedFileName}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                INTEGRITY
+              </span>
 
               <strong
-                className={getIntegrityClass(
-                  report.integrity
-                    ?.status ||
-                    integrity?.status ||
-                    INTEGRITY.UNKNOWN
-                )}
+                className={
+                  getIntegrityClass(
+                    integrity?.status
+                  )
+                }
               >
-                {report.integrity
-                  ?.status ||
-                  integrity?.status ||
+                {integrity?.status ||
                   "UNKNOWN"}
               </strong>
             </div>
-
-            <div>
-              <span>GENERATED</span>
-
-              <strong>
-                {formatDate(
-                  report.generated_at ||
-                    report.generatedAt
-                )}
-              </strong>
-            </div>
-
           </div>
-
-          <div className="report-hashes">
-
-            <div>
-              <span>
-                ACQUISITION HASH
-              </span>
-
-              <code>
-                {report.integrity
-                  ?.acquisition_hash ||
-                  report.integrity
-                    ?.acquisitionHash ||
-                  report.integrity
-                    ?.original_hash ||
-                  report.integrity
-                    ?.originalHash ||
-                  integrity?.originalHash ||
-                  "—"}
-              </code>
-            </div>
-
-            <div>
-              <span>
-                CURRENT HASH
-              </span>
-
-              <code>
-                {report.integrity
-                  ?.current_hash ||
-                  report.integrity
-                    ?.currentHash ||
-                  integrity?.currentHash ||
-                  "—"}
-              </code>
-            </div>
-
-          </div>
-
-          {report.compliance && (
-
-            <div className="compliance-note">
-
-              <strong>
-                Compliance Reference
-              </strong>
-
-              <span>
-                {report.compliance.standard ||
-                  "—"}
-              </span>
-
-              <p>
-                {report.compliance.note ||
-                  ""}
-              </p>
-
-            </div>
-
-          )}
-
         </section>
-      )}
 
-      {/* OPERATION FOOTER */}
+        {report && (
+          <section className="forensics-panel">
+            <div className="repository-header">
+              <div>
+                <strong>
+                  REPORT DATA
+                </strong>
 
-      {lastOperation && (
+                <span>
+                  Generated{" "}
+                  {formatDate(
+                    report.generatedAt ||
+                      report.generated_at ||
+                      new Date()
+                  )}
+                </span>
+              </div>
+            </div>
 
-        <section className="operation-footer">
-
-          <div>
-            <span>INVESTIGATION</span>
-
-            <strong>
-              {lastOperation.caseId}
-            </strong>
-          </div>
-
-          <div>
-            <span>EXAMINER</span>
-
-            <strong>
-              {lastOperation.examiner}
-            </strong>
-          </div>
-
-          <div>
-            <span>LAST OPERATION</span>
-
-            <strong>
-              {formatDate(
-                lastOperation.completedAt
+            <pre className="forensic-report-json">
+              {JSON.stringify(
+                report,
+                null,
+                2
               )}
-            </strong>
+            </pre>
+          </section>
+        )}
+
+        <section className="forensics-panel">
+          <div className="report-integrity">
+            <div>
+              <span>
+                ACQUISITION SHA-256
+              </span>
+
+              <code>
+                {integrity?.originalHash ||
+                  selectedEvidence?.acquisitionHash ||
+                  "—"}
+              </code>
+            </div>
+
+            <div>
+              <span>
+                CURRENT SHA-256
+              </span>
+
+              <code>
+                {integrity?.currentHash ||
+                  "—"}
+              </code>
+            </div>
+
+            <div>
+              <span>
+                VALIDATED ARTIFACTS
+              </span>
+
+              <strong>
+                {validatedArtifacts}
+              </strong>
+            </div>
           </div>
 
-          <div>
-            <span>EVIDENCE CONTROL</span>
+          <div className="action-row">
+            <button
+              type="button"
+              className="primary-button"
+              onClick={
+                downloadReport
+              }
+              disabled={
+                !reportFile
+              }
+            >
+              EXPORT CASE REPORT
+            </button>
 
-            <strong>
-              {integrityVerified
-                ? "SHA-256 VERIFIED"
-                : "REVIEW REQUIRED"}
-            </strong>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={
+                resetWorkspace
+              }
+              disabled={busy}
+            >
+              CLOSE CASE
+            </button>
           </div>
 
+          {!reportFile && (
+            <div className="forensic-policy-note">
+              <strong>
+                Report generated
+              </strong>
+
+              <span>
+                The backend returned report data,
+                but no downloadable report file path
+                was provided.
+              </span>
+            </div>
+          )}
         </section>
-      )}
+      </>
+    );
 
-      {/* FOOTER */}
+  /* ==========================================================================
+     MAIN RENDER
+     ========================================================================== */
+
+  return (
+    <div className="forensics-page">
+      {renderHeader()}
+
+      {renderAlerts()}
+
+      {currentStep !==
+        STEPS.CASES &&
+        currentStep !==
+          STEPS.CREATE_CASE &&
+        renderProgress()}
+
+      <section className="forensics-summary">
+        <div className="summary-card">
+          <span>
+            CASE
+          </span>
+
+          <strong>
+            {caseId || "—"}
+          </strong>
+
+          <small>
+            {currentCase?.title ||
+              "No active case"}
+          </small>
+        </div>
+
+        <div className="summary-card">
+          <span>
+            EVIDENCE ASSETS
+          </span>
+
+          <strong>
+            {repositoryStats.total}
+          </strong>
+
+          <small>
+            {formatBytes(
+              repositoryStats.totalSize
+            )}{" "}
+            total
+          </small>
+        </div>
+
+        <div className="summary-card">
+          <span>
+            INTEGRITY
+          </span>
+
+          <strong
+            className={
+              integrity
+                ? getIntegrityClass(
+                    integrity.status
+                  )
+                : ""
+            }
+          >
+            {integrity?.status ||
+              "NOT VERIFIED"}
+          </strong>
+
+          <small>
+            SHA-256 evidence control
+          </small>
+        </div>
+
+        <div className="summary-card">
+          <span>
+            FORENSIC ENGINE
+          </span>
+
+          <strong>
+            {engine.available
+              ? "READY"
+              : "OFFLINE"}
+          </strong>
+
+          <small>
+            Python recovery engine
+          </small>
+        </div>
+      </section>
+
+      <main className="forensics-content">
+        {currentStep ===
+          STEPS.CASES &&
+          renderCaseSelection()}
+
+        {currentStep ===
+          STEPS.CREATE_CASE &&
+          renderCreateCase()}
+
+        {currentStep ===
+          STEPS.EVIDENCE &&
+          renderEvidenceAcquisition()}
+
+        {currentStep ===
+          STEPS.EXAMINATION &&
+          renderExamination()}
+
+        {currentStep ===
+          STEPS.ANALYSIS &&
+          renderAnalysis()}
+
+        {currentStep ===
+          STEPS.RESULTS &&
+          renderResults()}
+
+        {currentStep ===
+          STEPS.REPORT &&
+          renderReport()}
+      </main>
 
       <footer className="forensics-footer">
-
         <span>
-          TRUSTWIPE SECURITY OPERATIONS CENTER
+          TrustWipe Digital Forensics
         </span>
 
         <span>
-          SHA-256 INTEGRITY CONTROL ACTIVE
+          SHA-256 Integrity Control
         </span>
 
         <span>
-          ● FORENSIC ENGINE{" "}
           {engine.available
-            ? "ONLINE"
-            : "OFFLINE"}
+            ? "Forensic Engine Online"
+            : "Forensic Engine Offline"}
         </span>
-
       </footer>
-
     </div>
   );
 }
