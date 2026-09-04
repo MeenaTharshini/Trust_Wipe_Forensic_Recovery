@@ -147,6 +147,9 @@ vite.config.ts.timestamp-*
 backend/forensic_recovery/evidence/
 backend/forensic_recovery/recovered/
 backend/forensic_recovery/reports/
-
+# Forensic generated evidence
+backend/forensic_recovery/evidence/*.zip
+backend/forensic_recovery/recovered/
+backend/forensic_recovery/evidence/
 # Large archives
 *.zip
