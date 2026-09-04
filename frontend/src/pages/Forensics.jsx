@@ -13,7 +13,7 @@ import "./Forensics.css";
    ============================================================================ */
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
 if (!API_BASE) {
   throw new Error("VITE_API_BASE_URL is not configured.");
