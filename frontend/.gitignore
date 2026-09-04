@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Forensic generated evidence
+backend/forensic_recovery/evidence/*.zip
+backend/forensic_recovery/recovered/
+backend/forensic_recovery/evidence/
