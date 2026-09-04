@@ -1,5 +1,6 @@
 import math
 import os
+<<<<<<< HEAD
 import struct
 import uuid
 import zipfile
@@ -7,6 +8,10 @@ import zlib
 
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Set, Tuple
+=======
+import uuid
+from typing import Any, Dict, List, Optional
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
 from .signatures import DEFAULT_SIGNATURES, FileSignature
 from ..acquisition.hashing import CryptographicHasher
@@ -14,6 +19,7 @@ from ..acquisition.hashing import CryptographicHasher
 
 class FileCarver:
     """
+<<<<<<< HEAD
     Production-oriented forensic signature-based file carver.
 
     Processing pipeline:
@@ -43,11 +49,28 @@ class FileCarver:
     - Entropy is only a supporting indicator.
     - Unknown formats are not automatically marked VALIDATED.
     - Invalid candidates are not registered as recovered artifacts.
+=======
+    Signature-based forensic file carver.
+
+    Responsibilities:
+        1. Scan binary evidence.
+        2. Detect known file signatures.
+        3. Determine probable file boundaries.
+        4. Extract candidate artifacts.
+        5. Calculate artifact hashes.
+        6. Calculate entropy.
+        7. Store recovered artifacts.
+        8. Remove duplicate artifacts.
+
+    Important:
+        The original evidence file is never modified.
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
     """
 
     DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024
     DEFAULT_OVERLAP = 128 * 1024
 
+<<<<<<< HEAD
     # Safety limits
     MAX_PNG_CHUNKS = 100_000
     MAX_MP4_BOXES = 100_000
@@ -58,6 +81,8 @@ class FileCarver:
     PARTIAL = "PARTIAL"
     REJECTED = "REJECTED"
 
+=======
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
     def __init__(
         self,
         output_dir: str,
@@ -73,6 +98,7 @@ class FileCarver:
 
         os.makedirs(
             self.output_dir,
+<<<<<<< HEAD
             exist_ok=True
         )
 
@@ -91,11 +117,34 @@ class FileCarver:
 
         Entropy is NOT a validity test.
         It is only an analytical indicator.
+=======
+            exist_ok=True,
+        )
+
+    # ==============================================================
+    # ENTROPY
+    # ==============================================================
+
+    @staticmethod
+    def calculate_entropy(
+        data: bytes,
+    ) -> float:
+        """
+        Calculates Shannon entropy.
+
+        Range:
+            0.0 -> highly repetitive data
+            8.0 -> maximum byte entropy
+
+        Entropy is used as a supporting forensic indicator.
+        It is NOT by itself proof that an artifact is valid.
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
         """
 
         if not data:
             return 0.0
 
+<<<<<<< HEAD
         counts = [0] * 256
 
         for byte in data:
@@ -106,6 +155,17 @@ class FileCarver:
         entropy = 0.0
 
         for count in counts:
+=======
+        byte_counts = [0] * 256
+
+        for byte in data:
+            byte_counts[byte] += 1
+
+        length = len(data)
+        entropy = 0.0
+
+        for count in byte_counts:
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
             if count == 0:
                 continue
 
@@ -118,8 +178,60 @@ class FileCarver:
 
         return round(entropy, 3)
 
+<<<<<<< HEAD
     @staticmethod
     def _classify_entropy(entropy: float) -> str:
+=======
+    # ==============================================================
+    # FILE VALIDATION
+    # ==============================================================
+
+    @staticmethod
+    def _basic_signature_validation(
+        file_bytes: bytes,
+        signature: FileSignature,
+    ) -> bool:
+        """
+        Performs basic structural validation.
+
+        Checks:
+            - Minimum size
+            - Correct header
+            - Footer when available
+        """
+
+        if len(file_bytes) < signature.min_size:
+            return False
+
+        if not file_bytes.startswith(
+            signature.header
+        ):
+            return False
+
+        if (
+            signature.footer
+            and not file_bytes.endswith(
+                signature.footer
+            )
+        ):
+            return False
+
+        return True
+
+    # ==============================================================
+    # ENTROPY CLASSIFICATION
+    # ==============================================================
+
+    @staticmethod
+    def _classify_entropy(
+        entropy: float,
+    ) -> str:
+        """
+        Classifies entropy as a supporting integrity indicator.
+
+        This is NOT a forensic authenticity determination.
+        """
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
         if entropy < 1.0:
             return "Very Low"
@@ -135,6 +247,7 @@ class FileCarver:
 
         return "Very High"
 
+<<<<<<< HEAD
     # ==========================================================
     # BASIC SIGNATURE CHECKS
     # ==========================================================
@@ -1855,12 +1968,18 @@ class FileCarver:
     # ==========================================================
     # CARVE BUFFER
     # ==========================================================
+=======
+    # ==============================================================
+    # CARVE BUFFER
+    # ==============================================================
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
     def carve_buffer(
         self,
         buffer: bytes,
         start_offset: int = 0,
     ) -> List[Dict[str, Any]]:
+<<<<<<< HEAD
 
         if not buffer:
             return []
@@ -1877,13 +1996,39 @@ class FileCarver:
                 continue
 
             header_length = len(header)
+=======
+        """
+        Searches a binary buffer for known file signatures.
+
+        Returns recovered artifact metadata.
+        """
+
+        carved_results: List[
+            Dict[str, Any]
+        ] = []
+
+        buffer_length = len(buffer)
+
+        if buffer_length == 0:
+            return carved_results
+
+        for signature in self.signatures:
+
+            header_length = len(
+                signature.header
+            )
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
             search_position = 0
 
             while search_position < buffer_length:
 
                 header_position = buffer.find(
+<<<<<<< HEAD
                     header,
+=======
+                    signature.header,
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                     search_position,
                 )
 
@@ -1895,6 +2040,7 @@ class FileCarver:
                     + header_position
                 )
 
+<<<<<<< HEAD
                 carve_end = self._find_carve_end(
                     buffer,
                     header_position,
@@ -1934,10 +2080,67 @@ class FileCarver:
                 # Never register rejected artifacts.
                 if validation_status == self.REJECTED:
 
+=======
+                carve_end = None
+
+                # --------------------------------------------------
+                # Footer-based carving
+                # --------------------------------------------------
+
+                if signature.footer:
+
+                    footer_search_end = min(
+                        buffer_length,
+                        header_position
+                        + signature.max_size,
+                    )
+
+                    footer_position = buffer.find(
+                        signature.footer,
+                        header_position
+                        + header_length,
+                        footer_search_end,
+                    )
+
+                    if footer_position != -1:
+
+                        carve_end = (
+                            footer_position
+                            + len(signature.footer)
+                        )
+
+                # --------------------------------------------------
+                # Size-based fallback
+                # --------------------------------------------------
+
+                if carve_end is None:
+
+                    fallback_end = min(
+                        buffer_length,
+                        header_position
+                        + signature.max_size,
+                    )
+
+                    carve_end = fallback_end
+
+                file_bytes = buffer[
+                    header_position:carve_end
+                ]
+
+                # --------------------------------------------------
+                # Basic structural validation
+                # --------------------------------------------------
+
+                if not self._basic_signature_validation(
+                    file_bytes,
+                    signature,
+                ):
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                     search_position = (
                         header_position
                         + header_length
                     )
+<<<<<<< HEAD
 
                     continue
 
@@ -1979,12 +2182,20 @@ class FileCarver:
                     )
 
                     continue
+=======
+                    continue
+
+                # --------------------------------------------------
+                # Generate artifact identity
+                # --------------------------------------------------
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
                 artifact_id = (
                     f"ART-"
                     f"{uuid.uuid4().hex[:12].upper()}"
                 )
 
+<<<<<<< HEAD
                 extension = (
                     str(
                         signature.extension
@@ -1994,6 +2205,11 @@ class FileCarver:
 
                 filename = (
                     f"{artifact_id}.{extension}"
+=======
+                filename = (
+                    f"{artifact_id}."
+                    f"{signature.extension}"
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                 )
 
                 file_path = os.path.join(
@@ -2001,16 +2217,29 @@ class FileCarver:
                     filename,
                 )
 
+<<<<<<< HEAD
                 try:
                     with open(
                         file_path,
                         "xb",
+=======
+                # --------------------------------------------------
+                # Write recovered artifact
+                # --------------------------------------------------
+
+                try:
+
+                    with open(
+                        file_path,
+                        "wb",
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                     ) as recovered_file:
 
                         recovered_file.write(
                             file_bytes
                         )
 
+<<<<<<< HEAD
                 except FileExistsError:
 
                     # Extremely unlikely because artifact IDs
@@ -2021,6 +2250,8 @@ class FileCarver:
                     )
                     continue
 
+=======
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                 except OSError:
 
                     search_position = (
@@ -2030,6 +2261,32 @@ class FileCarver:
 
                     continue
 
+<<<<<<< HEAD
+=======
+                # --------------------------------------------------
+                # Calculate hashes
+                # --------------------------------------------------
+
+                hashes = (
+                    CryptographicHasher
+                    .calculate_bytes_hashes(
+                        file_bytes
+                    )
+                )
+
+                sha256 = hashes.get(
+                    "sha256"
+                )
+
+                md5 = hashes.get(
+                    "md5"
+                )
+
+                # --------------------------------------------------
+                # Entropy
+                # --------------------------------------------------
+
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                 entropy = (
                     self.calculate_entropy(
                         file_bytes
@@ -2042,7 +2299,16 @@ class FileCarver:
                     )
                 )
 
+<<<<<<< HEAD
                 artifact = {
+=======
+                # --------------------------------------------------
+                # Artifact metadata
+                # --------------------------------------------------
+
+                artifact = {
+
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                     "artifact_id": artifact_id,
 
                     "name": filename,
@@ -2051,7 +2317,11 @@ class FileCarver:
 
                     "category": signature.category,
 
+<<<<<<< HEAD
                     "extension": extension,
+=======
+                    "extension": signature.extension,
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
                     "mime_type": signature.mime_type,
 
@@ -2069,6 +2339,7 @@ class FileCarver:
 
                     "entropy_class": entropy_class,
 
+<<<<<<< HEAD
                     "recovery_method":
                         "SIGNATURE_CARVING",
 
@@ -2125,12 +2396,58 @@ class FileCarver:
     # ==========================================================
     # CARVE FILE
     # ==========================================================
+=======
+                    "recovery_method": (
+                        "SIGNATURE_CARVING"
+                    ),
+
+                    "file_path": file_path,
+
+                    "status": "RECOVERED",
+
+                    "validation_status": (
+                        "PENDING"
+                    ),
+
+                    "validationStatus": (
+                        "PENDING"
+                    ),
+                }
+
+                carved_results.append(
+                    artifact
+                )
+
+                # --------------------------------------------------
+                # Move search position forward
+                # --------------------------------------------------
+
+                search_position = (
+                    header_position
+                    + header_length
+                )
+
+        return carved_results
+
+    # ==============================================================
+    # CARVE FILE
+    # ==============================================================
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
     def carve_file(
         self,
         target_path: str,
         chunk_size: int = DEFAULT_CHUNK_SIZE,
     ) -> List[Dict[str, Any]]:
+<<<<<<< HEAD
+=======
+        """
+        Sequentially scans an evidence file.
+
+        Uses overlapping chunks so signatures crossing
+        chunk boundaries can still be detected.
+        """
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
         target_path = os.path.abspath(
             target_path
@@ -2140,7 +2457,11 @@ class FileCarver:
             target_path
         ):
             raise FileNotFoundError(
+<<<<<<< HEAD
                 "Target file for carving not found: "
+=======
+                f"Target file for carving not found: "
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                 f"{target_path}"
             )
 
@@ -2160,6 +2481,7 @@ class FileCarver:
             Dict[str, Any]
         ] = []
 
+<<<<<<< HEAD
         overlap = min(
             self.DEFAULT_OVERLAP,
             max(0, chunk_size // 2),
@@ -2169,12 +2491,24 @@ class FileCarver:
 
         current_offset = 0
 
+=======
+        overlap = self.DEFAULT_OVERLAP
+
+        previous_tail = b""
+
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
         with open(
             target_path,
             "rb",
         ) as evidence_file:
 
+<<<<<<< HEAD
             while current_offset < file_size:
+=======
+            offset = 0
+
+            while offset < file_size:
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
                 chunk = evidence_file.read(
                     chunk_size
@@ -2189,7 +2523,11 @@ class FileCarver:
                 )
 
                 buffer_start_offset = (
+<<<<<<< HEAD
                     current_offset
+=======
+                    offset
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
                     - len(previous_tail)
                 )
 
@@ -2202,6 +2540,7 @@ class FileCarver:
                     carved
                 )
 
+<<<<<<< HEAD
                 if len(chunk) >= overlap:
                     previous_tail = (
                         chunk[-overlap:]
@@ -2212,6 +2551,25 @@ class FileCarver:
                 current_offset += len(chunk)
 
         # Final safety deduplication.
+=======
+                # Keep overlap for next chunk.
+                if len(chunk) >= overlap:
+
+                    previous_tail = (
+                        chunk[-overlap:]
+                    )
+
+                else:
+
+                    previous_tail = chunk
+
+                offset += len(chunk)
+
+        # ==========================================================
+        # DEDUPLICATION
+        # ==========================================================
+
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
         unique_results: Dict[
             str,
             Dict[str, Any]
@@ -2219,12 +2577,38 @@ class FileCarver:
 
         for artifact in results:
 
+<<<<<<< HEAD
             key = self._artifact_key(
                 artifact
             )
 
             if key not in unique_results:
                 unique_results[key] = artifact
+=======
+            sha256 = artifact.get(
+                "sha256",
+                "",
+            )
+
+            offset_value = artifact.get(
+                "source_offset",
+                artifact.get(
+                    "offset",
+                    -1,
+                ),
+            )
+
+            key = (
+                f"{sha256}:"
+                f"{offset_value}"
+            )
+
+            if key not in unique_results:
+
+                unique_results[key] = (
+                    artifact
+                )
+>>>>>>> eb6d9dcf82f8db5c4712d2717ca003e78bbe136d
 
         return list(
             unique_results.values()

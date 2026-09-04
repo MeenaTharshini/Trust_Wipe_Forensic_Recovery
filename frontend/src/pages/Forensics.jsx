@@ -3893,4 +3893,3 @@ export default function Forensics() {
       </footer>
     </div>
   );
-}
