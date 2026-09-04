@@ -10,7 +10,7 @@ import "./Forensics.css";
 
 /* ============================================================================
    CONFIGURATION
-   ============================================================================ */
+============================================================================ */
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
@@ -18,7 +18,10 @@ const API_BASE =
 if (!API_BASE) {
   throw new Error("VITE_API_BASE_URL is not configured.");
 }
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
+
+const CASE_STORAGE_KEY = "trustwipe_forensic_cases";
 
 const STEPS = {
   CASES: "CASES",
@@ -35,9 +38,11 @@ const STATUS = {
   ACQUIRING: "ACQUIRING",
   VERIFYING: "VERIFYING",
   READY: "READY",
+  QUEUED: "QUEUED",
   SCANNING: "SCANNING",
   COMPLETED: "COMPLETED",
   FAILED: "FAILED",
+  CANCELLED: "CANCELLED",
 };
 
 const INTEGRITY = {
@@ -47,11 +52,9 @@ const INTEGRITY = {
   UNKNOWN: "UNKNOWN",
 };
 
-const CASE_STORAGE_KEY = "trustwipe_forensic_cases";
-
 /* ============================================================================
    API HELPERS
-   ============================================================================ */
+============================================================================ */
 
 function apiUrl(path = "") {
   if (!path) return API_BASE;
@@ -78,11 +81,13 @@ function authHeaders(extra = {}) {
 
   return {
     Accept: "application/json",
+
     ...(token
       ? {
           Authorization: `Bearer ${token}`,
         }
       : {}),
+
     ...extra,
   };
 }
@@ -122,7 +127,10 @@ async function parseResponse(response) {
 async function apiFetch(path, options = {}) {
   const response = await fetch(apiUrl(path), {
     ...options,
-    headers: authHeaders(options.headers || {}),
+
+    headers: authHeaders(
+      options.headers || {}
+    ),
   });
 
   return parseResponse(response);
@@ -130,7 +138,7 @@ async function apiFetch(path, options = {}) {
 
 /* ============================================================================
    GENERAL HELPERS
-   ============================================================================ */
+============================================================================ */
 
 function firstDefined(...values) {
   return values.find(
@@ -142,7 +150,9 @@ function firstDefined(...values) {
 }
 
 function toBoolean(value) {
-  if (typeof value === "boolean") return value;
+  if (typeof value === "boolean") {
+    return value;
+  }
 
   if (typeof value === "number") {
     return value !== 0;
@@ -157,7 +167,11 @@ function toBoolean(value) {
       "valid",
       "match",
       "matched",
-    ].includes(value.toLowerCase());
+      "online",
+      "connected",
+    ].includes(
+      value.toLowerCase()
+    );
   }
 
   return Boolean(value);
@@ -166,7 +180,10 @@ function toBoolean(value) {
 function formatBytes(bytes) {
   const value = Number(bytes);
 
-  if (!Number.isFinite(value) || value < 0) {
+  if (
+    !Number.isFinite(value) ||
+    value < 0
+  ) {
     return "—";
   }
 
@@ -174,14 +191,25 @@ function formatBytes(bytes) {
     return "0 B";
   }
 
-  const units = ["B", "KB", "MB", "GB", "TB"];
+  const units = [
+    "B",
+    "KB",
+    "MB",
+    "GB",
+    "TB",
+  ];
 
   const exponent = Math.min(
-    Math.floor(Math.log(value) / Math.log(1024)),
+    Math.floor(
+      Math.log(value) /
+        Math.log(1024)
+    ),
     units.length - 1
   );
 
-  const size = value / 1024 ** exponent;
+  const size =
+    value /
+    1024 ** exponent;
 
   return `${size.toFixed(
     exponent === 0 ? 0 : 2
@@ -212,22 +240,31 @@ function formatDuration(ms) {
   }
 
   if (value < 60000) {
-    return `${(value / 1000).toFixed(2)} s`;
+    return `${(
+      value / 1000
+    ).toFixed(2)} s`;
   }
 
-  const minutes = Math.floor(value / 60000);
-  const seconds = Math.floor((value % 60000) / 1000);
+  const minutes = Math.floor(
+    value / 60000
+  );
+
+  const seconds = Math.floor(
+    (value % 60000) / 1000
+  );
 
   return `${minutes}m ${seconds}s`;
 }
 
 function getFileType(fileName = "") {
-  const cleanName = String(fileName).split("?")[0];
+  const cleanName =
+    String(fileName).split("?")[0];
 
-  const extension = cleanName
-    .split(".")
-    .pop()
-    ?.toUpperCase();
+  const extension =
+    cleanName
+      .split(".")
+      .pop()
+      ?.toUpperCase();
 
   return extension || "FILE";
 }
@@ -255,7 +292,10 @@ function getIntegrityClass(status) {
   }
 }
 
-function extractArray(response, keys = []) {
+function extractArray(
+  response,
+  keys = []
+) {
   if (Array.isArray(response)) {
     return response;
   }
@@ -265,7 +305,11 @@ function extractArray(response, keys = []) {
       return response[key];
     }
 
-    if (Array.isArray(response?.data?.[key])) {
+    if (
+      Array.isArray(
+        response?.data?.[key]
+      )
+    ) {
       return response.data[key];
     }
   }
@@ -279,10 +323,13 @@ function extractArray(response, keys = []) {
 
 /* ============================================================================
    NORMALIZERS
-   ============================================================================ */
+============================================================================ */
 
 function normalizeEvidence(item) {
-  if (!item || typeof item !== "object") {
+  if (
+    !item ||
+    typeof item !== "object"
+  ) {
     return null;
   }
 
@@ -295,28 +342,32 @@ function normalizeEvidence(item) {
       item.original_name
     ) || "Unknown evidence";
 
-  const sizeValue = firstDefined(
-    item.size,
-    item.fileSize,
-    item.file_size,
-    item.originalSize,
-    item.original_size
-  );
+  const sizeValue =
+    firstDefined(
+      item.size,
+      item.fileSize,
+      item.file_size,
+      item.originalSize,
+      item.original_size
+    );
 
-  const evidenceId = firstDefined(
-    item.evidenceId,
-    item.evidence_id,
-    item.id
-  );
+  const evidenceId =
+    firstDefined(
+      item.evidenceId,
+      item.evidence_id,
+      item.id
+    );
 
-  const hash = firstDefined(
-    item.sha256,
-    item.acquisitionHash,
-    item.acquisition_hash,
-    item.hash
-  );
+  const hash =
+    firstDefined(
+      item.sha256,
+      item.acquisitionHash,
+      item.acquisition_hash,
+      item.hash
+    );
 
-  const normalizedSize = Number(sizeValue);
+  const normalizedSize =
+    Number(sizeValue);
 
   return {
     ...item,
@@ -328,15 +379,20 @@ function normalizeEvidence(item) {
 
     name,
 
-    size: Number.isFinite(normalizedSize)
+    size: Number.isFinite(
+      normalizedSize
+    )
       ? normalizedSize
       : 0,
 
-    evidenceId: evidenceId || null,
+    evidenceId:
+      evidenceId || null,
 
-    sha256: hash || null,
+    sha256:
+      hash || null,
 
-    acquisitionHash: hash || null,
+    acquisitionHash:
+      hash || null,
 
     acquiredAt:
       firstDefined(
@@ -356,7 +412,10 @@ function normalizeEvidence(item) {
 }
 
 function normalizeIntegrity(value) {
-  if (!value || typeof value !== "object") {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
     return null;
   }
 
@@ -367,23 +426,27 @@ function normalizeIntegrity(value) {
       value.integrity_status
     ) || INTEGRITY.UNKNOWN;
 
-  const status = String(statusRaw).toUpperCase();
+  const status =
+    String(statusRaw).toUpperCase();
 
-  const verifiedValue = firstDefined(
-    value.verified,
-    value.isVerified,
-    value.is_verified
-  );
+  const verifiedValue =
+    firstDefined(
+      value.verified,
+      value.isVerified,
+      value.is_verified
+    );
 
-  const hashMatchValue = firstDefined(
-    value.hashMatch,
-    value.hash_match
-  );
+  const hashMatchValue =
+    firstDefined(
+      value.hashMatch,
+      value.hash_match
+    );
 
-  const sizeMatchValue = firstDefined(
-    value.sizeMatch,
-    value.size_match
-  );
+  const sizeMatchValue =
+    firstDefined(
+      value.sizeMatch,
+      value.size_match
+    );
 
   return {
     ...value,
@@ -392,18 +455,27 @@ function normalizeIntegrity(value) {
 
     verified:
       verifiedValue !== undefined
-        ? toBoolean(verifiedValue)
-        : status === INTEGRITY.VERIFIED,
+        ? toBoolean(
+            verifiedValue
+          )
+        : status ===
+          INTEGRITY.VERIFIED,
 
     hashMatch:
       hashMatchValue !== undefined
-        ? toBoolean(hashMatchValue)
-        : status === INTEGRITY.VERIFIED,
+        ? toBoolean(
+            hashMatchValue
+          )
+        : status ===
+          INTEGRITY.VERIFIED,
 
     sizeMatch:
       sizeMatchValue !== undefined
-        ? toBoolean(sizeMatchValue)
-        : status === INTEGRITY.VERIFIED,
+        ? toBoolean(
+            sizeMatchValue
+          )
+        : status ===
+          INTEGRITY.VERIFIED,
 
     originalHash:
       firstDefined(
@@ -456,8 +528,13 @@ function normalizeIntegrity(value) {
   };
 }
 
-function normalizeRecoveredFile(file) {
-  if (!file || typeof file !== "object") {
+function normalizeRecoveredFile(
+  file
+) {
+  if (
+    !file ||
+    typeof file !== "object"
+  ) {
     return null;
   }
 
@@ -468,7 +545,8 @@ function normalizeRecoveredFile(file) {
       file.file_name
     ) || "Recovered artifact";
 
-  const sizeValue = Number(file.size);
+  const sizeValue =
+    Number(file.size);
 
   return {
     ...file,
@@ -490,7 +568,9 @@ function normalizeRecoveredFile(file) {
         file.id
       ) || null,
 
-    size: Number.isFinite(sizeValue)
+    size: Number.isFinite(
+      sizeValue
+    )
       ? sizeValue
       : 0,
 
@@ -551,18 +631,20 @@ function normalizeRecoveredFile(file) {
 }
 
 /* ============================================================================
-   CASE STORAGE
-   ============================================================================ */
+   LOCAL CASE STORAGE
+============================================================================ */
 
 function loadLocalCases() {
   try {
-    const raw = localStorage.getItem(
-      CASE_STORAGE_KEY
-    );
+    const raw =
+      localStorage.getItem(
+        CASE_STORAGE_KEY
+      );
 
     if (!raw) return [];
 
-    const parsed = JSON.parse(raw);
+    const parsed =
+      JSON.parse(raw);
 
     return Array.isArray(parsed)
       ? parsed
@@ -585,28 +667,34 @@ function saveLocalCases(cases) {
 
 /* ============================================================================
    MAIN COMPONENT
-   ============================================================================ */
+============================================================================ */
 
 export default function Forensics() {
-  const fileInputRef = useRef(null);
+  const fileInputRef =
+    useRef(null);
+
+  const pollingRef =
+    useRef(null);
 
   /* --------------------------------------------------------------------------
      WORKFLOW
-     -------------------------------------------------------------------------- */
+  -------------------------------------------------------------------------- */
 
   const [currentStep, setCurrentStep] =
     useState(STEPS.CASES);
 
   /* --------------------------------------------------------------------------
      CASE
-     -------------------------------------------------------------------------- */
+  -------------------------------------------------------------------------- */
 
-  const [cases, setCases] = useState(
-    loadLocalCases
-  );
+  const [cases, setCases] =
+    useState(loadLocalCases);
 
-  const [caseId, setCaseId] = useState("");
-  const [examiner, setExaminer] = useState("");
+  const [caseId, setCaseId] =
+    useState("");
+
+  const [examiner, setExaminer] =
+    useState("");
 
   const [caseTitle, setCaseTitle] =
     useState("");
@@ -618,18 +706,33 @@ export default function Forensics() {
     useState(null);
 
   /* --------------------------------------------------------------------------
-     ENGINE
-     -------------------------------------------------------------------------- */
+     AGENT
+  -------------------------------------------------------------------------- */
 
-  const [engine, setEngine] = useState({
-    available: false,
-    version: null,
-    message: "Checking forensic engine...",
-  });
+  const [agents, setAgents] =
+    useState([]);
+
+  const [selectedAgent, setSelectedAgent] =
+    useState(null);
+
+  const [agentLoading, setAgentLoading] =
+    useState(false);
+
+  /* --------------------------------------------------------------------------
+     ENGINE
+  -------------------------------------------------------------------------- */
+
+  const [engine, setEngine] =
+    useState({
+      available: false,
+      version: null,
+      message:
+        "Checking forensic engine...",
+    });
 
   /* --------------------------------------------------------------------------
      STATUS
-     -------------------------------------------------------------------------- */
+  -------------------------------------------------------------------------- */
 
   const [status, setStatus] =
     useState(STATUS.IDLE);
@@ -640,6 +743,9 @@ export default function Forensics() {
   const [progressMessage, setProgressMessage] =
     useState("");
 
+  const [progress, setProgress] =
+    useState(0);
+
   const [error, setError] =
     useState("");
 
@@ -648,7 +754,7 @@ export default function Forensics() {
 
   /* --------------------------------------------------------------------------
      EVIDENCE
-     -------------------------------------------------------------------------- */
+  -------------------------------------------------------------------------- */
 
   const [evidence, setEvidence] =
     useState([]);
@@ -658,14 +764,14 @@ export default function Forensics() {
 
   /* --------------------------------------------------------------------------
      INTEGRITY
-     -------------------------------------------------------------------------- */
+  -------------------------------------------------------------------------- */
 
   const [integrity, setIntegrity] =
     useState(null);
 
   /* --------------------------------------------------------------------------
      ANALYSIS
-     -------------------------------------------------------------------------- */
+  -------------------------------------------------------------------------- */
 
   const [analysisMode, setAnalysisMode] =
     useState(null);
@@ -682,16 +788,19 @@ export default function Forensics() {
   const [lastOperation, setLastOperation] =
     useState(null);
 
+  const [forensicJobId, setForensicJobId] =
+    useState(null);
+
   /* --------------------------------------------------------------------------
      RECOVERY
-     -------------------------------------------------------------------------- */
+  -------------------------------------------------------------------------- */
 
   const [recoveredFiles, setRecoveredFiles] =
     useState([]);
 
   /* --------------------------------------------------------------------------
      REPORT
-     -------------------------------------------------------------------------- */
+  -------------------------------------------------------------------------- */
 
   const [report, setReport] =
     useState(null);
@@ -701,64 +810,225 @@ export default function Forensics() {
 
   /* ==========================================================================
      DERIVED STATE
-     ========================================================================== */
+  ========================================================================== */
 
   const selectedEvidenceId =
-    selectedEvidence?.evidenceId || null;
+    selectedEvidence?.evidenceId ||
+    null;
 
   const selectedFileName =
-    selectedEvidence?.name || null;
+    selectedEvidence?.name ||
+    null;
 
   const integrityVerified =
-    integrity?.status === INTEGRITY.VERIFIED &&
+    integrity?.status ===
+      INTEGRITY.VERIFIED &&
     integrity?.verified === true &&
     integrity?.hashMatch === true &&
     integrity?.sizeMatch === true;
 
-  const repositoryStats = useMemo(() => {
-    const totalSize = evidence.reduce(
-      (sum, item) =>
-        sum + Number(item.size || 0),
-      0
+  const repositoryStats =
+    useMemo(() => {
+      const totalSize =
+        evidence.reduce(
+          (sum, item) =>
+            sum +
+            Number(
+              item.size || 0
+            ),
+          0
+        );
+
+      return {
+        total: evidence.length,
+        totalSize,
+      };
+    }, [evidence]);
+
+  const validatedArtifacts =
+    useMemo(
+      () =>
+        recoveredFiles.filter(
+          (file) =>
+            String(
+              file.validationStatus
+            ).toUpperCase() ===
+            "VALID"
+        ).length,
+      [recoveredFiles]
     );
 
-    return {
-      total: evidence.length,
-      totalSize,
-    };
-  }, [evidence]);
+  const onlineAgents =
+    useMemo(
+      () =>
+        agents.filter(
+          (agent) =>
+            agent.online !== false &&
+            agent.connected !== false
+        ),
+      [agents]
+    );
 
-  const validatedArtifacts = useMemo(
-    () =>
-      recoveredFiles.filter(
-        (file) =>
-          String(
-            file.validationStatus
-          ).toUpperCase() === "VALID"
-      ).length,
-    [recoveredFiles]
+  /* ==========================================================================
+     AGENT STATUS
+  ========================================================================== */
+
+  const loadAgents = useCallback(
+    async () => {
+      setAgentLoading(true);
+
+      try {
+        const response =
+          await apiFetch(
+            "/api/devices"
+          );
+
+        const raw =
+          extractArray(
+            response,
+            [
+              "agents",
+              "devices",
+              "data",
+            ]
+          );
+
+        const normalized =
+          raw.map((item) => ({
+            ...item,
+
+            agentId:
+              firstDefined(
+                item.agentId,
+                item.agent_id,
+                item.deviceId,
+                item.device_id,
+                item.id
+              ),
+
+            deviceId:
+              firstDefined(
+                item.deviceId,
+                item.device_id,
+                item.agentId,
+                item.agent_id,
+                item.id
+              ),
+
+            hostname:
+              firstDefined(
+                item.hostname,
+                item.hostName,
+                item.name
+              ) || "Unknown device",
+
+            platform:
+              item.platform ||
+              "unknown",
+
+            online:
+              item.online !==
+                undefined
+                ? toBoolean(
+                    item.online
+                  )
+                : item.connected !==
+                  undefined
+                ? toBoolean(
+                    item.connected
+                  )
+                : true,
+
+            connected:
+              item.connected !==
+              undefined
+                ? toBoolean(
+                    item.connected
+                  )
+                : item.online !==
+                  undefined
+                ? toBoolean(
+                    item.online
+                  )
+                : true,
+
+            capabilities:
+              Array.isArray(
+                item.capabilities
+              )
+                ? item.capabilities
+                : [],
+          }));
+
+        setAgents(
+          normalized
+        );
+
+        setSelectedAgent(
+          (current) => {
+            if (!current) {
+              return (
+                normalized.find(
+                  (agent) =>
+                    agent.capabilities?.includes(
+                      "FORENSIC_SCAN"
+                    )
+                ) ||
+                normalized.find(
+                  (agent) =>
+                    agent.online
+                ) ||
+                null
+              );
+            }
+
+            return (
+              normalized.find(
+                (agent) =>
+                  agent.agentId ===
+                  current.agentId
+              ) || current
+            );
+          }
+        );
+      } catch (err) {
+        setAgents([]);
+
+        setSelectedAgent(null);
+
+        setError(
+          err.message ||
+            "Unable to load connected forensic agents."
+        );
+      } finally {
+        setAgentLoading(false);
+      }
+    },
+    []
   );
 
   /* ==========================================================================
      ENGINE STATUS
-     ========================================================================== */
+  ========================================================================== */
 
-  const loadEngineStatus = useCallback(
-    async () => {
+  const loadEngineStatus =
+    useCallback(async () => {
       try {
-        const response = await apiFetch(
-          "/api/forensic/status"
-        );
+        const response =
+          await apiFetch(
+            "/api/forensic/status"
+          );
 
-        const available = toBoolean(
-          firstDefined(
-            response?.pythonAvailable,
-            response?.python_available,
-            response?.available,
-            response?.engineAvailable,
-            response?.engine_available
-          )
-        );
+        const available =
+          toBoolean(
+            firstDefined(
+              response?.pythonAvailable,
+              response?.python_available,
+              response?.available,
+              response?.engineAvailable,
+              response?.engine_available
+            )
+          );
 
         const version =
           firstDefined(
@@ -776,46 +1046,60 @@ export default function Forensics() {
             response?.message ||
             (available
               ? "Forensic engine is ready."
-              : "Forensic engine unavailable."),
+              : "Forensic engine is unavailable.")
         });
-      } catch (err) {
+      } catch {
+        /*
+          The forensic scan itself now runs through the
+          connected Windows agent.
+
+          Therefore an unavailable Render-side Python
+          status endpoint must NOT automatically prevent
+          the agent workflow from being used.
+        */
+
         setEngine({
-          available: false,
-          version: null,
+          available: true,
+          version:
+            "Windows Agent",
           message:
-            err.message ||
-            "Forensic engine unavailable.",
+            "Forensic processing is delegated to the connected TrustWipe Agent."
         });
       }
-    },
-    []
-  );
+    }, []);
 
   /* ==========================================================================
-     EVIDENCE REPOSITORY
-     ========================================================================== */
+     INITIAL LOAD
+  ========================================================================== */
 
-  const loadEvidence = useCallback(
-    async () => {
+  const loadEvidence =
+    useCallback(async () => {
       try {
-        const response = await apiFetch(
-          "/api/forensic/evidence"
-        );
+        const response =
+          await apiFetch(
+            "/api/forensic/evidence"
+          );
 
-        const rawItems = extractArray(
-          response,
-          ["evidence"]
-        );
+        const rawItems =
+          extractArray(
+            response,
+            ["evidence"]
+          );
 
-        const items = rawItems
-          .map(normalizeEvidence)
-          .filter(Boolean);
+        const items =
+          rawItems
+            .map(
+              normalizeEvidence
+            )
+            .filter(Boolean);
 
         setEvidence(items);
 
         setSelectedEvidence(
           (current) => {
-            if (!current) return null;
+            if (!current) {
+              return null;
+            }
 
             const refreshed =
               items.find(
@@ -832,7 +1116,10 @@ export default function Forensics() {
                   )
               );
 
-            return refreshed || current;
+            return (
+              refreshed ||
+              current
+            );
           }
         );
       } catch (err) {
@@ -841,124 +1128,184 @@ export default function Forensics() {
             "Unable to load evidence repository."
         );
       }
-    },
-    []
-  );
+    }, []);
 
   useEffect(() => {
     loadEngineStatus();
     loadEvidence();
+    loadAgents();
+
+    const interval =
+      window.setInterval(
+        loadAgents,
+        15000
+      );
+
+    return () =>
+      window.clearInterval(
+        interval
+      );
   }, [
     loadEngineStatus,
     loadEvidence,
+    loadAgents,
   ]);
 
   /* ==========================================================================
-     CASE MANAGEMENT
-     ========================================================================== */
+     CLEAN POLLING
+  ========================================================================== */
 
-  const persistCase = useCallback(
-    (newCase) => {
-      const updated = [
-        newCase,
-        ...cases.filter(
-          (item) =>
-            item.caseId !==
-            newCase.caseId
-        ),
-      ];
-
-      setCases(updated);
-      saveLocalCases(updated);
-    },
-    [cases]
-  );
-
-  const createCase = useCallback(() => {
-    setError("");
-    setNotice("");
-
-    if (!caseTitle.trim()) {
-      setError(
-        "Case title is required."
-      );
-      return;
-    }
-
-    if (!examiner.trim()) {
-      setError(
-        "Examiner name is required."
-      );
-      return;
-    }
-
-    const newCase = {
-      caseId:
-        caseId.trim() ||
-        createLocalCaseId(),
-
-      title:
-        caseTitle.trim(),
-
-      description:
-        caseDescription.trim(),
-
-      examiner:
-        examiner.trim(),
-
-      createdAt:
-        new Date().toISOString(),
-
-      status: "OPEN",
-
-      evidenceCount: 0,
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        window.clearInterval(
+          pollingRef.current
+        );
+      }
     };
+  }, []);
 
-    persistCase(newCase);
+  const stopPolling =
+    useCallback(() => {
+      if (pollingRef.current) {
+        window.clearInterval(
+          pollingRef.current
+        );
 
-    setCaseId(newCase.caseId);
-    setCurrentCase(newCase);
+        pollingRef.current =
+          null;
+      }
+    }, []);
 
-    setNotice(
-      `Case ${newCase.caseId} created successfully.`
+  /* ==========================================================================
+     CASE MANAGEMENT
+  ========================================================================== */
+
+  const persistCase =
+    useCallback(
+      (newCase) => {
+        const updated = [
+          newCase,
+
+          ...cases.filter(
+            (item) =>
+              item.caseId !==
+              newCase.caseId
+          ),
+        ];
+
+        setCases(updated);
+
+        saveLocalCases(
+          updated
+        );
+      },
+      [cases]
     );
 
-    setCurrentStep(STEPS.EVIDENCE);
-  }, [
-    caseId,
-    caseTitle,
-    caseDescription,
-    examiner,
-    persistCase,
-  ]);
-
-  const openExistingCase =
-    useCallback((selectedCase) => {
+  const createCase =
+    useCallback(() => {
       setError("");
       setNotice("");
 
-      setCurrentCase(selectedCase);
+      if (!caseTitle.trim()) {
+        setError(
+          "Case title is required."
+        );
+        return;
+      }
+
+      if (!examiner.trim()) {
+        setError(
+          "Examiner name is required."
+        );
+        return;
+      }
+
+      const newCase = {
+        caseId:
+          caseId.trim() ||
+          createLocalCaseId(),
+
+        title:
+          caseTitle.trim(),
+
+        description:
+          caseDescription.trim(),
+
+        examiner:
+          examiner.trim(),
+
+        createdAt:
+          new Date().toISOString(),
+
+        status: "OPEN",
+
+        evidenceCount: 0,
+      };
+
+      persistCase(
+        newCase
+      );
 
       setCaseId(
-        selectedCase.caseId
+        newCase.caseId
       );
 
-      setExaminer(
-        selectedCase.examiner || ""
+      setCurrentCase(
+        newCase
       );
 
-      setCaseTitle(
-        selectedCase.title || ""
-      );
-
-      setCaseDescription(
-        selectedCase.description || ""
+      setNotice(
+        `Case ${newCase.caseId} created successfully.`
       );
 
       setCurrentStep(
         STEPS.EVIDENCE
       );
-    }, []);
+    }, [
+      caseId,
+      caseTitle,
+      caseDescription,
+      examiner,
+      persistCase,
+    ]);
+
+  const openExistingCase =
+    useCallback(
+      (selectedCase) => {
+        setError("");
+        setNotice("");
+
+        setCurrentCase(
+          selectedCase
+        );
+
+        setCaseId(
+          selectedCase.caseId
+        );
+
+        setExaminer(
+          selectedCase.examiner ||
+            ""
+        );
+
+        setCaseTitle(
+          selectedCase.title ||
+            ""
+        );
+
+        setCaseDescription(
+          selectedCase.description ||
+            ""
+        );
+
+        setCurrentStep(
+          STEPS.EVIDENCE
+        );
+      },
+      []
+    );
 
   const startNewCaseScreen =
     useCallback(() => {
@@ -975,6 +1322,12 @@ export default function Forensics() {
 
       setCurrentCase(null);
 
+      setSelectedEvidence(
+        null
+      );
+
+      setIntegrity(null);
+
       setCurrentStep(
         STEPS.CREATE_CASE
       );
@@ -982,50 +1335,57 @@ export default function Forensics() {
 
   /* ==========================================================================
      SELECT EVIDENCE
-     ========================================================================== */
+  ========================================================================== */
 
-  const selectEvidence = useCallback(
-    (item) => {
-      if (busy) return;
+  const selectEvidence =
+    useCallback(
+      (item) => {
+        if (busy) return;
 
-      const normalized =
-        normalizeEvidence(item);
+        const normalized =
+          normalizeEvidence(
+            item
+          );
 
-      if (!normalized) return;
+        if (!normalized) {
+          return;
+        }
 
-      setSelectedEvidence(
-        normalized
-      );
+        setSelectedEvidence(
+          normalized
+        );
 
-      setIntegrity(null);
-      setRecoveredFiles([]);
-      setScanStats(null);
-      setReport(null);
-      setReportFile(null);
-      setScanOutput("");
-      setLastScanDuration(null);
-      setLastOperation(null);
-      setAnalysisMode(null);
+        setIntegrity(null);
+        setRecoveredFiles([]);
+        setScanStats(null);
+        setReport(null);
+        setReportFile(null);
+        setScanOutput("");
+        setLastScanDuration(null);
+        setLastOperation(null);
+        setAnalysisMode(null);
+        setForensicJobId(null);
+        setProgress(0);
 
-      setError("");
-      setNotice("");
+        setError("");
+        setNotice("");
 
-      setStatus(
-        normalized.acquisitionHash
-          ? STATUS.READY
-          : STATUS.IDLE
-      );
+        setStatus(
+          normalized.acquisitionHash
+            ? STATUS.READY
+            : STATUS.IDLE
+        );
 
-      setCurrentStep(
-        STEPS.EXAMINATION
-      );
-    },
-    [busy]
-  );
+        setCurrentStep(
+          STEPS.EXAMINATION
+        );
+      },
+      [busy]
+    );
 
   /* ==========================================================================
      ACQUIRE EVIDENCE
-     ========================================================================== */
+  ========================================================================== */
 
   const acquireEvidence =
     useCallback(
@@ -1033,8 +1393,10 @@ export default function Forensics() {
         if (!file) return;
 
         setBusy(true);
+
         setError("");
         setNotice("");
+
         setStatus(
           STATUS.ACQUIRING
         );
@@ -1050,6 +1412,7 @@ export default function Forensics() {
         setReportFile(null);
         setScanOutput("");
         setLastOperation(null);
+        setProgress(0);
 
         try {
           if (
@@ -1083,8 +1446,10 @@ export default function Forensics() {
               ),
               {
                 method: "POST",
+
                 headers:
                   authHeaders(),
+
                 body: formData,
               }
             );
@@ -1138,6 +1503,7 @@ export default function Forensics() {
           if (currentCase) {
             const updatedCase = {
               ...currentCase,
+
               evidenceCount:
                 Number(
                   currentCase.evidenceCount ||
@@ -1197,126 +1563,543 @@ export default function Forensics() {
 
   /* ==========================================================================
      VERIFY INTEGRITY
-     ========================================================================== */
+  ========================================================================== */
 
   const verifyIntegrity =
-    useCallback(async () => {
-      if (!selectedEvidence) {
-        setError(
-          "Select evidence first."
-        );
-        return false;
-      }
-
-      setBusy(true);
-      setError("");
-      setNotice("");
-
-      setStatus(
-        STATUS.VERIFYING
-      );
-
-      setProgressMessage(
-        "Calculating current SHA-256 and comparing it with the acquisition baseline..."
-      );
-
-      try {
-        const response =
-          await apiFetch(
-            "/api/forensic/verify-integrity",
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body: JSON.stringify({
-                evidenceId:
-                  selectedEvidenceId,
-
-                evidence_id:
-                  selectedEvidenceId,
-
-                fileName:
-                  selectedFileName,
-
-                file_name:
-                  selectedFileName,
-              }),
-            }
+    useCallback(
+      async () => {
+        if (!selectedEvidence) {
+          setError(
+            "Select evidence first."
           );
 
-        const result =
-          normalizeIntegrity(
-            response?.integrity ||
-              response?.data?.integrity ||
-              response?.data ||
-              response
-          );
-
-        if (!result) {
-          throw new Error(
-            "Server returned no integrity verification result."
-          );
+          return false;
         }
 
-        setIntegrity(result);
+        setBusy(true);
 
-        const verified =
-          result.status ===
-            INTEGRITY.VERIFIED &&
-          result.verified === true &&
-          result.hashMatch === true &&
-          result.sizeMatch === true;
+        setError("");
+        setNotice("");
 
-        if (verified) {
+        setStatus(
+          STATUS.VERIFYING
+        );
+
+        setProgressMessage(
+          "Calculating current SHA-256 and comparing it with the acquisition baseline..."
+        );
+
+        try {
+          const response =
+            await apiFetch(
+              "/api/forensic/verify-integrity",
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+
+                body: JSON.stringify({
+                  evidenceId:
+                    selectedEvidenceId,
+
+                  evidence_id:
+                    selectedEvidenceId,
+
+                  fileName:
+                    selectedFileName,
+
+                  file_name:
+                    selectedFileName,
+                }),
+              }
+            );
+
+          const result =
+            normalizeIntegrity(
+              response?.integrity ||
+                response?.data?.integrity ||
+                response?.data ||
+                response
+            );
+
+          if (!result) {
+            throw new Error(
+              "Server returned no integrity verification result."
+            );
+          }
+
+          setIntegrity(
+            result
+          );
+
+          const verified =
+            result.status ===
+              INTEGRITY.VERIFIED &&
+            result.verified === true &&
+            result.hashMatch === true &&
+            result.sizeMatch === true;
+
+          if (verified) {
+            setStatus(
+              STATUS.READY
+            );
+
+            setNotice(
+              "Evidence integrity VERIFIED. Forensic analysis is now unlocked."
+            );
+
+            return true;
+          }
+
           setStatus(
-            STATUS.READY
+            STATUS.FAILED
           );
 
-          setNotice(
-            "Evidence integrity VERIFIED. Forensic analysis is now unlocked."
+          setError(
+            result.message ||
+              "Evidence integrity verification failed."
           );
 
-          return true;
+          return false;
+        } catch (err) {
+          setStatus(
+            STATUS.FAILED
+          );
+
+          setError(
+            err.message ||
+              "Integrity verification failed."
+          );
+
+          return false;
+        } finally {
+          setBusy(false);
+          setProgressMessage("");
+        }
+      },
+      [
+        selectedEvidence,
+        selectedEvidenceId,
+        selectedFileName,
+      ]
+    );
+
+  /* ==========================================================================
+     PROCESS SCAN RESULT
+  ========================================================================== */
+
+  const processScanResult =
+    useCallback(
+      (response) => {
+        const stats =
+          response?.scanStats ||
+          response?.scan_stats ||
+          response?.statistics ||
+          response?.stats ||
+          response?.data?.scanStats ||
+          response?.data?.scan_stats ||
+          {};
+
+        const durationMs =
+          response?.durationMs ??
+          response?.duration_ms ??
+          stats?.durationMs ??
+          stats?.duration_ms ??
+          null;
+
+        setLastScanDuration(
+          durationMs
+        );
+
+        setScanStats({
+          evidenceSize:
+            stats?.evidenceSize ??
+            stats?.evidence_size ??
+            selectedEvidence?.size ??
+            null,
+
+          chunkSize:
+            stats?.chunkSize ??
+            stats?.chunk_size ??
+            null,
+
+          overlapSize:
+            stats?.overlapSize ??
+            stats?.overlap_size ??
+            null,
+
+          chunksScanned:
+            stats?.chunksScanned ??
+            stats?.chunks_scanned ??
+            null,
+
+          bytesScanned:
+            stats?.bytesScanned ??
+            stats?.bytes_scanned ??
+            null,
+
+          signaturesDetected:
+            stats?.signaturesDetected ??
+            stats?.signatures_detected ??
+            response?.signaturesDetected ??
+            response?.signatures_detected ??
+            0,
+
+          candidatesFound:
+            stats?.candidatesFound ??
+            stats?.candidates_found ??
+            response?.candidateCount ??
+            response?.candidate_count ??
+            0,
+
+          artifactsCarved:
+            stats?.artifactsCarved ??
+            stats?.artifacts_carved ??
+            0,
+
+          artifactsValidated:
+            stats?.artifactsValidated ??
+            stats?.artifacts_validated ??
+            response?.validatedCount ??
+            response?.validated_count ??
+            0,
+
+          durationMs,
+
+          status:
+            stats?.status ||
+            response?.scanStatus ||
+            response?.scan_status ||
+            "COMPLETED",
+        });
+
+        const rawRecovered =
+          response?.recoveredFiles ||
+          response?.recovered_files ||
+          response?.artifacts ||
+          response?.data?.recoveredFiles ||
+          response?.data?.recovered_files ||
+          response?.data?.artifacts ||
+          [];
+
+        const normalizedRecovered =
+          (
+            Array.isArray(
+              rawRecovered
+            )
+              ? rawRecovered
+              : []
+          )
+            .map(
+              normalizeRecoveredFile
+            )
+            .filter(Boolean);
+
+        setRecoveredFiles(
+          normalizedRecovered
+        );
+
+        setScanOutput(
+          response?.output ||
+            response?.stdout ||
+            response?.consoleOutput ||
+            response?.console_output ||
+            response?.data?.output ||
+            ""
+        );
+
+        const postScanIntegrity =
+          response?.integrity ||
+          response?.postScanIntegrity ||
+          response?.post_scan_integrity ||
+          response?.data?.integrity ||
+          response?.data?.postScanIntegrity ||
+          response?.data?.post_scan_integrity;
+
+        const postScan =
+          normalizeIntegrity(
+            postScanIntegrity
+          );
+
+        if (postScan) {
+          setIntegrity(
+            postScan
+          );
+
+          if (
+            postScan.status !==
+              INTEGRITY.VERIFIED ||
+            postScan.verified !==
+              true ||
+            postScan.hashMatch !==
+              true ||
+            postScan.sizeMatch !==
+              true
+          ) {
+            setStatus(
+              STATUS.FAILED
+            );
+
+            setError(
+              "Evidence integrity changed or could not be verified after forensic processing."
+            );
+
+            return false;
+          }
         }
 
+        const finalCaseId =
+          response?.caseId ||
+          response?.case_id ||
+          caseId.trim();
+
+        const finalExaminer =
+          response?.examiner ||
+          examiner.trim();
+
+        setLastOperation({
+          caseId:
+            finalCaseId,
+
+          examiner:
+            finalExaminer,
+
+          operation:
+            analysisMode,
+
+          completedAt:
+            new Date().toISOString(),
+        });
+
         setStatus(
-          STATUS.FAILED
+          STATUS.COMPLETED
         );
 
-        setError(
-          result.message ||
-            "Evidence integrity verification failed."
+        const validatedCount =
+          response?.validatedCount ??
+          response?.validated_count ??
+          stats?.artifactsValidated ??
+          stats?.artifacts_validated ??
+          normalizedRecovered.length;
+
+        const candidateCount =
+          response?.candidateCount ??
+          response?.candidate_count ??
+          stats?.candidatesFound ??
+          stats?.candidates_found ??
+          0;
+
+        setNotice(
+          response?.message ||
+            `Forensic processing completed. ${candidateCount} candidate range(s) identified and ${validatedCount} artifact(s) validated.`
         );
 
-        return false;
-      } catch (err) {
-        setStatus(
-          STATUS.FAILED
+        setCurrentStep(
+          STEPS.RESULTS
         );
 
-        setError(
-          err.message ||
-            "Integrity verification failed."
-        );
+        return true;
+      },
+      [
+        selectedEvidence,
+        caseId,
+        examiner,
+        analysisMode,
+      ]
+    );
 
-        return false;
-      } finally {
-        setBusy(false);
-        setProgressMessage("");
-      }
-    }, [
-      selectedEvidence,
-      selectedEvidenceId,
-      selectedFileName,
-    ]);
+  /* ==========================================================================
+     POLL FORENSIC JOB
+  ========================================================================== */
+
+  const pollForensicJob =
+    useCallback(
+      async (jobId) => {
+        try {
+          const response =
+            await apiFetch(
+              `/api/forensic/jobs/${encodeURIComponent(
+                jobId
+              )}`
+            );
+
+          const job =
+            response?.job ||
+            response?.data?.job ||
+            response?.data ||
+            response;
+
+          const jobStatus =
+            String(
+              job?.status ||
+                job?.state ||
+                "UNKNOWN"
+            ).toUpperCase();
+
+          const jobProgress =
+            Number(
+              job?.progress ??
+                job?.percentage ??
+                0
+            );
+
+          if (
+            Number.isFinite(
+              jobProgress
+            )
+          ) {
+            setProgress(
+              Math.max(
+                0,
+                Math.min(
+                  100,
+                  jobProgress
+                )
+              )
+            );
+          }
+
+          setProgressMessage(
+            job?.message ||
+              job?.progressMessage ||
+              `Forensic scan ${Math.round(
+                jobProgress
+              )}% complete...`
+          );
+
+          if (
+            [
+              "QUEUED",
+              "PENDING",
+              "STARTING",
+              "RUNNING",
+              "SCANNING",
+              "IN_PROGRESS",
+            ].includes(
+              jobStatus
+            )
+          ) {
+            setStatus(
+              jobStatus ===
+                "QUEUED"
+                ? STATUS.QUEUED
+                : STATUS.SCANNING
+            );
+
+            return;
+          }
+
+          if (
+            [
+              "COMPLETED",
+              "SUCCESS",
+              "DONE",
+            ].includes(
+              jobStatus
+            )
+          ) {
+            stopPolling();
+
+            setProgress(100);
+
+            setProgressMessage(
+              "Forensic processing completed. Loading results..."
+            );
+
+            const result =
+              job?.result ||
+              job?.data ||
+              job;
+
+            processScanResult(
+              result
+            );
+
+            setBusy(false);
+
+            setProgressMessage("");
+
+            return;
+          }
+
+          if (
+            [
+              "FAILED",
+              "ERROR",
+            ].includes(
+              jobStatus
+            )
+          ) {
+            stopPolling();
+
+            setStatus(
+              STATUS.FAILED
+            );
+
+            setBusy(false);
+
+            setProgressMessage("");
+
+            setError(
+              job?.error ||
+                job?.message ||
+                "Forensic scan failed on the connected TrustWipe Agent."
+            );
+
+            return;
+          }
+
+          if (
+            [
+              "CANCELLED",
+              "CANCELED",
+            ].includes(
+              jobStatus
+            )
+          ) {
+            stopPolling();
+
+            setStatus(
+              STATUS.CANCELLED
+            );
+
+            setBusy(false);
+
+            setProgressMessage("");
+
+            setNotice(
+              "Forensic scan was cancelled."
+            );
+          }
+        } catch (err) {
+          stopPolling();
+
+          setBusy(false);
+
+          setStatus(
+            STATUS.FAILED
+          );
+
+          setProgressMessage("");
+
+          setError(
+            err.message ||
+              "Unable to retrieve forensic job status."
+          );
+        }
+      },
+      [
+        processScanResult,
+        stopPolling,
+      ]
+    );
 
   /* ==========================================================================
      FORENSIC SCAN
-     ========================================================================== */
+  ========================================================================== */
 
   const runForensicScan =
     useCallback(
@@ -1325,6 +2108,7 @@ export default function Forensics() {
           setError(
             "Select evidence before starting analysis."
           );
+
           return;
         }
 
@@ -1332,13 +2116,7 @@ export default function Forensics() {
           setError(
             "Analysis is blocked until evidence integrity is VERIFIED."
           );
-          return;
-        }
 
-        if (!engine.available) {
-          setError(
-            "The Python forensic engine is unavailable."
-          );
           return;
         }
 
@@ -1346,6 +2124,7 @@ export default function Forensics() {
           setError(
             "Case ID is required."
           );
+
           return;
         }
 
@@ -1353,16 +2132,57 @@ export default function Forensics() {
           setError(
             "Examiner name is required."
           );
+
+          return;
+        }
+
+        if (!selectedAgent) {
+          setError(
+            "No TrustWipe forensic agent is selected."
+          );
+
+          return;
+        }
+
+        const agentOnline =
+          selectedAgent.online !== false &&
+          selectedAgent.connected !== false;
+
+        if (!agentOnline) {
+          setError(
+            "The selected TrustWipe Agent is offline."
+          );
+
+          return;
+        }
+
+        const capabilities =
+          selectedAgent.capabilities ||
+          [];
+
+        if (
+          capabilities.length > 0 &&
+          !capabilities.includes(
+            "FORENSIC_SCAN"
+          )
+        ) {
+          setError(
+            "The selected agent does not advertise FORENSIC_SCAN capability."
+          );
+
           return;
         }
 
         setBusy(true);
+
         setError("");
         setNotice("");
 
         setStatus(
-          STATUS.SCANNING
+          STATUS.QUEUED
         );
+
+        setProgress(0);
 
         setAnalysisMode(
           mode
@@ -1377,13 +2197,13 @@ export default function Forensics() {
 
         const messages = {
           scan:
-            "Scanning the evidence image and discovering forensic signatures...",
+            "Queuing disk scan on the connected TrustWipe Agent...",
 
           recover:
-            "Scanning verified evidence, carving candidate ranges and validating recovered artifacts...",
+            "Queuing forensic recovery on the connected TrustWipe Agent...",
 
           analyze:
-            "Performing forensic analysis of the verified evidence image...",
+            "Queuing forensic analysis on the connected TrustWipe Agent...",
         };
 
         setProgressMessage(
@@ -1391,10 +2211,18 @@ export default function Forensics() {
             messages.recover
         );
 
-        const started =
-          performance.now();
-
         try {
+          /*
+            IMPORTANT:
+            The frontend does NOT send a physical disk path.
+
+            The backend/agent is responsible for resolving
+            the authorized evidence source.
+
+            This prevents the browser from attempting
+            to access a Windows physical disk directly.
+          */
+
           const response =
             await apiFetch(
               "/api/forensic/scan",
@@ -1430,233 +2258,150 @@ export default function Forensics() {
 
                   operation:
                     mode,
+
+                  agentId:
+                    selectedAgent.agentId,
+
+                  agent_id:
+                    selectedAgent.agentId,
                 }),
               }
             );
 
-          const duration =
-            Math.round(
-              performance.now() -
-                started
+          /*
+            Expected architecture:
+
+            HTTP 202
+              ↓
+            job created
+              ↓
+            backend sends FORENSIC_SCAN
+              ↓
+            TrustWipeAgent performs scan
+          */
+
+          const job =
+            response?.job ||
+            response?.data?.job ||
+            response;
+
+          const jobId =
+            firstDefined(
+              response?.jobId,
+              response?.job_id,
+              job?.jobId,
+              job?.job_id,
+              job?.id
             );
 
-          const stats =
-            response?.scanStats ||
-            response?.scan_stats ||
-            response?.statistics ||
-            response?.stats ||
-            response?.data?.scanStats ||
-            response?.data?.scan_stats ||
-            {};
+          if (!jobId) {
+            /*
+              Some backends may still return the
+              complete result synchronously.
+            */
 
-          const durationMs =
-            response?.durationMs ??
-            response?.duration_ms ??
-            stats?.durationMs ??
-            stats?.duration_ms ??
-            duration;
+            const completed =
+              response?.status ===
+                "COMPLETED" ||
+              response?.scanStats ||
+              response?.scan_stats ||
+              response?.recoveredFiles ||
+              response?.recovered_files ||
+              response?.artifacts;
 
-          setLastScanDuration(
-            durationMs
-          );
-
-          setScanStats({
-            evidenceSize:
-              stats?.evidenceSize ??
-              stats?.evidence_size ??
-              selectedEvidence.size,
-
-            chunkSize:
-              stats?.chunkSize ??
-              stats?.chunk_size ??
-              null,
-
-            overlapSize:
-              stats?.overlapSize ??
-              stats?.overlap_size ??
-              null,
-
-            chunksScanned:
-              stats?.chunksScanned ??
-              stats?.chunks_scanned ??
-              null,
-
-            bytesScanned:
-              stats?.bytesScanned ??
-              stats?.bytes_scanned ??
-              null,
-
-            signaturesDetected:
-              stats?.signaturesDetected ??
-              stats?.signatures_detected ??
-              response?.signaturesDetected ??
-              response?.signatures_detected ??
-              0,
-
-            candidatesFound:
-              stats?.candidatesFound ??
-              stats?.candidates_found ??
-              response?.candidateCount ??
-              response?.candidate_count ??
-              stats?.candidateRanges ??
-              stats?.candidate_ranges ??
-              0,
-
-            artifactsCarved:
-              stats?.artifactsCarved ??
-              stats?.artifacts_carved ??
-              0,
-
-            artifactsValidated:
-              stats?.artifactsValidated ??
-              stats?.artifacts_validated ??
-              response?.validatedCount ??
-              response?.validated_count ??
-              0,
-
-            durationMs,
-
-            status:
-              stats?.status ||
-              response?.scanStatus ||
-              response?.scan_status ||
-              "COMPLETED",
-          });
-
-          const rawRecovered =
-            response?.recoveredFiles ||
-            response?.recovered_files ||
-            response?.artifacts ||
-            response?.data?.recoveredFiles ||
-            response?.data?.recovered_files ||
-            response?.data?.artifacts ||
-            [];
-
-          const normalizedRecovered =
-            (
-              Array.isArray(
-                rawRecovered
-              )
-                ? rawRecovered
-                : []
-            )
-              .map(
-                normalizeRecoveredFile
-              )
-              .filter(Boolean);
-
-          setRecoveredFiles(
-            normalizedRecovered
-          );
-
-          setScanOutput(
-            response?.output ||
-              response?.stdout ||
-              response?.consoleOutput ||
-              response?.console_output ||
-              response?.data?.output ||
-              ""
-          );
-
-          /* --------------------------------------------------------------
-             POST-SCAN INTEGRITY
-             -------------------------------------------------------------- */
-
-          const postScanIntegrity =
-            response?.integrity ||
-            response?.postScanIntegrity ||
-            response?.post_scan_integrity ||
-            response?.data?.integrity ||
-            response?.data?.postScanIntegrity ||
-            response?.data?.post_scan_integrity;
-
-          const postScan =
-            normalizeIntegrity(
-              postScanIntegrity
-            );
-
-          if (postScan) {
-            setIntegrity(
-              postScan
-            );
-
-            if (
-              postScan.status !==
-                INTEGRITY.VERIFIED ||
-              postScan.verified !==
-                true ||
-              postScan.hashMatch !==
-                true ||
-              postScan.sizeMatch !==
-                true
-            ) {
-              setStatus(
-                STATUS.FAILED
+            if (completed) {
+              processScanResult(
+                response
               );
 
-              setError(
-                "Evidence integrity changed or could not be verified after forensic processing."
-              );
+              setBusy(false);
+              setProgressMessage("");
 
               return;
             }
+
+            throw new Error(
+              "Forensic server did not return a job ID."
+            );
           }
 
-          const finalCaseId =
-            response?.caseId ||
-            response?.case_id ||
-            caseId.trim();
+          setForensicJobId(
+            jobId
+          );
 
-          const finalExaminer =
-            response?.examiner ||
-            examiner.trim();
+          const immediateStatus =
+            String(
+              job?.status ||
+                response?.status ||
+                "QUEUED"
+            ).toUpperCase();
 
-          setLastOperation({
-            caseId:
-              finalCaseId,
+          if (
+            [
+              "COMPLETED",
+              "SUCCESS",
+              "DONE",
+            ].includes(
+              immediateStatus
+            )
+          ) {
+            processScanResult(
+              job?.result ||
+                response
+            );
 
-            examiner:
-              finalExaminer,
+            setBusy(false);
+            setProgressMessage("");
 
-            operation:
-              mode,
-
-            completedAt:
-              new Date().toISOString(),
-          });
+            return;
+          }
 
           setStatus(
-            STATUS.COMPLETED
+            [
+              "RUNNING",
+              "SCANNING",
+              "IN_PROGRESS",
+            ].includes(
+              immediateStatus
+            )
+              ? STATUS.SCANNING
+              : STATUS.QUEUED
           );
-
-          const validatedCount =
-            response?.validatedCount ??
-            response?.validated_count ??
-            stats?.artifactsValidated ??
-            stats?.artifacts_validated ??
-            normalizedRecovered.length;
-
-          const candidateCount =
-            response?.candidateCount ??
-            response?.candidate_count ??
-            stats?.candidatesFound ??
-            stats?.candidates_found ??
-            stats?.candidateRanges ??
-            stats?.candidate_ranges ??
-            0;
 
           setNotice(
-            response?.message ||
-              `Forensic processing completed. ${candidateCount} candidate range(s) identified and ${validatedCount} artifact(s) validated.`
+            `Forensic job ${jobId} has been queued on ${selectedAgent.agentId}.`
           );
 
-          setCurrentStep(
-            STEPS.RESULTS
+          /*
+            Start polling.
+
+            Polling is deliberately kept in the frontend
+            because it works even if the browser does not
+            have a Socket.IO connection.
+          */
+
+          stopPolling();
+
+          await pollForensicJob(
+            jobId
           );
+
+          pollingRef.current =
+            window.setInterval(
+              () =>
+                pollForensicJob(
+                  jobId
+                ),
+              2000
+            );
         } catch (err) {
           setStatus(
             STATUS.FAILED
           );
+
+          setBusy(false);
+
+          setProgressMessage("");
 
           const serverIntegrity =
             err.response?.integrity ||
@@ -1674,25 +2419,69 @@ export default function Forensics() {
             err.message ||
               "Forensic processing failed."
           );
-        } finally {
-          setBusy(false);
-          setProgressMessage("");
         }
       },
       [
         selectedEvidence,
-        selectedEvidenceId,
-        selectedFileName,
         integrityVerified,
-        engine.available,
         caseId,
         examiner,
+        selectedAgent,
+        selectedEvidenceId,
+        selectedFileName,
+        processScanResult,
+        pollForensicJob,
+        stopPolling,
       ]
     );
 
   /* ==========================================================================
+     CANCEL FORENSIC JOB
+  ========================================================================== */
+
+  const cancelForensicScan =
+    useCallback(async () => {
+      if (!forensicJobId) {
+        return;
+      }
+
+      try {
+        await apiFetch(
+          `/api/forensic/jobs/${encodeURIComponent(
+            forensicJobId
+          )}/cancel`,
+          {
+            method: "POST",
+          }
+        );
+
+        setNotice(
+          "Cancellation request sent to the forensic agent."
+        );
+
+        setStatus(
+          STATUS.CANCELLED
+        );
+
+        stopPolling();
+
+        setBusy(false);
+
+        setProgressMessage("");
+      } catch (err) {
+        setError(
+          err.message ||
+            "Unable to cancel forensic scan."
+        );
+      }
+    }, [
+      forensicJobId,
+      stopPolling,
+    ]);
+
+  /* ==========================================================================
      REPORT
-     ========================================================================== */
+  ========================================================================== */
 
   const generateReport =
     useCallback(async () => {
@@ -1700,6 +2489,7 @@ export default function Forensics() {
         setError(
           "Select evidence first."
         );
+
         return;
       }
 
@@ -1707,6 +2497,7 @@ export default function Forensics() {
         setError(
           "Report generation requires VERIFIED evidence."
         );
+
         return;
       }
 
@@ -1714,6 +2505,7 @@ export default function Forensics() {
         setError(
           "Case ID is required."
         );
+
         return;
       }
 
@@ -1721,10 +2513,12 @@ export default function Forensics() {
         setError(
           "Examiner name is required."
         );
+
         return;
       }
 
       setBusy(true);
+
       setError("");
       setNotice("");
 
@@ -1765,6 +2559,12 @@ export default function Forensics() {
 
                 examiner:
                   examiner.trim(),
+
+                jobId:
+                  forensicJobId,
+
+                job_id:
+                  forensicJobId,
               }),
             }
           );
@@ -1870,11 +2670,12 @@ export default function Forensics() {
       integrityVerified,
       caseId,
       examiner,
+      forensicJobId,
     ]);
 
   /* ==========================================================================
-     DOWNLOAD RECOVERED ARTIFACT
-     ========================================================================== */
+     DOWNLOADS
+  ========================================================================== */
 
   const downloadRecoveredFile =
     useCallback(
@@ -1883,6 +2684,7 @@ export default function Forensics() {
           setError(
             "This artifact has no download path."
           );
+
           return;
         }
 
@@ -1895,16 +2697,13 @@ export default function Forensics() {
       []
     );
 
-  /* ==========================================================================
-     DOWNLOAD REPORT
-     ========================================================================== */
-
   const downloadReport =
     useCallback(() => {
       if (!reportFile) {
         setError(
           "No report file is available."
         );
+
         return;
       }
 
@@ -1928,14 +2727,23 @@ export default function Forensics() {
     }, [reportFile]);
 
   /* ==========================================================================
-     RESET CASE WORKSPACE
-     ========================================================================== */
+     RESET
+  ========================================================================== */
 
   const resetWorkspace =
     useCallback(() => {
       if (busy) return;
 
-      setSelectedEvidence(null);
+      stopPolling();
+
+      setSelectedEvidence(
+        null
+      );
+
+      setSelectedAgent(
+        null
+      );
+
       setIntegrity(null);
       setRecoveredFiles([]);
       setScanStats(null);
@@ -1945,6 +2753,8 @@ export default function Forensics() {
       setLastScanDuration(null);
       setLastOperation(null);
       setAnalysisMode(null);
+      setForensicJobId(null);
+      setProgress(0);
 
       setError("");
       setNotice("");
@@ -1963,68 +2773,72 @@ export default function Forensics() {
       setCurrentStep(
         STEPS.CASES
       );
-    }, [busy]);
+    }, [
+      busy,
+      stopPolling,
+    ]);
 
   /* ==========================================================================
      NAVIGATION
-     ========================================================================== */
+  ========================================================================== */
 
-  const goBack = useCallback(() => {
-    if (busy) return;
+  const goBack =
+    useCallback(() => {
+      if (busy) return;
 
-    setError("");
-    setNotice("");
+      setError("");
+      setNotice("");
 
-    switch (currentStep) {
-      case STEPS.CREATE_CASE:
-        setCurrentStep(
-          STEPS.CASES
-        );
-        break;
+      switch (currentStep) {
+        case STEPS.CREATE_CASE:
+          setCurrentStep(
+            STEPS.CASES
+          );
+          break;
 
-      case STEPS.EVIDENCE:
-        setCurrentStep(
-          STEPS.CASES
-        );
-        break;
+        case STEPS.EVIDENCE:
+          setCurrentStep(
+            STEPS.CASES
+          );
+          break;
 
-      case STEPS.EXAMINATION:
-        setCurrentStep(
-          STEPS.EVIDENCE
-        );
-        break;
+        case STEPS.EXAMINATION:
+          setCurrentStep(
+            STEPS.EVIDENCE
+          );
+          break;
 
-      case STEPS.ANALYSIS:
-        setCurrentStep(
-          STEPS.EXAMINATION
-        );
-        break;
+        case STEPS.ANALYSIS:
+          setCurrentStep(
+            STEPS.EXAMINATION
+          );
+          break;
 
-      case STEPS.RESULTS:
-        setCurrentStep(
-          STEPS.ANALYSIS
-        );
-        break;
+        case STEPS.RESULTS:
+          setCurrentStep(
+            STEPS.ANALYSIS
+          );
+          break;
 
-      case STEPS.REPORT:
-        setCurrentStep(
-          STEPS.RESULTS
-        );
-        break;
+        case STEPS.REPORT:
+          setCurrentStep(
+            STEPS.RESULTS
+          );
+          break;
 
-      default:
-        setCurrentStep(
-          STEPS.CASES
-        );
-    }
-  }, [
-    currentStep,
-    busy,
-  ]);
+        default:
+          setCurrentStep(
+            STEPS.CASES
+          );
+      }
+    }, [
+      currentStep,
+      busy,
+    ]);
 
   /* ==========================================================================
-     STEP DEFINITIONS
-     ========================================================================== */
+     WORKFLOW STEPS
+  ========================================================================== */
 
   const stepItems = [
     {
@@ -2064,441 +2878,494 @@ export default function Forensics() {
     );
 
   /* ==========================================================================
-     RENDER HELPERS
-     ========================================================================== */
+     HEADER
+  ========================================================================== */
 
-  const renderHeader = () => (
-    <header className="forensics-header">
-      <div>
-        <div className="forensics-eyebrow">
-          SECURITY OPERATIONS CENTER
-        </div>
-
-        <h1>
-          TrustWipe Digital Forensics
-        </h1>
-
-        <p>
-          Authorized evidence acquisition,
-          integrity verification, forensic
-          recovery and evidence reporting.
-        </p>
-      </div>
-
-      <div className="engine-status">
-        <span
-          className={
-            engine.available
-              ? "status-dot online"
-              : "status-dot offline"
-          }
-        />
-
+  const renderHeader =
+    () => (
+      <header className="forensics-header">
         <div>
-          <strong>
-            {engine.available
-              ? "FORENSIC ENGINE ONLINE"
-              : "FORENSIC ENGINE OFFLINE"}
-          </strong>
+          <div className="forensics-eyebrow">
+            SECURITY OPERATIONS CENTER
+          </div>
 
-          <small>
-            {engine.version ||
-              engine.message}
-          </small>
-        </div>
-
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={
-            loadEngineStatus
-          }
-          disabled={busy}
-        >
-          Refresh
-        </button>
-      </div>
-    </header>
-  );
-
-  const renderAlerts = () => (
-    <>
-      {error && (
-        <div
-          className="forensics-alert danger"
-          role="alert"
-        >
-          <strong>
-            Forensic operation failed
-          </strong>
-
-          <span>{error}</span>
-        </div>
-      )}
-
-      {notice && !error && (
-        <div
-          className="forensics-alert success"
-          role="status"
-        >
-          <strong>
-            Operation completed
-          </strong>
-
-          <span>{notice}</span>
-        </div>
-      )}
-
-      {progressMessage && (
-        <div className="operation-progress">
-          <span className="spinner" />
-
-          <span>
-            {progressMessage}
-          </span>
-        </div>
-      )}
-    </>
-  );
-
-  const renderProgress = () => (
-    <div className="forensics-workflow">
-      {stepItems.map(
-        (item, index) => {
-          const completed =
-            index <
-            currentStepIndex;
-
-          const active =
-            item.key ===
-            currentStep;
-
-          return (
-            <button
-              type="button"
-              key={item.key}
-              className={[
-                "workflow-step",
-                active
-                  ? "active"
-                  : "",
-                completed
-                  ? "completed"
-                  : "",
-              ]
-                .join(" ")
-                .trim()}
-              onClick={() => {
-                if (
-                  busy ||
-                  index >
-                    currentStepIndex
-                ) {
-                  return;
-                }
-
-                setCurrentStep(
-                  item.key
-                );
-              }}
-              disabled={
-                busy ||
-                index >
-                  currentStepIndex
-              }
-            >
-              <span className="workflow-number">
-                {completed
-                  ? "✓"
-                  : index + 1}
-              </span>
-
-              <span>
-                {item.label}
-              </span>
-            </button>
-          );
-        }
-      )}
-    </div>
-  );
-
-  /* ==========================================================================
-     CASE SELECTION
-     ========================================================================== */
-
-  const renderCaseSelection = () => (
-    <section className="forensics-panel">
-      <div className="panel-header">
-        <div>
-          <span className="panel-kicker">
-            FORENSIC CASE MANAGEMENT
-          </span>
-
-          <h2>
-            Select Investigation
-          </h2>
+          <h1>
+            TrustWipe Digital Forensics
+          </h1>
 
           <p>
-            Create a new forensic case or
-            continue an existing investigation.
+            Authorized evidence acquisition,
+            integrity verification, forensic
+            recovery and evidence reporting.
           </p>
         </div>
-      </div>
 
-      <div className="case-selection-grid">
-        <button
-          type="button"
-          className="case-action-card"
-          onClick={
-            startNewCaseScreen
-          }
-          disabled={busy}
-        >
-          <div className="case-action-icon">
-            +
-          </div>
+        <div className="engine-status">
+          <span
+            className={
+              onlineAgents.length > 0
+                ? "status-dot online"
+                : "status-dot offline"
+            }
+          />
 
-          <strong>
-            Create New Case
-          </strong>
-
-          <span>
-            Start a new authorized forensic
-            investigation.
-          </span>
-
-          <small>
-            Generate case ID →
-          </small>
-        </button>
-
-        <div className="case-action-card existing">
-          <div className="case-action-icon">
-            ▣
-          </div>
-
-          <strong>
-            Existing Cases
-          </strong>
-
-          <span>
-            Continue an investigation from the
-            case repository.
-          </span>
-
-          <small>
-            {cases.length} saved case
-            {cases.length === 1
-              ? ""
-              : "s"}
-          </small>
-        </div>
-      </div>
-
-      <div className="case-list-section">
-        <div className="repository-header">
           <div>
             <strong>
-              CASE REPOSITORY
+              {onlineAgents.length > 0
+                ? "FORENSIC AGENT ONLINE"
+                : "FORENSIC AGENT OFFLINE"}
+            </strong>
+
+            <small>
+              {onlineAgents.length > 0
+                ? `${onlineAgents.length} connected agent${
+                    onlineAgents.length ===
+                    1
+                      ? ""
+                      : "s"
+                  }`
+                : "No connected TrustWipe Agent"}
+            </small>
+          </div>
+
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => {
+              loadAgents();
+              loadEngineStatus();
+            }}
+            disabled={
+              busy ||
+              agentLoading
+            }
+          >
+            Refresh
+          </button>
+        </div>
+      </header>
+    );
+
+  /* ==========================================================================
+     ALERTS
+  ========================================================================== */
+
+  const renderAlerts =
+    () => (
+      <>
+        {error && (
+          <div
+            className="forensics-alert danger"
+            role="alert"
+          >
+            <strong>
+              Forensic operation failed
             </strong>
 
             <span>
-              {cases.length} Cases
+              {error}
             </span>
+          </div>
+        )}
+
+        {notice && !error && (
+          <div
+            className="forensics-alert success"
+            role="status"
+          >
+            <strong>
+              Operation status
+            </strong>
+
+            <span>
+              {notice}
+            </span>
+          </div>
+        )}
+
+        {progressMessage && (
+          <div className="operation-progress">
+            <span className="spinner" />
+
+            <span>
+              {progressMessage}
+            </span>
+
+            {busy &&
+              progress >= 0 && (
+                <strong>
+                  {Math.round(
+                    progress
+                  )}
+                  %
+                </strong>
+              )}
+          </div>
+        )}
+      </>
+    );
+
+  /* ==========================================================================
+     WORKFLOW PROGRESS
+  ========================================================================== */
+
+  const renderProgress =
+    () => (
+      <div className="forensics-workflow">
+        {stepItems.map(
+          (item, index) => {
+            const completed =
+              index <
+              currentStepIndex;
+
+            const active =
+              item.key ===
+              currentStep;
+
+            return (
+              <button
+                type="button"
+                key={item.key}
+                className={[
+                  "workflow-step",
+
+                  active
+                    ? "active"
+                    : "",
+
+                  completed
+                    ? "completed"
+                    : "",
+                ]
+                  .join(" ")
+                  .trim()}
+                onClick={() => {
+                  if (
+                    busy ||
+                    index >
+                      currentStepIndex
+                  ) {
+                    return;
+                  }
+
+                  setCurrentStep(
+                    item.key
+                  );
+                }}
+                disabled={
+                  busy ||
+                  index >
+                    currentStepIndex
+                }
+              >
+                <span className="workflow-number">
+                  {completed
+                    ? "✓"
+                    : index + 1}
+                </span>
+
+                <span>
+                  {item.label}
+                </span>
+              </button>
+            );
+          }
+        )}
+      </div>
+    );
+
+  /* ==========================================================================
+     CASE SELECTION
+  ========================================================================== */
+
+  const renderCaseSelection =
+    () => (
+      <section className="forensics-panel">
+        <div className="panel-header">
+          <div>
+            <span className="panel-kicker">
+              FORENSIC CASE MANAGEMENT
+            </span>
+
+            <h2>
+              Select Investigation
+            </h2>
+
+            <p>
+              Create a new forensic case or
+              continue an existing investigation.
+            </p>
           </div>
         </div>
 
-        {cases.length === 0 ? (
-          <div className="empty-state">
-            No forensic cases have been
-            created yet.
+        <div className="case-selection-grid">
+          <button
+            type="button"
+            className="case-action-card"
+            onClick={
+              startNewCaseScreen
+            }
+            disabled={busy}
+          >
+            <div className="case-action-icon">
+              +
+            </div>
+
+            <strong>
+              Create New Case
+            </strong>
+
+            <span>
+              Start a new authorized forensic
+              investigation.
+            </span>
+
+            <small>
+              Generate case ID →
+            </small>
+          </button>
+
+          <div className="case-action-card existing">
+            <div className="case-action-icon">
+              ▣
+            </div>
+
+            <strong>
+              Existing Cases
+            </strong>
+
+            <span>
+              Continue an investigation from the
+              case repository.
+            </span>
+
+            <small>
+              {cases.length} saved case
+              {cases.length === 1
+                ? ""
+                : "s"}
+            </small>
           </div>
-        ) : (
-          <div className="case-list">
-            {cases.map((item) => (
-              <button
-                type="button"
-                key={item.caseId}
-                className="case-list-item"
-                onClick={() =>
-                  openExistingCase(
-                    item
-                  )
-                }
-                disabled={busy}
-              >
-                <div className="case-id">
-                  {item.caseId}
-                </div>
+        </div>
 
-                <div className="case-details">
-                  <strong>
-                    {item.title ||
-                      "Untitled Investigation"}
-                  </strong>
+        <div className="case-list-section">
+          <div className="repository-header">
+            <div>
+              <strong>
+                CASE REPOSITORY
+              </strong>
 
-                  <span>
-                    Examiner:{" "}
-                    {item.examiner ||
-                      "—"}
-                  </span>
-
-                  <span>
-                    Created:{" "}
-                    {formatDate(
-                      item.createdAt
-                    )}
-                  </span>
-                </div>
-
-                <div className="case-meta">
-                  <span className="state-badge ready">
-                    {item.status ||
-                      "OPEN"}
-                  </span>
-
-                  <span>
-                    {item.evidenceCount ||
-                      0}{" "}
-                    evidence
-                  </span>
-                </div>
-              </button>
-            ))}
+              <span>
+                {cases.length} Cases
+              </span>
+            </div>
           </div>
-        )}
-      </div>
-    </section>
-  );
+
+          {cases.length === 0 ? (
+            <div className="empty-state">
+              No forensic cases have been
+              created yet.
+            </div>
+          ) : (
+            <div className="case-list">
+              {cases.map(
+                (item) => (
+                  <button
+                    type="button"
+                    key={
+                      item.caseId
+                    }
+                    className="case-list-item"
+                    onClick={() =>
+                      openExistingCase(
+                        item
+                      )
+                    }
+                    disabled={busy}
+                  >
+                    <div className="case-id">
+                      {
+                        item.caseId
+                      }
+                    </div>
+
+                    <div className="case-details">
+                      <strong>
+                        {
+                          item.title ||
+                          "Untitled Investigation"
+                        }
+                      </strong>
+
+                      <span>
+                        Examiner:{" "}
+                        {
+                          item.examiner ||
+                          "—"
+                        }
+                      </span>
+
+                      <span>
+                        Created:{" "}
+                        {formatDate(
+                          item.createdAt
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="case-meta">
+                      <span className="state-badge ready">
+                        {
+                          item.status ||
+                          "OPEN"
+                        }
+                      </span>
+
+                      <span>
+                        {
+                          item.evidenceCount ||
+                          0
+                        }{" "}
+                        evidence
+                      </span>
+                    </div>
+                  </button>
+                )
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+    );
 
   /* ==========================================================================
      CREATE CASE
-     ========================================================================== */
+  ========================================================================== */
 
-  const renderCreateCase = () => (
-    <section className="forensics-panel">
-      <div className="panel-header">
-        <div>
-          <span className="panel-kicker">
-            STEP 01 • CASE CREATION
-          </span>
+  const renderCreateCase =
+    () => (
+      <section className="forensics-panel">
+        <div className="panel-header">
+          <div>
+            <span className="panel-kicker">
+              STEP 01 • CASE CREATION
+            </span>
 
-          <h2>
-            Create New Forensic Case
-          </h2>
+            <h2>
+              Create New Forensic Case
+            </h2>
 
-          <p>
-            Establish the investigation identity
-            before acquiring evidence.
-          </p>
-        </div>
-      </div>
-
-      <div className="case-form">
-        <div className="form-field">
-          <label>
-            Case ID
-          </label>
-
-          <input
-            type="text"
-            value={caseId}
-            onChange={(event) =>
-              setCaseId(
-                event.target.value
-              )
-            }
-            placeholder="CASE-2026-XXXX"
-          />
-
-          <small>
-            Unique identifier for the forensic
-            investigation.
-          </small>
+            <p>
+              Establish the investigation identity
+              before acquiring evidence.
+            </p>
+          </div>
         </div>
 
-        <div className="form-field">
-          <label>
-            Case Title
-          </label>
+        <div className="case-form">
+          <div className="form-field">
+            <label>
+              Case ID
+            </label>
 
-          <input
-            type="text"
-            value={caseTitle}
-            onChange={(event) =>
-              setCaseTitle(
-                event.target.value
-              )
-            }
-            placeholder="Enterprise Evidence Investigation"
-          />
+            <input
+              type="text"
+              value={caseId}
+              onChange={(event) =>
+                setCaseId(
+                  event.target.value
+                )
+              }
+              placeholder="CASE-2026-XXXX"
+            />
+
+            <small>
+              Unique identifier for the forensic
+              investigation.
+            </small>
+          </div>
+
+          <div className="form-field">
+            <label>
+              Case Title
+            </label>
+
+            <input
+              type="text"
+              value={caseTitle}
+              onChange={(event) =>
+                setCaseTitle(
+                  event.target.value
+                )
+              }
+              placeholder="Enterprise Evidence Investigation"
+            />
+          </div>
+
+          <div className="form-field">
+            <label>
+              Examiner
+            </label>
+
+            <input
+              type="text"
+              value={examiner}
+              onChange={(event) =>
+                setExaminer(
+                  event.target.value
+                )
+              }
+              placeholder="Authorized forensic examiner"
+            />
+          </div>
+
+          <div className="form-field full">
+            <label>
+              Case Description
+            </label>
+
+            <textarea
+              value={
+                caseDescription
+              }
+              onChange={(event) =>
+                setCaseDescription(
+                  event.target.value
+                )
+              }
+              rows={4}
+              placeholder="Investigation purpose, scope and authorization details..."
+            />
+          </div>
         </div>
 
-        <div className="form-field">
-          <label>
-            Examiner
-          </label>
+        <div className="action-row">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={goBack}
+            disabled={busy}
+          >
+            ← Back
+          </button>
 
-          <input
-            type="text"
-            value={examiner}
-            onChange={(event) =>
-              setExaminer(
-                event.target.value
-              )
+          <button
+            type="button"
+            className="primary-button"
+            onClick={
+              createCase
             }
-            placeholder="Authorized forensic examiner"
-          />
+            disabled={busy}
+          >
+            CREATE CASE →
+          </button>
         </div>
-
-        <div className="form-field full">
-          <label>
-            Case Description
-          </label>
-
-          <textarea
-            value={
-              caseDescription
-            }
-            onChange={(event) =>
-              setCaseDescription(
-                event.target.value
-              )
-            }
-            rows={4}
-            placeholder="Investigation purpose, scope and authorization details..."
-          />
-        </div>
-      </div>
-
-      <div className="action-row">
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={goBack}
-          disabled={busy}
-        >
-          ← Back
-        </button>
-
-        <button
-          type="button"
-          className="primary-button"
-          onClick={
-            createCase
-          }
-          disabled={busy}
-        >
-          CREATE CASE →
-        </button>
-      </div>
-    </section>
-  );
+      </section>
+    );
 
   /* ==========================================================================
-     EVIDENCE ACQUISITION
-     ========================================================================== */
+     EVIDENCE
+  ========================================================================== */
 
   const renderEvidenceAcquisition =
     () => (
@@ -2615,7 +3482,8 @@ export default function Forensics() {
           </div>
 
           <div className="evidence-list">
-            {evidence.length === 0 ? (
+            {evidence.length ===
+            0 ? (
               <div className="empty-state">
                 No evidence has been
                 acquired.
@@ -2648,7 +3516,9 @@ export default function Forensics() {
                           item
                         )
                       }
-                      disabled={busy}
+                      disabled={
+                        busy
+                      }
                     >
                       <div className="evidence-type">
                         {getFileType(
@@ -2658,7 +3528,9 @@ export default function Forensics() {
 
                       <div className="evidence-details">
                         <strong>
-                          {item.name}
+                          {
+                            item.name
+                          }
                         </strong>
 
                         <small>
@@ -2666,7 +3538,9 @@ export default function Forensics() {
                             item.size
                           )}{" "}
                           •{" "}
-                          {item.type}
+                          {
+                            item.type
+                          }
                         </small>
 
                         {item.evidenceId && (
@@ -2701,7 +3575,9 @@ export default function Forensics() {
           <button
             type="button"
             className="secondary-button"
-            onClick={goBack}
+            onClick={
+              goBack
+            }
             disabled={busy}
           >
             ← Case Selection
@@ -2712,7 +3588,7 @@ export default function Forensics() {
 
   /* ==========================================================================
      EXAMINATION
-     ========================================================================== */
+  ========================================================================== */
 
   const renderExamination =
     () => (
@@ -2948,7 +3824,9 @@ export default function Forensics() {
                   onClick={
                     verifyIntegrity
                   }
-                  disabled={busy}
+                  disabled={
+                    busy
+                  }
                 >
                   {busy &&
                   status ===
@@ -2963,8 +3841,12 @@ export default function Forensics() {
               <button
                 type="button"
                 className="secondary-button"
-                onClick={goBack}
-                disabled={busy}
+                onClick={
+                  goBack
+                }
+                disabled={
+                  busy
+                }
               >
                 ← Evidence
               </button>
@@ -2991,196 +3873,355 @@ export default function Forensics() {
     );
 
   /* ==========================================================================
-     ANALYSIS
-     ========================================================================== */
+     AGENT SELECTOR
+  ========================================================================== */
 
-  const renderAnalysis =
+  const renderAgentSelector =
     () => (
-      <section className="forensics-panel">
+      <div className="forensics-panel">
         <div className="panel-header">
           <div>
             <span className="panel-kicker">
-              STEP 04 • FORENSIC ANALYSIS
+              TRUSTWIPE FORENSIC AGENT
             </span>
 
             <h2>
-              Forensic Control Center
+              Select Examination Workstation
             </h2>
 
             <p>
-              Process the verified evidence image
-              using the TrustWipe forensic engine.
+              The forensic operation executes on an
+              authorized Windows workstation through
+              the TrustWipe Agent.
             </p>
           </div>
 
-          <span className="secure-badge">
-            INTEGRITY VERIFIED
+          <span
+            className={
+              onlineAgents.length > 0
+                ? "secure-badge"
+                : "state-badge failed"
+            }
+          >
+            {onlineAgents.length > 0
+              ? "AGENT ONLINE"
+              : "AGENT OFFLINE"}
           </span>
         </div>
 
-        <div className="analysis-context">
-          <div>
-            <span>
-              CASE
-            </span>
-
-            <strong>
-              {caseId}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              EVIDENCE
-            </span>
-
-            <strong>
-              {selectedFileName}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              ENGINE
-            </span>
-
-            <strong>
-              {engine.available
-                ? "ONLINE"
-                : "OFFLINE"}
-            </strong>
-          </div>
-        </div>
-
-        <div className="analysis-actions">
-          <button
-            type="button"
-            className="analysis-action-card"
-            onClick={() =>
-              runForensicScan(
-                "scan"
-              )
-            }
-            disabled={
-              busy ||
-              !integrityVerified ||
-              !engine.available
-            }
-          >
-            <span>
-              ◉
-            </span>
-
-            <strong>
-              Scan Disk
-            </strong>
-
-            <small>
-              Stream-scan the evidence image and
-              discover forensic signatures.
-            </small>
-          </button>
-
-          <button
-            type="button"
-            className="analysis-action-card"
-            onClick={() =>
-              runForensicScan(
-                "recover"
-              )
-            }
-            disabled={
-              busy ||
-              !integrityVerified ||
-              !engine.available
-            }
-          >
-            <span>
-              ⌁
-            </span>
-
-            <strong>
-              Recover Files
-            </strong>
-
-            <small>
-              Carve candidate ranges and validate
-              recoverable artifacts.
-            </small>
-          </button>
-
-          <button
-            type="button"
-            className="analysis-action-card"
-            onClick={() =>
-              runForensicScan(
-                "analyze"
-              )
-            }
-            disabled={
-              busy ||
-              !integrityVerified ||
-              !engine.available
-            }
-          >
-            <span>
-              ◇
-            </span>
-
-            <strong>
-              Analyze
-            </strong>
-
-            <small>
-              Execute forensic processing and
-              inspect scan and artifact results.
-            </small>
-          </button>
-        </div>
-
-        {!engine.available && (
+        {onlineAgents.length ===
+        0 ? (
           <div className="forensics-alert danger">
             <strong>
-              Forensic Engine Offline
+              No forensic agent connected
             </strong>
 
             <span>
-              The Python forensic engine must be
-              available before evidence processing
-              can begin.
+              Start TrustWipeAgent.exe on the
+              authorized Windows examination
+              workstation and wait for the
+              connection to Render.
             </span>
+          </div>
+        ) : (
+          <div className="case-list">
+            {onlineAgents.map(
+              (agent) => {
+                const selected =
+                  selectedAgent?.agentId ===
+                  agent.agentId;
+
+                return (
+                  <button
+                    type="button"
+                    key={
+                      agent.agentId
+                    }
+                    className={
+                      selected
+                        ? "case-list-item selected"
+                        : "case-list-item"
+                    }
+                    onClick={() =>
+                      setSelectedAgent(
+                        agent
+                      )
+                    }
+                    disabled={
+                      busy
+                    }
+                  >
+                    <div className="case-id">
+                      ●
+                    </div>
+
+                    <div className="case-details">
+                      <strong>
+                        {
+                          agent.hostname
+                        }
+                      </strong>
+
+                      <span>
+                        Agent ID:{" "}
+                        {
+                          agent.agentId
+                        }
+                      </span>
+
+                      <span>
+                        Platform:{" "}
+                        {
+                          agent.platform
+                        }
+                      </span>
+                    </div>
+
+                    <div className="case-meta">
+                      <span className="state-badge completed">
+                        ONLINE
+                      </span>
+
+                      <span>
+                        {agent.capabilities?.includes(
+                          "FORENSIC_SCAN"
+                        )
+                          ? "FORENSIC_SCAN"
+                          : "Capability unknown"}
+                      </span>
+                    </div>
+                  </button>
+                );
+              }
+            )}
           </div>
         )}
 
-        <div className="forensic-policy-note">
-          <strong>
-            Evidence protection policy
-          </strong>
+        {selectedAgent && (
+          <div className="forensic-policy-note">
+            <strong>
+              Selected Agent
+            </strong>
 
-          <span>
-            Processing is permitted only after
-            SHA-256 integrity verification.
-            The evidence source must remain
-            unchanged throughout examination.
-          </span>
-        </div>
+            <span>
+              {selectedAgent.agentId} —{" "}
+              {
+                selectedAgent.hostname
+              }
+            </span>
+          </div>
+        )}
+      </div>
+    );
 
-        <div className="action-row">
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={goBack}
-            disabled={busy}
-          >
-            ← Examination
-          </button>
-        </div>
-      </section>
+  /* ==========================================================================
+     ANALYSIS
+  ========================================================================== */
+
+  const renderAnalysis =
+    () => (
+      <>
+        {renderAgentSelector()}
+
+        <section className="forensics-panel">
+          <div className="panel-header">
+            <div>
+              <span className="panel-kicker">
+                STEP 04 • FORENSIC ANALYSIS
+              </span>
+
+              <h2>
+                Forensic Control Center
+              </h2>
+
+              <p>
+                Process the verified evidence using
+                the authorized TrustWipe examination
+                workstation.
+              </p>
+            </div>
+
+            <span className="secure-badge">
+              INTEGRITY VERIFIED
+            </span>
+          </div>
+
+          <div className="analysis-context">
+            <div>
+              <span>
+                CASE
+              </span>
+
+              <strong>
+                {caseId}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                EVIDENCE
+              </span>
+
+              <strong>
+                {selectedFileName}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                AGENT
+              </span>
+
+              <strong>
+                {selectedAgent?.agentId ||
+                  "NOT SELECTED"}
+              </strong>
+            </div>
+          </div>
+
+          {busy &&
+            forensicJobId && (
+              <div className="forensic-policy-note">
+                <strong>
+                  FORENSIC JOB
+                </strong>
+
+                <span>
+                  {forensicJobId}
+                </span>
+
+                <button
+                  type="button"
+                  className="secondary-button small"
+                  onClick={
+                    cancelForensicScan
+                  }
+                >
+                  CANCEL SCAN
+                </button>
+              </div>
+            )}
+
+          <div className="analysis-actions">
+            <button
+              type="button"
+              className="analysis-action-card"
+              onClick={() =>
+                runForensicScan(
+                  "scan"
+                )
+              }
+              disabled={
+                busy ||
+                !integrityVerified ||
+                !selectedAgent
+              }
+            >
+              <span>
+                ◉
+              </span>
+
+              <strong>
+                Scan Disk
+              </strong>
+
+              <small>
+                Stream-scan the evidence and discover
+                forensic signatures.
+              </small>
+            </button>
+
+            <button
+              type="button"
+              className="analysis-action-card"
+              onClick={() =>
+                runForensicScan(
+                  "recover"
+                )
+              }
+              disabled={
+                busy ||
+                !integrityVerified ||
+                !selectedAgent
+              }
+            >
+              <span>
+                ⌁
+              </span>
+
+              <strong>
+                Recover Files
+              </strong>
+
+              <small>
+                Carve candidate ranges and validate
+                recoverable artifacts.
+              </small>
+            </button>
+
+            <button
+              type="button"
+              className="analysis-action-card"
+              onClick={() =>
+                runForensicScan(
+                  "analyze"
+                )
+              }
+              disabled={
+                busy ||
+                !integrityVerified ||
+                !selectedAgent
+              }
+            >
+              <span>
+                ◇
+              </span>
+
+              <strong>
+                Analyze
+              </strong>
+
+              <small>
+                Execute forensic processing and
+                inspect scan and artifact results.
+              </small>
+            </button>
+          </div>
+
+          <div className="forensic-policy-note">
+            <strong>
+              Evidence protection policy
+            </strong>
+
+            <span>
+              Processing is permitted only after
+              SHA-256 integrity verification. The
+              original evidence source must remain
+              unchanged throughout examination.
+            </span>
+          </div>
+
+          <div className="action-row">
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={
+                goBack
+              }
+              disabled={
+                busy
+              }
+            >
+              ← Examination
+            </button>
+          </div>
+        </section>
+      </>
     );
 
   /* ==========================================================================
      RESULTS
-     ========================================================================== */
+  ========================================================================== */
 
   const renderResults =
     () => (
@@ -3209,6 +4250,18 @@ export default function Forensics() {
               {status}
             </span>
           </div>
+
+          {forensicJobId && (
+            <div className="forensic-policy-note">
+              <strong>
+                FORENSIC JOB
+              </strong>
+
+              <span>
+                {forensicJobId}
+              </span>
+            </div>
+          )}
 
           {scanStats && (
             <div className="scan-statistics">
@@ -3324,7 +4377,8 @@ export default function Forensics() {
             </div>
           </div>
 
-          {recoveredFiles.length === 0 ? (
+          {recoveredFiles.length ===
+          0 ? (
             <div className="empty-state">
               No recovered artifacts were
               returned by the forensic engine.
@@ -3366,7 +4420,10 @@ export default function Forensics() {
 
                 <tbody>
                   {recoveredFiles.map(
-                    (file, index) => {
+                    (
+                      file,
+                      index
+                    ) => {
                       const valid =
                         String(
                           file.validationStatus
@@ -3545,8 +4602,12 @@ export default function Forensics() {
           <button
             type="button"
             className="secondary-button"
-            onClick={goBack}
-            disabled={busy}
+            onClick={
+              goBack
+            }
+            disabled={
+              busy
+            }
           >
             ← Analysis
           </button>
@@ -3570,7 +4631,7 @@ export default function Forensics() {
 
   /* ==========================================================================
      REPORT
-     ========================================================================== */
+  ========================================================================== */
 
   const renderReport =
     () => (
@@ -3734,7 +4795,9 @@ export default function Forensics() {
               onClick={
                 resetWorkspace
               }
-              disabled={busy}
+              disabled={
+                busy
+              }
             >
               CLOSE CASE
             </button>
@@ -3759,7 +4822,13 @@ export default function Forensics() {
 
   /* ==========================================================================
      MAIN RENDER
-     ========================================================================== */
+
+     IMPORTANT:
+     Do NOT render Sidebar here.
+
+     Sidebar.jsx should wrap this page through your
+     DashboardLayout / AppRoutes.
+  ========================================================================== */
 
   return (
     <div className="forensics-page">
@@ -3831,17 +4900,19 @@ export default function Forensics() {
 
         <div className="summary-card">
           <span>
-            FORENSIC ENGINE
+            FORENSIC AGENT
           </span>
 
           <strong>
-            {engine.available
-              ? "READY"
+            {onlineAgents.length >
+            0
+              ? "ONLINE"
               : "OFFLINE"}
           </strong>
 
           <small>
-            Python recovery engine
+            {selectedAgent?.agentId ||
+              "No agent selected"}
           </small>
         </div>
       </section>
@@ -3886,9 +4957,10 @@ export default function Forensics() {
         </span>
 
         <span>
-          {engine.available
-            ? "Forensic Engine Online"
-            : "Forensic Engine Offline"}
+          {onlineAgents.length >
+          0
+            ? "Forensic Agent Online"
+            : "Forensic Agent Offline"}
         </span>
       </footer>
     </div>
