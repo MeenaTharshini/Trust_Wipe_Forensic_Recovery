@@ -4831,138 +4831,92 @@ export default function Forensics() {
   ========================================================================== */
 
   return (
-    <div className="forensics-page">
-      {renderHeader()}
+  <div className="forensics-page">
+    {renderHeader()}
 
-      {renderAlerts()}
+    {renderAlerts()}
 
-      {currentStep !==
-        STEPS.CASES &&
-        currentStep !==
-          STEPS.CREATE_CASE &&
-        renderProgress()}
+    {currentStep !== STEPS.CASES &&
+      currentStep !== STEPS.CREATE_CASE &&
+      renderProgress()}
 
-      <section className="forensics-summary">
-        <div className="summary-card">
-          <span>
-            CASE
-          </span>
+    <section className="forensics-summary">
+      <div className="summary-card">
+        <span>CASE</span>
+        <strong>{caseId || "—"}</strong>
+        <small>
+          {currentCase?.title || "No active case"}
+        </small>
+      </div>
 
-          <strong>
-            {caseId || "—"}
-          </strong>
+      <div className="summary-card">
+        <span>EVIDENCE ASSETS</span>
+        <strong>{repositoryStats.total}</strong>
+        <small>
+          {formatBytes(repositoryStats.totalSize)} total
+        </small>
+      </div>
 
-          <small>
-            {currentCase?.title ||
-              "No active case"}
-          </small>
-        </div>
+      <div className="summary-card">
+        <span>INTEGRITY</span>
+        <strong
+          className={
+            integrity
+              ? getIntegrityClass(integrity.status)
+              : ""
+          }
+        >
+          {integrity?.status || "NOT VERIFIED"}
+        </strong>
+        <small>SHA-256 evidence control</small>
+      </div>
 
-        <div className="summary-card">
-          <span>
-            EVIDENCE ASSETS
-          </span>
+      <div className="summary-card">
+        <span>FORENSIC AGENT</span>
+        <strong>
+          {onlineAgents.length > 0
+            ? "ONLINE"
+            : "OFFLINE"}
+        </strong>
+        <small>
+          {selectedAgent?.agentId ||
+            "No agent selected"}
+        </small>
+      </div>
+    </section>
 
-          <strong>
-            {repositoryStats.total}
-          </strong>
+    <main className="forensics-content">
+      {currentStep === STEPS.CASES &&
+        renderCaseSelection()}
 
-          <small>
-            {formatBytes(
-              repositoryStats.totalSize
-            )}{" "}
-            total
-          </small>
-        </div>
+      {currentStep === STEPS.CREATE_CASE &&
+        renderCreateCase()}
 
-        <div className="summary-card">
-          <span>
-            INTEGRITY
-          </span>
+      {currentStep === STEPS.EVIDENCE &&
+        renderEvidenceAcquisition()}
 
-          <strong
-            className={
-              integrity
-                ? getIntegrityClass(
-                    integrity.status
-                  )
-                : ""
-            }
-          >
-            {integrity?.status ||
-              "NOT VERIFIED"}
-          </strong>
+      {currentStep === STEPS.EXAMINATION &&
+        renderExamination()}
 
-          <small>
-            SHA-256 evidence control
-          </small>
-        </div>
+      {currentStep === STEPS.ANALYSIS &&
+        renderAnalysis()}
 
-        <div className="summary-card">
-          <span>
-            FORENSIC AGENT
-          </span>
+      {currentStep === STEPS.RESULTS &&
+        renderResults()}
 
-          <strong>
-            {onlineAgents.length >
-            0
-              ? "ONLINE"
-              : "OFFLINE"}
-          </strong>
+      {currentStep === STEPS.REPORT &&
+        renderReport()}
+    </main>
 
-          <small>
-            {selectedAgent?.agentId ||
-              "No agent selected"}
-          </small>
-        </div>
-      </section>
-
-      <main className="forensics-content">
-        {currentStep ===
-          STEPS.CASES &&
-          renderCaseSelection()}
-
-        {currentStep ===
-          STEPS.CREATE_CASE &&
-          renderCreateCase()}
-
-        {currentStep ===
-          STEPS.EVIDENCE &&
-          renderEvidenceAcquisition()}
-
-        {currentStep ===
-          STEPS.EXAMINATION &&
-          renderExamination()}
-
-        {currentStep ===
-          STEPS.ANALYSIS &&
-          renderAnalysis()}
-
-        {currentStep ===
-          STEPS.RESULTS &&
-          renderResults()}
-
-        {currentStep ===
-          STEPS.REPORT &&
-          renderReport()}
-      </main>
-
-      <footer className="forensics-footer">
-        <span>
-          TrustWipe Digital Forensics
-        </span>
-
-        <span>
-          SHA-256 Integrity Control
-        </span>
-
-        <span>
-          {onlineAgents.length >
-          0
-            ? "Forensic Agent Online"
-            : "Forensic Agent Offline"}
-        </span>
-      </footer>
-    </div>
-  );
+    <footer className="forensics-footer">
+      <span>TrustWipe Digital Forensics</span>
+      <span>SHA-256 Integrity Control</span>
+      <span>
+        {onlineAgents.length > 0
+          ? "Forensic Agent Online"
+          : "Forensic Agent Offline"}
+      </span>
+    </footer>
+  </div>
+);
 }
