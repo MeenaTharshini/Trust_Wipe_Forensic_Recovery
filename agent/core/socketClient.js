@@ -1,3 +1,4 @@
+
 // agent/core/socketClient.js
 
 import { io } from "socket.io-client";
@@ -25,6 +26,7 @@ dotenv.config();
 const SERVER_URL =
   process.env.SERVER_URL ||
   "https://trust-wipe-forensic-recovery-glwn.onrender.com";
+
 
 /* =====================================================
    SOCKET CONNECTION
@@ -80,11 +82,13 @@ const AGENT_INFO = {
 console.log("=================================");
 console.log(" TrustWipe Agent Starting");
 console.log("=================================");
+
 console.log(" Agent ID :", AGENT_ID);
 console.log(" Hostname :", os.hostname());
 console.log(" Platform :", os.platform());
 console.log(" Architecture :", os.arch());
 console.log(" Server :", SERVER_URL);
+
 console.log("=================================");
 
 
@@ -99,26 +103,40 @@ socket.on("connect", () => {
   console.log("   Socket ID:", socket.id);
   console.log("   Agent ID :", AGENT_ID);
 
-  /*
-   * Register this agent with backend
-   */
+
+  /* -------------------------------------------------
+     REGISTER AGENT
+  ------------------------------------------------- */
 
   socket.emit("register-agent", {
-  agentId: AGENT_ID,
-  deviceId: AGENT_ID,
-  hostname: os.hostname(),
-  platform: process.platform,
-  architecture: process.arch,
 
-  capabilities: [
-    "FORENSIC_SCAN",
-    "FORENSIC_RECOVER",
-    "FORENSIC_ANALYZE",
-    "DRIVE_DISCOVERY"
-  ]
-});
+    agentId: AGENT_ID,
+
+    deviceId: AGENT_ID,
+
+    hostname: os.hostname(),
+
+    platform: process.platform,
+
+    architecture: process.arch,
+
+    capabilities: [
+
+      "FORENSIC_SCAN",
+
+      "FORENSIC_RECOVER",
+
+      "FORENSIC_ANALYZE",
+
+      "DRIVE_DISCOVERY",
+
+    ],
+
+  });
+
 
   console.log("📡 Agent registration sent");
+
 });
 
 
@@ -188,12 +206,16 @@ setInterval(
     socket.emit(
       "heartbeat",
       {
-        deviceId: AGENT_ID,
+
+        deviceId:
+          AGENT_ID,
 
         timestamp:
           new Date().toISOString(),
 
-        status: "online",
+        status:
+          "online",
+
       }
     );
 
@@ -206,39 +228,91 @@ setInterval(
    DRIVE DISCOVERY
 ===================================================== */
 
-socket.on("discover-drives", async (request = {}) => {
-  console.log("📀 Drive discovery requested");
+socket.on(
+  "discover-drives",
+  async (request = {}) => {
 
-  try {
-    const drives = await runDriveDiscovery();
-
-    socket.emit("drive-list", {
-      success: true,
-      requestId: request.requestId,
-      agentId: AGENT_ID,
-      deviceId: AGENT_ID,
-      hostname: os.hostname(),
-      platform: process.platform,
-      drives,
-    });
-
-    console.log("📀 Drive list sent to server");
-  } catch (error) {
-    console.error(
-      "❌ Drive discovery failed:",
-      error.message
+    console.log(
+      "📀 Drive discovery requested"
     );
 
-    socket.emit("drive-list", {
-      success: false,
-      requestId: request.requestId,
-      agentId: AGENT_ID,
-      deviceId: AGENT_ID,
-      drives: [],
-      error: error.message,
-    });
+
+    try {
+
+      const drives =
+        await runDriveDiscovery();
+
+
+      socket.emit(
+        "drive-list",
+        {
+
+          success:
+            true,
+
+          requestId:
+            request.requestId,
+
+          agentId:
+            AGENT_ID,
+
+          deviceId:
+            AGENT_ID,
+
+          hostname:
+            os.hostname(),
+
+          platform:
+            process.platform,
+
+          drives,
+
+        }
+      );
+
+
+      console.log(
+        "📀 Drive list sent to server"
+      );
+
+    }
+    catch (error) {
+
+      console.error(
+        "❌ Drive discovery failed:",
+        error.message
+      );
+
+
+      socket.emit(
+        "drive-list",
+        {
+
+          success:
+            false,
+
+          requestId:
+            request.requestId,
+
+          agentId:
+            AGENT_ID,
+
+          deviceId:
+            AGENT_ID,
+
+          drives:
+            [],
+
+          error:
+            error.message,
+
+        }
+      );
+
+    }
+
   }
-});
+);
 
 
 /* =====================================================
@@ -250,6 +324,7 @@ socket.on(
   async (job = {}) => {
 
     console.log("");
+
     console.log(
       "▶ Wipe task received"
     );
@@ -267,9 +342,9 @@ socket.on(
     );
 
 
-    /*
-     * Basic validation
-     */
+    /* -------------------------------------------------
+       VALIDATE JOB ID
+    ------------------------------------------------- */
 
     if (
       !job.jobId &&
@@ -280,6 +355,7 @@ socket.on(
         "❌ Wipe rejected: missing job ID"
       );
 
+
       socket.emit(
         "wipe-error",
         {
@@ -287,7 +363,8 @@ socket.on(
           deviceId:
             AGENT_ID,
 
-          jobId: null,
+          jobId:
+            null,
 
           error:
             "Missing wipe job ID",
@@ -295,13 +372,14 @@ socket.on(
         }
       );
 
+
       return;
     }
 
 
-    /*
-     * Make sure agent identity is attached
-     */
+    /* -------------------------------------------------
+       ATTACH AGENT ID
+    ------------------------------------------------- */
 
     const task = {
 
@@ -328,6 +406,7 @@ socket.on(
         err.message
       );
 
+
       socket.emit(
         "wipe-error",
         {
@@ -341,6 +420,10 @@ socket.on(
 
           error:
             err.message,
+
+          code:
+            err.code ||
+            "WIPE_TASK_FAILED",
 
           timestamp:
             new Date().toISOString(),
@@ -368,6 +451,7 @@ socket.on(
 
 
     console.log("");
+
     console.log(
       "⛔ Wipe cancellation requested"
     );
@@ -394,6 +478,7 @@ socket.on(
         jobId
       );
 
+
       console.log(
         "✅ Wipe cancellation processed:",
         jobId
@@ -414,6 +499,108 @@ socket.on(
 
 
 /* =====================================================
+   FORENSIC SOURCE NORMALIZATION
+===================================================== */
+
+/*
+ * Backend may send the physical device in several
+ * possible formats:
+ *
+ * 1. devicePath: "\\\\.\\PhysicalDrive0"
+ *
+ * 2. device_path: "\\\\.\\PhysicalDrive0"
+ *
+ * 3. disk: "\\\\.\\PhysicalDrive0"
+ *
+ * 4. disk: {
+ *      devicePath: "\\\\.\\PhysicalDrive0"
+ *    }
+ *
+ * 5. disk: {
+ *      device_path: "\\\\.\\PhysicalDrive0"
+ *    }
+ *
+ * Normalize all of them before starting the task.
+ */
+
+function resolveForensicDevicePath(job = {}) {
+
+  const directPath =
+    typeof job.devicePath === "string"
+      ? job.devicePath.trim()
+      : "";
+
+  if (directPath) {
+    return directPath;
+  }
+
+
+  const snakeCasePath =
+    typeof job.device_path === "string"
+      ? job.device_path.trim()
+      : "";
+
+  if (snakeCasePath) {
+    return snakeCasePath;
+  }
+
+
+  if (
+    typeof job.disk === "string"
+  ) {
+
+    const diskPath =
+      job.disk.trim();
+
+    if (diskPath) {
+      return diskPath;
+    }
+
+  }
+
+
+  if (
+    job.disk &&
+    typeof job.disk === "object"
+  ) {
+
+    const nestedDevicePath =
+      typeof job.disk.devicePath === "string"
+        ? job.disk.devicePath.trim()
+        : "";
+
+    if (nestedDevicePath) {
+      return nestedDevicePath;
+    }
+
+
+    const nestedSnakeCasePath =
+      typeof job.disk.device_path === "string"
+        ? job.disk.device_path.trim()
+        : "";
+
+    if (nestedSnakeCasePath) {
+      return nestedSnakeCasePath;
+    }
+
+
+    const nestedPath =
+      typeof job.disk.path === "string"
+        ? job.disk.path.trim()
+        : "";
+
+    if (nestedPath) {
+      return nestedPath;
+    }
+
+  }
+
+
+  return null;
+}
+
+
+/* =====================================================
    START FORENSIC RECOVERY
 ===================================================== */
 
@@ -422,6 +609,7 @@ socket.on(
   async (job = {}) => {
 
     console.log("");
+
     console.log(
       "================================="
     );
@@ -434,30 +622,64 @@ socket.on(
       "================================="
     );
 
+
     console.log(
       " Job ID:",
-      job.jobId || "unknown"
+      job.jobId ||
+      "unknown"
     );
 
     console.log(
       " Operation ID:",
-      job.operationId || "unknown"
+      job.operationId ||
+      "unknown"
     );
 
     console.log(
       " Case ID:",
-      job.caseId || "unknown"
+      job.caseId ||
+      "unknown"
     );
 
     console.log(
       " Evidence:",
-      job.fileName || "unknown"
+      job.fileName ||
+      job.evidence?.fileName ||
+      "physical-device"
     );
+
+
+    /* -------------------------------------------------
+       RESOLVE DEVICE PATH
+    ------------------------------------------------- */
+
+    const resolvedDevicePath =
+      resolveForensicDevicePath(job);
+
+
+    console.log(
+      " Device Path:",
+      resolvedDevicePath ||
+      "unknown"
+    );
+
 
     console.log(
       " Disk:",
-      job.devicePath || job.disk || "unknown"
+      typeof job.disk === "object"
+        ? JSON.stringify(job.disk)
+        : job.disk ||
+          "unknown"
     );
+
+
+    console.log(
+      " Source Type:",
+      job.sourceType ||
+      job.source_type ||
+      "unknown"
+    );
+
 
     console.log(
       " Agent:",
@@ -466,15 +688,16 @@ socket.on(
 
 
     /* -------------------------------------------------
-       VALIDATE JOB
+       VALIDATE JOB ID
     ------------------------------------------------- */
 
     if (!job.jobId) {
 
       console.error(
-        "❌ Forensic request rejected:"
-        + " missing jobId"
+        "❌ Forensic request rejected:" +
+        " missing jobId"
       );
+
 
       socket.emit(
         "forensic-error",
@@ -483,7 +706,8 @@ socket.on(
           deviceId:
             AGENT_ID,
 
-          jobId: null,
+          jobId:
+            null,
 
           error:
             "Missing forensic job ID",
@@ -497,16 +721,22 @@ socket.on(
         }
       );
 
+
       return;
     }
 
 
+    /* -------------------------------------------------
+       VALIDATE CASE ID
+    ------------------------------------------------- */
+
     if (!job.caseId) {
 
       console.error(
-        "❌ Forensic request rejected:"
-        + " missing caseId"
+        "❌ Forensic request rejected:" +
+        " missing caseId"
       );
+
 
       socket.emit(
         "forensic-error",
@@ -530,24 +760,38 @@ socket.on(
         }
       );
 
+
       return;
     }
 
 
-    /*
-     * A physical disk path should be provided
-     * by the backend after drive discovery.
-     */
+    /* -------------------------------------------------
+       VALIDATE DEVICE PATH
+    ------------------------------------------------- */
 
-    if (
-      !job.devicePath &&
-      !job.disk
-    ) {
+    if (!resolvedDevicePath) {
 
       console.error(
-        "❌ Forensic request rejected:"
-        + " missing disk/devicePath"
+        "❌ Forensic request rejected:" +
+        " missing disk/devicePath"
       );
+
+
+      console.error(
+        "   Raw devicePath:",
+        job.devicePath
+      );
+
+      console.error(
+        "   Raw device_path:",
+        job.device_path
+      );
+
+      console.error(
+        "   Raw disk:",
+        job.disk
+      );
+
 
       socket.emit(
         "forensic-error",
@@ -571,13 +815,25 @@ socket.on(
         }
       );
 
+
       return;
     }
 
 
     /* -------------------------------------------------
-       ATTACH AGENT ID
+       NORMALIZE FORENSIC TASK
     ------------------------------------------------- */
+
+    const normalizedDisk = {
+
+      devicePath:
+        resolvedDevicePath,
+
+      device_path:
+        resolvedDevicePath,
+
+    };
+
 
     const forensicTask = {
 
@@ -589,7 +845,62 @@ socket.on(
       operation:
         "FORENSIC_SCAN",
 
+      devicePath:
+        resolvedDevicePath,
+
+      device_path:
+        resolvedDevicePath,
+
+      disk:
+        normalizedDisk,
+
+      sourceType:
+        job.sourceType ||
+        job.source_type ||
+        "DEVICE",
+
     };
+
+
+    /* -------------------------------------------------
+       DEBUG FINAL TASK
+    ------------------------------------------------- */
+
+    console.log("");
+    console.log(
+      "📤 NORMALIZED FORENSIC TASK"
+    );
+
+    console.log(
+      "   Job ID:",
+      forensicTask.jobId
+    );
+
+    console.log(
+      "   Case ID:",
+      forensicTask.caseId
+    );
+
+    console.log(
+      "   Device Path:",
+      forensicTask.devicePath
+    );
+
+    console.log(
+      "   Disk:",
+      JSON.stringify(
+        forensicTask.disk
+      )
+    );
+
+    console.log(
+      "   Source Type:",
+      forensicTask.sourceType
+    );
+
+    console.log(
+      "================================="
+    );
 
 
     /* -------------------------------------------------
@@ -655,6 +966,7 @@ socket.on(
 
 
     console.log("");
+
     console.log(
       "⛔ Forensic cancellation requested"
     );
@@ -668,8 +980,8 @@ socket.on(
     if (!jobId) {
 
       console.error(
-        "❌ Cancel forensic rejected:"
-        + " missing job ID"
+        "❌ Cancel forensic rejected:" +
+        " missing job ID"
       );
 
       return;
@@ -734,6 +1046,7 @@ const shutdown = (
 ) => {
 
   console.log("");
+
   console.log(
     `🛑 ${signal} received`
   );

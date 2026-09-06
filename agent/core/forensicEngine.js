@@ -1,4 +1,3 @@
-
 // agent/core/forensicEngine.js
 
 import fs from "fs";
@@ -7,6 +6,7 @@ import crypto from "crypto";
 import { spawn } from "child_process";
 import os from "os";
 import { fileURLToPath } from "url";
+
 
 /*
 =========================================================
@@ -23,11 +23,10 @@ import { fileURLToPath } from "url";
  - Enforce execution timeout
  - Parse JSON result
  - Hash generated forensic files
- - Return structured result
 
  IMPORTANT:
- Physical forensic acquisition must happen on the
- customer's TrustWipe Agent, NOT on the cloud backend.
+ Physical forensic acquisition happens on the
+ customer's TrustWipe Agent, NOT on Render.
 =========================================================
 */
 
@@ -36,8 +35,12 @@ import { fileURLToPath } from "url";
    PATH CONFIGURATION
 ===================================================== */
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename =
+    fileURLToPath(import.meta.url);
+
+const __dirname =
+    path.dirname(__filename);
+
 
 /*
    agent/core/forensicEngine.js
@@ -46,27 +49,19 @@ const __dirname = path.dirname(__filename);
 
    Agent root = .../agent
 */
+
 const AGENT_ROOT =
     process.env.TRUSTWIPE_AGENT_ROOT ||
-    path.resolve(__dirname, "..");
+    path.resolve(
+        __dirname,
+        ".."
+    );
 
 
-/*
-   Forensic Python project.
+/* =====================================================
+   FORENSIC PYTHON ROOT
+===================================================== */
 
-   Recommended commercial layout:
-
-   TrustWipeAgent/
-   ├── TrustWipeAgent.exe
-   ├── core/
-   ├── forensic_recovery/
-   │   ├── cli.py
-   │   ├── acquisition/
-   │   ├── carving/
-   │   ├── engine/
-   │   └── reports/
-   └── forensic/
-*/
 const FORENSIC_PYTHON_ROOT =
     process.env.FORENSIC_PYTHON_ROOT ||
     path.join(
@@ -75,9 +70,10 @@ const FORENSIC_PYTHON_ROOT =
     );
 
 
-/*
-   Local forensic storage.
-*/
+/* =====================================================
+   LOCAL FORENSIC STORAGE
+===================================================== */
+
 const FORENSIC_ROOT =
     process.env.FORENSIC_AGENT_ROOT ||
     path.join(
@@ -85,20 +81,17 @@ const FORENSIC_ROOT =
         "forensic"
     );
 
-
 const EVIDENCE_ROOT =
     path.join(
         FORENSIC_ROOT,
         "evidence"
     );
 
-
 const RECOVERED_ROOT =
     path.join(
         FORENSIC_ROOT,
         "recovered"
     );
-
 
 const REPORTS_ROOT =
     path.join(
@@ -114,7 +107,6 @@ const REPORTS_ROOT =
 const DEFAULT_TIMEOUT =
     6 * 60 * 60 * 1000; // 6 hours
 
-
 const FORENSIC_TIMEOUT_MS =
     Number(
         process.env.FORENSIC_TIMEOUT_MS
@@ -122,11 +114,9 @@ const FORENSIC_TIMEOUT_MS =
 
 
 /*
-   Maximum amount of stdout/stderr retained in memory.
-
-   Prevents an extremely verbose Python process from
-   consuming unlimited memory.
+   Maximum stdout/stderr retained in memory.
 */
+
 const MAX_OUTPUT_BYTES =
     Number(
         process.env.FORENSIC_MAX_OUTPUT_BYTES
@@ -166,7 +156,6 @@ function ensureDirectories() {
             recursive: true
         }
     );
-
 }
 
 
@@ -174,7 +163,10 @@ function ensureDirectories() {
    SAFE STRING
 ===================================================== */
 
-function safeString(value, fallback = "") {
+function safeString(
+    value,
+    fallback = ""
+) {
 
     if (
         value === undefined ||
@@ -183,8 +175,9 @@ function safeString(value, fallback = "") {
         return fallback;
     }
 
-    return String(value).trim();
-
+    return String(
+        value
+    ).trim();
 }
 
 
@@ -192,36 +185,52 @@ function safeString(value, fallback = "") {
    SHA-256 FILE HASH
 ===================================================== */
 
-function sha256File(filePath) {
+function sha256File(
+    filePath
+) {
 
     return new Promise(
-        (resolve, reject) => {
+        (
+            resolve,
+            reject
+        ) => {
 
             const hash =
-                crypto.createHash("sha256");
+                crypto.createHash(
+                    "sha256"
+                );
 
             const stream =
                 fs.createReadStream(
                     filePath
                 );
 
+
             stream.on(
                 "data",
                 chunk => {
-                    hash.update(chunk);
+
+                    hash.update(
+                        chunk
+                    );
+
                 }
             );
+
 
             stream.on(
                 "end",
                 () => {
 
                     resolve(
-                        hash.digest("hex")
+                        hash.digest(
+                            "hex"
+                        )
                     );
 
                 }
             );
+
 
             stream.on(
                 "error",
@@ -230,7 +239,6 @@ function sha256File(filePath) {
 
         }
     );
-
 }
 
 
@@ -238,30 +246,40 @@ function sha256File(filePath) {
    RECURSIVE FILE HASHING
 ===================================================== */
 
-async function hashDirectory(directory) {
+async function hashDirectory(
+    directory
+) {
 
     const files = [];
 
+
     if (
-        !fs.existsSync(directory)
+        !fs.existsSync(
+            directory
+        )
     ) {
+
         return files;
     }
 
 
-    async function walk(currentDirectory) {
+    async function walk(
+        currentDirectory
+    ) {
 
         const entries =
             await fs.promises.readdir(
                 currentDirectory,
                 {
-                    withFileTypes: true
+                    withFileTypes:
+                        true
                 }
             );
 
 
         for (
-            const entry of entries
+            const entry
+            of entries
         ) {
 
             const fullPath =
@@ -286,6 +304,7 @@ async function hashDirectory(directory) {
             if (
                 !entry.isFile()
             ) {
+
                 continue;
             }
 
@@ -323,7 +342,9 @@ async function hashDirectory(directory) {
                 });
 
             }
-            catch (error) {
+            catch (
+                error
+            ) {
 
                 files.push({
 
@@ -342,16 +363,16 @@ async function hashDirectory(directory) {
                 });
 
             }
-
         }
-
     }
 
 
-    await walk(directory);
+    await walk(
+        directory
+    );
+
 
     return files;
-
 }
 
 
@@ -362,19 +383,7 @@ async function hashDirectory(directory) {
 function getPythonCommand() {
 
     /*
-       Commercial Windows Agent:
-
-       Recommended:
-
-       agent/
-       ├── runtime/
-       │   └── python/
-       │       └── python.exe
-
-       Set:
-
-       FORENSIC_PYTHON_EXE=
-       C:\...\runtime\python\python.exe
+       Explicit Python executable.
     */
 
     if (
@@ -384,16 +393,16 @@ function getPythonCommand() {
         return path.resolve(
             process.env.FORENSIC_PYTHON_EXE
         );
-
     }
 
 
     /*
-       Bundled Python location.
+       Bundled Python.
     */
 
     if (
-        os.platform() === "win32"
+        os.platform() ===
+        "win32"
     ) {
 
         const bundledPython =
@@ -412,20 +421,14 @@ function getPythonCommand() {
         ) {
 
             return bundledPython;
-
         }
 
 
         /*
            Development fallback.
-
-           This allows the developer machine
-           to use normal Python if bundled Python
-           has not yet been packaged.
         */
 
         return "python";
-
     }
 
 
@@ -434,7 +437,6 @@ function getPythonCommand() {
     */
 
     return "python3";
-
 }
 
 
@@ -447,12 +449,16 @@ function runPython(
     {
         onOutput,
         isCancelled,
-        timeoutMs = FORENSIC_TIMEOUT_MS
+        timeoutMs =
+            FORENSIC_TIMEOUT_MS
     } = {}
 ) {
 
     return new Promise(
-        (resolve, reject) => {
+        (
+            resolve,
+            reject
+        ) => {
 
             const pythonCommand =
                 getPythonCommand();
@@ -463,6 +469,10 @@ function runPython(
                     FORENSIC_PYTHON_ROOT
                 );
 
+
+            /*
+               Validate forensic Python root.
+            */
 
             if (
                 !fs.existsSync(
@@ -475,12 +485,11 @@ function runPython(
                         `Forensic Python directory not found: ${pythonRoot}`
                     )
                 );
-
             }
 
 
             /*
-               cli.py must exist.
+               Validate cli.py.
             */
 
             const cliPath =
@@ -501,15 +510,11 @@ function runPython(
                         `Forensic CLI not found: ${cliPath}`
                     )
                 );
-
             }
 
 
             /*
-               Replace relative cli.py with
-               absolute cli.py path.
-
-               This prevents cwd/path problems.
+               Prepare arguments.
             */
 
             const pythonArgs =
@@ -517,12 +522,12 @@ function runPython(
 
 
             if (
-                pythonArgs[0] === "cli.py"
+                pythonArgs[0] ===
+                "cli.py"
             ) {
 
                 pythonArgs[0] =
                     cliPath;
-
             }
 
 
@@ -543,6 +548,7 @@ function runPython(
 
 
             let stdout = "";
+
             let stderr = "";
 
             let settled = false;
@@ -552,40 +558,50 @@ function runPython(
             let cancelled = false;
 
 
+            /*
+               Start Python process.
+            */
+
             const child =
                 spawn(
                     pythonCommand,
                     pythonArgs,
                     {
-                        cwd: pythonRoot,
+
+                        cwd:
+                            pythonRoot,
 
                         windowsHide:
-                            os.platform() === "win32",
+                            os.platform() ===
+                            "win32",
 
-                        shell: false,
+                        shell:
+                            false,
 
                         env: {
+
                             ...process.env,
 
                             PYTHONUNBUFFERED:
                                 "1"
                         }
+
                     }
                 );
 
+
+            /* =================================================
+               OUTPUT LIMITER
+            ================================================= */
 
             function appendOutput(
                 target,
                 text
             ) {
 
-                /*
-                   Keep only the latest
-                   MAX_OUTPUT_BYTES.
-                */
-
                 const combined =
-                    target + text;
+                    target +
+                    text;
 
 
                 if (
@@ -597,7 +613,6 @@ function runPython(
                 ) {
 
                     return combined;
-
                 }
 
 
@@ -613,15 +628,18 @@ function runPython(
                         Math.max(
                             0,
                             buffer.length -
-                            MAX_OUTPUT_BYTES
+                                MAX_OUTPUT_BYTES
                         )
                     )
                     .toString(
                         "utf8"
                     );
-
             }
 
+
+            /* =================================================
+               FINISH ERROR
+            ================================================= */
 
             function finishError(
                 error
@@ -630,15 +648,24 @@ function runPython(
                 if (
                     settled
                 ) {
+
                     return;
                 }
 
-                settled = true;
 
-                reject(error);
+                settled =
+                    true;
 
+
+                reject(
+                    error
+                );
             }
 
+
+            /* =================================================
+               FINISH SUCCESS
+            ================================================= */
 
             function finishSuccess(
                 result
@@ -647,24 +674,24 @@ function runPython(
                 if (
                     settled
                 ) {
+
                     return;
                 }
 
-                settled = true;
 
-                resolve(result);
+                settled =
+                    true;
 
+
+                resolve(
+                    result
+                );
             }
 
 
-            /*
-               Cancellation checker.
-
-               The task engine passes:
-
-               isCancelled: () =>
-                   isCancelled(jobId)
-            */
+            /* =================================================
+               CANCELLATION TIMER
+            ================================================= */
 
             const cancellationTimer =
                 setInterval(
@@ -674,15 +701,18 @@ function runPython(
 
                             if (
                                 typeof isCancelled ===
-                                "function" &&
+                                    "function" &&
                                 isCancelled()
                             ) {
 
-                                cancelled = true;
+                                cancelled =
+                                    true;
+
 
                                 clearInterval(
                                     cancellationTimer
                                 );
+
 
                                 try {
 
@@ -693,9 +723,10 @@ function runPython(
                                 }
                                 catch {}
 
+
                                 /*
-                                   Windows may require
-                                   force termination.
+                                   Force termination if
+                                   necessary.
                                 */
 
                                 setTimeout(
@@ -713,26 +744,23 @@ function runPython(
 
                                             }
                                             catch {}
-
                                         }
 
                                     },
                                     3000
                                 );
-
                             }
 
                         }
                         catch {}
-
                     },
                     1000
                 );
 
 
-            /*
-               Execution timeout.
-            */
+            /* =================================================
+               TIMEOUT
+            ================================================= */
 
             const timeoutTimer =
                 setTimeout(
@@ -741,11 +769,13 @@ function runPython(
                         if (
                             settled
                         ) {
+
                             return;
                         }
 
 
-                        timedOut = true;
+                        timedOut =
+                            true;
 
 
                         console.error(
@@ -779,7 +809,6 @@ function runPython(
 
                                     }
                                     catch {}
-
                                 }
 
                             },
@@ -790,6 +819,10 @@ function runPython(
                     timeoutMs
                 );
 
+
+            /* =================================================
+               STDOUT
+            ================================================= */
 
             child.stdout.on(
                 "data",
@@ -815,12 +848,14 @@ function runPython(
                             text,
                             "stdout"
                         );
-
                     }
-
                 }
             );
 
+
+            /* =================================================
+               STDERR
+            ================================================= */
 
             child.stderr.on(
                 "data",
@@ -846,12 +881,14 @@ function runPython(
                             text,
                             "stderr"
                         );
-
                     }
-
                 }
             );
 
+
+            /* =================================================
+               PROCESS ERROR
+            ================================================= */
 
             child.on(
                 "error",
@@ -869,10 +906,13 @@ function runPython(
                     finishError(
                         error
                     );
-
                 }
             );
 
+
+            /* =================================================
+               PROCESS CLOSE
+            ================================================= */
 
             child.on(
                 "close",
@@ -902,7 +942,6 @@ function runPython(
                                 }
                             )
                         );
-
                     }
 
 
@@ -921,7 +960,6 @@ function runPython(
                                 }
                             )
                         );
-
                     }
 
 
@@ -935,6 +973,7 @@ function runPython(
                                     `Forensic engine exited with code ${code}: ${stderr}`
                                 ),
                                 {
+
                                     code:
                                         "FORENSIC_PROCESS_FAILED",
 
@@ -944,10 +983,10 @@ function runPython(
                                     stdout,
 
                                     stderr
+
                                 }
                             )
                         );
-
                     }
 
 
@@ -961,13 +1000,10 @@ function runPython(
                             code
 
                     });
-
                 }
             );
-
         }
     );
-
 }
 
 
@@ -982,12 +1018,13 @@ function parseProgressLine(
     if (
         !line
     ) {
+
         return null;
     }
 
 
     /*
-       Supported examples:
+       Supported:
 
        PROGRESS:10
        PROGRESS:50:Scanning
@@ -1020,14 +1057,12 @@ function parseProgressLine(
             message:
                 progressMatch[2] ||
                 "Forensic scan in progress."
-
         };
-
     }
 
 
     /*
-       Try JSON progress messages.
+       JSON progress message.
     */
 
     try {
@@ -1041,7 +1076,7 @@ function parseProgressLine(
         if (
             parsed &&
             typeof parsed.progress ===
-            "number"
+                "number"
         ) {
 
             return {
@@ -1058,9 +1093,7 @@ function parseProgressLine(
                 message:
                     parsed.message ||
                     "Forensic scan in progress."
-
             };
-
         }
 
     }
@@ -1068,12 +1101,11 @@ function parseProgressLine(
 
 
     return null;
-
 }
 
 
 /* =====================================================
-   RESULT PARSER
+   PYTHON RESULT PARSER
 ===================================================== */
 
 function parsePythonResult(
@@ -1091,12 +1123,12 @@ function parsePythonResult(
     ) {
 
         return {};
-
     }
 
 
     /*
-       First try complete stdout.
+       First attempt:
+       Entire stdout is JSON.
     */
 
     try {
@@ -1111,13 +1143,13 @@ function parsePythonResult(
 
     /*
        Python may print logs before JSON.
-
-       Search from the end for a JSON object.
     */
 
     const lines =
         text
-            .split(/\r?\n/)
+            .split(
+                /\r?\n/
+            )
             .map(
                 line =>
                     line.trim()
@@ -1127,9 +1159,16 @@ function parsePythonResult(
             );
 
 
+    /*
+       Search from the end.
+    */
+
     for (
-        let i = lines.length - 1;
+        let i =
+            lines.length - 1;
+
         i >= 0;
+
         i--
     ) {
 
@@ -1147,22 +1186,20 @@ function parsePythonResult(
 
             if (
                 parsed &&
-                typeof parsed === "object"
+                typeof parsed ===
+                    "object"
             ) {
 
                 return parsed;
-
             }
 
         }
         catch {}
-
     }
 
 
     /*
-       Preserve raw output if no JSON
-       was found.
+       Preserve raw output.
     */
 
     return {
@@ -1171,7 +1208,6 @@ function parsePythonResult(
             stdout
 
     };
-
 }
 
 
@@ -1206,9 +1242,9 @@ export async function runForensicScan({
     ensureDirectories();
 
 
-    /* -------------------------------------------------
-       VALIDATION
-    ------------------------------------------------- */
+    /* =================================================
+       BASIC VALIDATION
+    ================================================= */
 
     if (
         !jobId
@@ -1217,7 +1253,6 @@ export async function runForensicScan({
         throw new Error(
             "Forensic job ID is required."
         );
-
     }
 
 
@@ -1228,7 +1263,6 @@ export async function runForensicScan({
         throw new Error(
             "Case ID is required."
         );
-
     }
 
 
@@ -1239,29 +1273,23 @@ export async function runForensicScan({
         throw new Error(
             "Examiner is required."
         );
-
     }
 
 
-    /*
-       Support both:
-
-       devicePath: "..."
-
-       and:
-
-       disk: {
-           devicePath: "..."
-       }
-
-       and:
-
-       disk: "..."
-    */
+    /* =================================================
+       RESOLVE DEVICE PATH
+    ================================================= */
 
     let resolvedDevicePath =
-        devicePath;
+        typeof devicePath ===
+        "string"
+            ? devicePath.trim()
+            : null;
 
+
+    /*
+       Fallback to disk.
+    */
 
     if (
         !resolvedDevicePath &&
@@ -1274,7 +1302,7 @@ export async function runForensicScan({
         ) {
 
             resolvedDevicePath =
-                disk;
+                disk.trim();
 
         }
         else if (
@@ -1283,43 +1311,69 @@ export async function runForensicScan({
         ) {
 
             resolvedDevicePath =
-                disk.devicePath;
+                disk.devicePath.trim();
 
         }
+        else if (
+            typeof disk.device_path ===
+            "string"
+        ) {
 
+            resolvedDevicePath =
+                disk.device_path.trim();
+
+        }
     }
 
+
+    /* =================================================
+       VALIDATE DEVICE PATH
+    ================================================= */
 
     if (
         !resolvedDevicePath
     ) {
 
-        throw new Error(
-            "Physical device path is missing."
-        );
+        const error =
+            new Error(
+                "Physical device path is missing."
+            );
 
+        error.code =
+            "FORENSIC_DEVICE_PATH_MISSING";
+
+        throw error;
     }
 
 
     /*
-       IMPORTANT:
+       Normalize Windows physical path.
 
-       Do not use fs.existsSync()
-       blindly for physical Windows
-       device paths such as:
+       Expected:
 
        \\\\.\\PhysicalDrive0
-
-       These are not normal files.
-
-       The Python acquisition layer must
-       validate/open the device.
     */
 
+    if (
+        os.platform() ===
+            "win32" &&
+        resolvedDevicePath
+            .toLowerCase()
+            .startsWith(
+                "\\\\.\\"
+            ) === false
+    ) {
 
-    /* -------------------------------------------------
+        console.warn(
+            "[Forensics] Device path does not use Windows physical-device format:",
+            resolvedDevicePath
+        );
+    }
+
+
+    /* =================================================
        JOB OUTPUT DIRECTORY
-    ------------------------------------------------- */
+    ================================================= */
 
     const safeJobId =
         safeString(
@@ -1340,14 +1394,15 @@ export async function runForensicScan({
     fs.mkdirSync(
         outputDirectory,
         {
-            recursive: true
+            recursive:
+                true
         }
     );
 
 
-    /* -------------------------------------------------
+    /* =================================================
        PROGRESS
-    ------------------------------------------------- */
+    ================================================= */
 
     const emitProgress =
         (
@@ -1373,13 +1428,13 @@ export async function runForensicScan({
 
 
             /*
-               Existing socket event.
+               Agent → Backend.
             */
 
             if (
                 socket &&
                 typeof socket.emit ===
-                "function"
+                    "function"
             ) {
 
                 socket.emit(
@@ -1413,18 +1468,16 @@ export async function runForensicScan({
 
                     }
                 );
-
             }
 
 
             /*
-               Callback used by
-               forensicTaskEngine.js.
+               Task engine callback.
             */
 
             if (
                 typeof onProgress ===
-                "function"
+                    "function"
             ) {
 
                 try {
@@ -1435,23 +1488,22 @@ export async function runForensicScan({
                     );
 
                 }
-                catch (error) {
+                catch (
+                    error
+                ) {
 
                     console.warn(
                         "[Forensics] Progress callback failed:",
                         error.message
                     );
-
                 }
-
             }
-
         };
 
 
-    /* -------------------------------------------------
-       START
-    ------------------------------------------------- */
+    /* =================================================
+       INITIAL PROGRESS
+    ================================================= */
 
     emitProgress(
         5,
@@ -1459,20 +1511,19 @@ export async function runForensicScan({
     );
 
 
-    /*
-       Check cancellation before
-       starting Python.
-    */
+    /* =================================================
+       CANCELLATION CHECK
+    ================================================= */
 
     if (
         typeof isCancelled ===
-        "function" &&
+            "function" &&
         isCancelled()
     ) {
 
         emitProgress(
             0,
-            "Forensic scan cancelled.",
+            "Forensic scan cancelled."
         );
 
 
@@ -1481,13 +1532,10 @@ export async function runForensicScan({
                 "Forensic scan was cancelled."
             );
 
-
         error.code =
             "FORENSIC_CANCELLED";
 
-
         throw error;
-
     }
 
 
@@ -1497,52 +1545,69 @@ export async function runForensicScan({
     );
 
 
+    /* =================================================
+       FORENSIC ENGINE LOG
+    ================================================= */
+
     console.log("");
+
     console.log(
         "========================================"
     );
+
     console.log(
         "       TRUSTWIPE FORENSIC ENGINE"
     );
+
     console.log(
         "========================================"
     );
+
     console.log(
         "Job ID       :",
         jobId
     );
+
     console.log(
         "Case ID      :",
         caseId
     );
+
     console.log(
         "Examiner     :",
         examiner
     );
+
     console.log(
         "Agent ID     :",
-        agentId || "unknown"
+        agentId ||
+        "unknown"
     );
+
     console.log(
         "Operation ID :",
-        operationId || "unknown"
+        operationId ||
+        "unknown"
     );
+
     console.log(
         "Device       :",
         resolvedDevicePath
     );
+
     console.log(
         "Output       :",
         outputDirectory
     );
+
     console.log(
         "========================================"
     );
 
 
-    /* -------------------------------------------------
-       RUN PYTHON FORENSIC ENGINE
-    ------------------------------------------------- */
+    /* =================================================
+       PYTHON ARGUMENTS
+    ================================================= */
 
     const pythonArgs = [
 
@@ -1557,15 +1622,29 @@ export async function runForensicScan({
         outputDirectory,
 
         "--case",
-        String(caseId),
+        String(
+            caseId
+        ),
 
         "--examiner",
-        String(examiner),
+        String(
+            examiner
+        ),
 
         "--json"
 
     ];
 
+
+    console.log(
+        "[Forensics] Physical acquisition target:",
+        resolvedDevicePath
+    );
+
+
+    /* =================================================
+       PYTHON EXECUTION
+    ================================================= */
 
     let lastProgress =
         10;
@@ -1588,14 +1667,13 @@ export async function runForensicScan({
                     ) => {
 
                         /*
-                           Forward raw Python
-                           output to dashboard.
+                           Forward Python output.
                         */
 
                         if (
                             socket &&
                             typeof socket.emit ===
-                            "function"
+                                "function"
                         ) {
 
                             socket.emit(
@@ -1617,13 +1695,11 @@ export async function runForensicScan({
 
                                 }
                             );
-
                         }
 
 
                         /*
-                           Parse progress from
-                           Python output.
+                           Parse progress.
                         */
 
                         const lines =
@@ -1661,20 +1737,16 @@ export async function runForensicScan({
                                     lastProgress,
                                     progress.message
                                 );
-
                             }
-
                         }
-
                     }
-
             }
         );
 
 
-    /* -------------------------------------------------
+    /* =================================================
        FINALIZATION
-    ------------------------------------------------- */
+    ================================================= */
 
     emitProgress(
         90,
@@ -1682,14 +1754,13 @@ export async function runForensicScan({
     );
 
 
-    /*
-       Check cancellation after
-       Python execution.
-    */
+    /* =================================================
+       CANCELLATION CHECK
+    ================================================= */
 
     if (
         typeof isCancelled ===
-        "function" &&
+            "function" &&
         isCancelled()
     ) {
 
@@ -1704,19 +1775,16 @@ export async function runForensicScan({
                 "Forensic scan was cancelled."
             );
 
-
         error.code =
             "FORENSIC_CANCELLED";
 
-
         throw error;
-
     }
 
 
-    /* -------------------------------------------------
-       PARSE RESULT
-    ------------------------------------------------- */
+    /* =================================================
+       PARSE PYTHON RESULT
+    ================================================= */
 
     const parsedResult =
         parsePythonResult(
@@ -1724,9 +1792,9 @@ export async function runForensicScan({
         );
 
 
-    /* -------------------------------------------------
+    /* =================================================
        HASH FORENSIC OUTPUTS
-    ------------------------------------------------- */
+    ================================================= */
 
     emitProgress(
         93,
@@ -1734,7 +1802,8 @@ export async function runForensicScan({
     );
 
 
-    let outputFiles = [];
+    let outputFiles =
+        [];
 
 
     try {
@@ -1745,34 +1814,32 @@ export async function runForensicScan({
             );
 
     }
-    catch (error) {
+    catch (
+        error
+    ) {
 
         console.warn(
             "[Forensics] Output hashing failed:",
             error.message
         );
-
     }
 
 
-    /*
-       Count files.
-    */
+    /* =================================================
+       ARTIFACT COUNTS
+    ================================================= */
 
     const artifactsFound =
         outputFiles.length;
 
-
-    /*
-       Total recovered bytes.
-    */
 
     let totalOutputBytes =
         0;
 
 
     for (
-        const file of outputFiles
+        const file
+        of outputFiles
     ) {
 
         if (
@@ -1783,15 +1850,13 @@ export async function runForensicScan({
 
             totalOutputBytes +=
                 file.size;
-
         }
-
     }
 
 
-    /* -------------------------------------------------
-       FINAL RESULT
-    ------------------------------------------------- */
+    /* =================================================
+       FINAL PROGRESS
+    ================================================= */
 
     emitProgress(
         100,
@@ -1799,11 +1864,48 @@ export async function runForensicScan({
     );
 
 
+    /* =================================================
+       COMPLETION LOG
+    ================================================= */
+
+    console.log("");
+
     console.log(
-        "[Forensics] Scan completed:",
+        "========================================"
+    );
+
+    console.log(
+        "✅ FORENSIC SCAN COMPLETED"
+    );
+
+    console.log(
+        "Job ID:",
         jobId
     );
 
+    console.log(
+        "Device:",
+        resolvedDevicePath
+    );
+
+    console.log(
+        "Artifacts:",
+        artifactsFound
+    );
+
+    console.log(
+        "Recovered Bytes:",
+        totalOutputBytes
+    );
+
+    console.log(
+        "========================================"
+    );
+
+
+    /* =================================================
+       RETURN STRUCTURED RESULT
+    ================================================= */
 
     return {
 
@@ -1828,10 +1930,10 @@ export async function runForensicScan({
             resolvedDevicePath,
 
         disk:
-            disk || {
-                devicePath:
-                    resolvedDevicePath
-            },
+            sourceDiskForResult(
+                disk,
+                resolvedDevicePath
+            ),
 
         outputDirectory,
 
@@ -1853,7 +1955,45 @@ export async function runForensicScan({
                 .toISOString()
 
     };
+}
 
+
+/* =====================================================
+   SOURCE DISK RESULT HELPER
+===================================================== */
+
+function sourceDiskForResult(
+    disk,
+    resolvedDevicePath
+) {
+
+    if (
+        disk &&
+        typeof disk ===
+            "object"
+    ) {
+
+        return {
+
+            ...disk,
+
+            devicePath:
+                resolvedDevicePath,
+
+            device_path:
+                resolvedDevicePath
+        };
+    }
+
+
+    return {
+
+        devicePath:
+            resolvedDevicePath,
+
+        device_path:
+            resolvedDevicePath
+    };
 }
 
 
@@ -1866,4 +2006,3 @@ export {
     hashDirectory,
     getPythonCommand
 };
-

@@ -19,54 +19,146 @@ import {
 
 export async function startForensicTask(socket, job) {
 
+    /* -------------------------------------------------
+       BASIC JOB DATA
+    ------------------------------------------------- */
+
     const {
         jobId,
         disk,
         devicePath,
         caseId,
         examiner
-    } = job;
+    } = job || {};
+
+
+    /* -------------------------------------------------
+       NORMALIZE FORENSIC DEVICE PATH
+    ------------------------------------------------- */
+
+    const resolvedDevicePath =
+        typeof devicePath === "string" &&
+        devicePath.trim()
+            ? devicePath.trim()
+
+            : typeof disk === "string" &&
+              disk.trim()
+                ? disk.trim()
+
+                : typeof disk?.devicePath === "string" &&
+                  disk.devicePath.trim()
+                    ? disk.devicePath.trim()
+
+                    : typeof disk?.device_path === "string" &&
+                      disk.device_path.trim()
+                        ? disk.device_path.trim()
+
+                        : null;
+
+
+    /* -------------------------------------------------
+       NORMALIZE SOURCE DISK
+    ------------------------------------------------- */
 
     const sourceDisk =
-  typeof devicePath === "string"
-    ? { devicePath }
-    : typeof disk === "string"
-      ? { devicePath: disk }
-      : devicePath || disk;
+        resolvedDevicePath
+            ? {
+                devicePath:
+                    resolvedDevicePath,
+
+                device_path:
+                    resolvedDevicePath
+            }
+            : null;
+
+
+    /* -------------------------------------------------
+       LOG FORENSIC REQUEST
+    ------------------------------------------------- */
 
     console.log("");
-    console.log("================================");
-    console.log("      FORENSIC SCAN RECEIVED");
-    console.log("================================");
-    console.log("Job ID :", jobId);
-    console.log("Case ID:", caseId);
-    console.log("Disk   :", sourceDisk);
-    console.log("Agent  :", job.agentId || "unknown");
-    console.log("================================");
-    runForensicScan({
-  jobId,
-  disk: sourceDisk,
-  devicePath: sourceDisk.devicePath,
-  caseId,
-  examiner,
-  agentId: job.agentId || null,
-  operationId: job.operationId || null,
-  socket,
-});
+
+    console.log(
+        "================================"
+    );
+
+    console.log(
+        "      FORENSIC SCAN RECEIVED"
+    );
+
+    console.log(
+        "================================"
+    );
+
+    console.log(
+        "Job ID :",
+        jobId || "unknown"
+    );
+
+    console.log(
+        "Case ID:",
+        caseId || "unknown"
+    );
+
+    console.log(
+        "Disk   :",
+        sourceDisk || "unknown"
+    );
+
+    console.log(
+        "Device Path:",
+        resolvedDevicePath || "unknown"
+    );
+
+    console.log(
+        "Evidence:",
+        job?.evidence?.fileName ||
+        job?.evidence?.file_name ||
+        job?.fileName ||
+        "unknown"
+    );
+
+    console.log(
+        "Agent  :",
+        job?.agentId || "unknown"
+    );
+
+    console.log(
+        "================================"
+    );
+
+
     /* -------------------------------------------------
        VALIDATION
     ------------------------------------------------- */
 
     if (!jobId) {
-        throw new Error("Missing forensic job ID");
+
+        throw new Error(
+            "Missing forensic job ID"
+        );
     }
+
 
     if (!caseId) {
-        throw new Error("Missing case ID");
+
+        throw new Error(
+            "Missing case ID"
+        );
     }
 
-    if (!sourceDisk) {
-        throw new Error("Missing forensic source disk");
+
+    if (!resolvedDevicePath) {
+
+        const error =
+            new Error(
+                "Missing forensic source disk/devicePath"
+            );
+
+        error.code =
+            "FORENSIC_DEVICE_PATH_MISSING";
+
+        throw error;
     }
 
 
@@ -74,7 +166,10 @@ export async function startForensicTask(socket, job) {
        CREATE LOCAL JOB
     ------------------------------------------------- */
 
-    createJob(jobId, "FORENSIC");
+    createJob(
+        jobId,
+        "FORENSIC"
+    );
 
 
     /* -------------------------------------------------
@@ -87,15 +182,22 @@ export async function startForensicTask(socket, job) {
         status = "RUNNING"
     ) => {
 
-        const safeProgress = Math.max(
-            0,
-            Math.min(100, Number(progress) || 0)
-        );
+        const safeProgress =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    Number(progress) || 0
+                )
+            );
+
 
         updateJob(
             jobId,
             {
-                progress: safeProgress,
+                progress:
+                    safeProgress,
+
                 status
             }
         );
@@ -104,16 +206,21 @@ export async function startForensicTask(socket, job) {
         socket.emit(
             "forensic-progress",
             {
-                deviceId: job.agentId || null,
+
+                deviceId:
+                    job?.agentId ||
+                    null,
 
                 jobId,
 
                 operationId:
-                    job.operationId || null,
+                    job?.operationId ||
+                    null,
 
                 caseId,
 
-                progress: safeProgress,
+                progress:
+                    safeProgress,
 
                 message,
 
@@ -123,15 +230,18 @@ export async function startForensicTask(socket, job) {
                     new Date().toISOString()
             }
         );
-
     };
 
 
-    /* -------------------------------------------------
-       START
-    ------------------------------------------------- */
+    /* =================================================
+       START FORENSIC PROCESSING
+    ================================================= */
 
     try {
+
+        /* ---------------------------------------------
+           INITIAL PROGRESS
+        --------------------------------------------- */
 
         emitProgress(
             1,
@@ -152,7 +262,11 @@ export async function startForensicTask(socket, job) {
                 "CANCELLED"
             );
 
-            removeJob(jobId);
+
+            removeJob(
+                jobId
+            );
+
 
             return {
                 success: false,
@@ -166,63 +280,82 @@ export async function startForensicTask(socket, job) {
            RUN FORENSIC ENGINE
         --------------------------------------------- */
 
-        const result = await runForensicScan({
+        const result =
+            await runForensicScan({
 
-            jobId,
+                jobId,
 
-            disk: sourceDisk,
+                disk:
+                    sourceDisk,
 
-            devicePath: sourceDisk?.devicePath || null,
+                devicePath:
+                    resolvedDevicePath,
 
-            caseId,
+                caseId,
 
-            examiner,
+                examiner,
 
-            agentId:
-                job.agentId || null,
+                agentId:
+                    job?.agentId ||
+                    null,
 
-            operationId:
-                job.operationId || null,
+                operationId:
+                    job?.operationId ||
+                    null,
 
-            socket,
+                socket,
 
-            /*
-             * Allow forensicEngine to check
-             * cancellation if it supports it.
-             */
-            isCancelled: () =>
-                isCancelled(jobId),
 
-            /*
-             * Progress callback for the
-             * forensic engine.
-             */
-            onProgress: (
-                progress,
-                message
-            ) => {
+                /* -------------------------------------
+                   CANCELLATION CALLBACK
+                ------------------------------------- */
 
-                if (isCancelled(jobId)) {
-                    return;
+                isCancelled: () =>
+                    isCancelled(
+                        jobId
+                    ),
+
+
+                /* -------------------------------------
+                   PROGRESS CALLBACK
+                ------------------------------------- */
+
+                onProgress: (
+                    progress,
+                    message
+                ) => {
+
+                    if (
+                        isCancelled(
+                            jobId
+                        )
+                    ) {
+                        return;
+                    }
+
+
+                    emitProgress(
+                        progress,
+
+                        message ||
+                        "Forensic scan in progress.",
+
+                        "RUNNING"
+                    );
                 }
 
-                emitProgress(
-                    progress,
-                    message ||
-                    "Forensic scan in progress.",
-                    "RUNNING"
-                );
-
-            }
-
-        });
+            });
 
 
         /* ---------------------------------------------
            CHECK CANCELLATION AFTER SCAN
         --------------------------------------------- */
 
-        if (isCancelled(jobId)) {
+        if (
+            isCancelled(
+                jobId
+            )
+        ) {
 
             emitProgress(
                 0,
@@ -230,7 +363,11 @@ export async function startForensicTask(socket, job) {
                 "CANCELLED"
             );
 
-            removeJob(jobId);
+
+            removeJob(
+                jobId
+            );
+
 
             return {
                 success: false,
@@ -241,40 +378,55 @@ export async function startForensicTask(socket, job) {
 
 
         /* ---------------------------------------------
-           COMPLETE
+           UPDATE LOCAL JOB
         --------------------------------------------- */
 
         updateJob(
             jobId,
             {
-                progress: 100,
-                status: "completed",
+
+                progress:
+                    100,
+
+                status:
+                    "completed",
+
                 result,
+
                 completedAt:
                     new Date()
             }
         );
 
 
+        /* ---------------------------------------------
+           SEND COMPLETION TO BACKEND
+        --------------------------------------------- */
+
         socket.emit(
             "forensic-complete",
             {
-                success: true,
+
+                success:
+                    true,
 
                 deviceId:
-                    job.agentId || null,
+                    job?.agentId ||
+                    null,
 
                 jobId,
 
                 operationId:
-                    job.operationId || null,
+                    job?.operationId ||
+                    null,
 
                 caseId,
 
                 status:
                     "COMPLETED",
 
-                progress: 100,
+                progress:
+                    100,
 
                 result,
 
@@ -284,7 +436,16 @@ export async function startForensicTask(socket, job) {
         );
 
 
+        /* ---------------------------------------------
+           LOG COMPLETION
+        --------------------------------------------- */
+
         console.log("");
+
+        console.log(
+            "================================"
+        );
+
         console.log(
             "✅ FORENSIC SCAN COMPLETED"
         );
@@ -294,28 +455,55 @@ export async function startForensicTask(socket, job) {
             jobId
         );
 
+        console.log(
+            "   Device:",
+            resolvedDevicePath
+        );
 
-        removeJob(jobId);
+        console.log(
+            "================================"
+        );
+
+
+        /* ---------------------------------------------
+           REMOVE LOCAL JOB
+        --------------------------------------------- */
+
+        removeJob(
+            jobId
+        );
 
 
         return {
-            success: true,
+            success:
+                true,
+
             jobId,
+
             result
         };
 
     }
 
 
-    /* -------------------------------------------------
-       ERROR
-    ------------------------------------------------- */
+    /* =================================================
+       FORENSIC ERROR
+    ================================================= */
 
     catch (error) {
 
         console.error("");
+
+        console.error(
+            "================================"
+        );
+
         console.error(
             "❌ FORENSIC TASK FAILED"
+        );
+
+        console.error(
+            "================================"
         );
 
         console.error(
@@ -324,18 +512,32 @@ export async function startForensicTask(socket, job) {
         );
 
         console.error(
-            "Error:",
-            error.message
+            "Device:",
+            resolvedDevicePath ||
+            "unknown"
         );
 
+        console.error(
+            "Error:",
+            error?.message ||
+            error
+        );
+
+
+        /* ---------------------------------------------
+           UPDATE LOCAL JOB
+        --------------------------------------------- */
 
         updateJob(
             jobId,
             {
-                status: "failed",
+
+                status:
+                    "failed",
 
                 error:
-                    error.message,
+                    error?.message ||
+                    "Forensic task failed.",
 
                 completedAt:
                     new Date()
@@ -343,18 +545,26 @@ export async function startForensicTask(socket, job) {
         );
 
 
+        /* ---------------------------------------------
+           SEND ERROR TO BACKEND
+        --------------------------------------------- */
+
         socket.emit(
             "forensic-error",
             {
-                success: false,
+
+                success:
+                    false,
 
                 deviceId:
-                    job.agentId || null,
+                    job?.agentId ||
+                    null,
 
                 jobId,
 
                 operationId:
-                    job.operationId || null,
+                    job?.operationId ||
+                    null,
 
                 caseId,
 
@@ -362,10 +572,11 @@ export async function startForensicTask(socket, job) {
                     "FAILED",
 
                 error:
-                    error.message,
+                    error?.message ||
+                    "Forensic task failed.",
 
                 code:
-                    error.code ||
+                    error?.code ||
                     "FORENSIC_TASK_FAILED",
 
                 timestamp:
@@ -374,13 +585,25 @@ export async function startForensicTask(socket, job) {
         );
 
 
-        removeJob(jobId);
+        /* ---------------------------------------------
+           REMOVE LOCAL JOB
+        --------------------------------------------- */
+
+        removeJob(
+            jobId
+        );
 
 
         return {
-            success: false,
+
+            success:
+                false,
+
             jobId,
-            error: error.message
+
+            error:
+                error?.message ||
+                "Forensic task failed."
         };
     }
 }
@@ -390,7 +613,9 @@ export async function startForensicTask(socket, job) {
    CANCEL FORENSIC TASK
 ===================================================== */
 
-export async function cancelForensicTask(jobId) {
+export async function cancelForensicTask(
+    jobId
+) {
 
     if (!jobId) {
 
@@ -401,21 +626,21 @@ export async function cancelForensicTask(jobId) {
 
 
     console.log("");
+
     console.log(
         "⛔ Cancelling forensic task:",
         jobId
     );
 
 
-    /*
-     * Mark the local job as cancelled.
-     *
-     * The forensic engine can check
-     * isCancelled(jobId) while running.
-     */
+    /* -------------------------------------------------
+       MARK JOB AS CANCELLED
+    ------------------------------------------------- */
 
     const cancelled =
-        cancelJob(jobId);
+        cancelJob(
+            jobId
+        );
 
 
     if (!cancelled) {
@@ -425,19 +650,30 @@ export async function cancelForensicTask(jobId) {
             jobId
         );
 
+
         return {
-            success: false,
+
+            success:
+                false,
+
             jobId,
+
             message:
                 "Forensic job not found"
         };
     }
 
 
+    /* -------------------------------------------------
+       UPDATE STATUS
+    ------------------------------------------------- */
+
     updateJob(
         jobId,
         {
-            status: "CANCEL_REQUESTED"
+
+            status:
+                "CANCEL_REQUESTED"
         }
     );
 
@@ -449,8 +685,12 @@ export async function cancelForensicTask(jobId) {
 
 
     return {
-        success: true,
+
+        success:
+            true,
+
         jobId,
+
         status:
             "CANCEL_REQUESTED"
     };
@@ -462,6 +702,8 @@ export async function cancelForensicTask(jobId) {
 ===================================================== */
 
 export default {
+
     startForensicTask,
+
     cancelForensicTask
 };
