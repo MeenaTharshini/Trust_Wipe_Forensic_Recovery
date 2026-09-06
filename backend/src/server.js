@@ -25,6 +25,7 @@ import forensicRoutes from "./routes/forensic.js";
 // SOCKET
 // ------------------------------------------------------------
 
+import * as agentBridge from "./socket/agentBridge.js";
 import { initAgentClient } from "./socket/index.js";
 
 // ------------------------------------------------------------
@@ -137,6 +138,16 @@ if (process.env.NODE_ENV !== "production") {
 // ------------------------------------------------------------
 
 initAgentClient(server);
+
+// Make the TrustWipe Agent bridge available to forensic routes
+app.set("agentBridge", agentBridge);
+
+console.log(
+  "🔌 Agent Bridge registered:",
+  typeof agentBridge.sendForensicTask === "function"
+    ? "READY"
+    : "UNAVAILABLE"
+);
 
 // ------------------------------------------------------------
 // API ROUTES
