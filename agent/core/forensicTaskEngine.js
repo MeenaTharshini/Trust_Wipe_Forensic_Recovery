@@ -27,7 +27,12 @@ export async function startForensicTask(socket, job) {
         examiner
     } = job;
 
-    const sourceDisk = devicePath || disk;
+    const sourceDisk =
+  typeof devicePath === "string"
+    ? { devicePath }
+    : typeof disk === "string"
+      ? { devicePath: disk }
+      : devicePath || disk;
 
     console.log("");
     console.log("================================");
@@ -159,7 +164,7 @@ export async function startForensicTask(socket, job) {
 
             disk: sourceDisk,
 
-            devicePath: sourceDisk,
+            devicePath: sourceDisk?.devicePath || null,
 
             caseId,
 

@@ -2286,7 +2286,12 @@ async function dispatchForensicJob(
         sourceInfo.devicePath,
     }
   );
-
+  console.log("🔎 FORENSIC DISPATCH DEBUG");
+console.log("Agent ID:", job.agentId);
+console.log("Device Path:", sourceInfo.devicePath);
+console.log("Source Type:", sourceInfo.sourceType);
+console.log("Disk:", sourceInfo.disk);
+console.log("Capabilities:", agentBridge.getAgent?.(job.agentId)?.capabilities);
   return agentBridge.sendForensicTask(
     job.agentId,
     task

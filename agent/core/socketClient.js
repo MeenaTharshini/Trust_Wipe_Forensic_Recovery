@@ -103,20 +103,20 @@ socket.on("connect", () => {
    * Register this agent with backend
    */
 
-  socket.emit(
-    "register-agent",
-    {
-      ...AGENT_INFO,
+  socket.emit("register-agent", {
+  agentId: AGENT_ID,
+  deviceId: AGENT_ID,
+  hostname: os.hostname(),
+  platform: process.platform,
+  architecture: process.arch,
 
-      connectedAt: new Date().toISOString(),
-
-      capabilities: [
-        "DRIVE_DISCOVERY",
-        "WIPE",
-        "FORENSIC_SCAN",
-      ],
-    }
-  );
+  capabilities: [
+    "FORENSIC_SCAN",
+    "FORENSIC_RECOVER",
+    "FORENSIC_ANALYZE",
+    "DRIVE_DISCOVERY"
+  ]
+});
 
   console.log("📡 Agent registration sent");
 });
