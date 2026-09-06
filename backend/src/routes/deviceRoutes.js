@@ -93,7 +93,12 @@ router.get(
   authMiddleware,
   getDevices
 );
-
+router.get("/test-drive-route", (_req, res) => {
+  return res.json({
+    success: true,
+    message: "Device route is mounted correctly",
+  });
+});
 /*
 |--------------------------------------------------------------------------
 | GET DRIVES FROM SPECIFIC AGENT
