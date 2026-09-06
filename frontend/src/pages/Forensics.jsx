@@ -723,6 +723,11 @@ export default function Forensics() {
   const agentRefreshRef =
     useRef(null);
 
+  // Keep the last successful Agent list so a temporary
+  // /api/devices failure cannot make a healthy Agent appear offline.
+  const lastKnownAgentsRef =
+    useRef([]);
+
   /* --------------------------------------------------------------------------
      WORKFLOW
   -------------------------------------------------------------------------- */
@@ -1199,8 +1204,7 @@ export default function Forensics() {
                 (agent) =>
                   agent?.agentId
               );
-
-          const unique =
+              const unique =
             Array.from(
               normalized.reduce(
                 (
@@ -1267,6 +1271,10 @@ export default function Forensics() {
               ).values()
             );
 
+          // Cache the last successful response.
+          // A temporary API/network failure must not clear a healthy Agent.
+          lastKnownAgentsRef.current = unique;
+
           setAgents(
             unique
           );
@@ -1310,22 +1318,36 @@ export default function Forensics() {
 
           return unique;
         } catch (err) {
-          setAgents([]);
-
-          setSelectedAgent(
-            null
-          );
-
           /*
-           * Do not destroy the entire forensic
-           * workspace just because the device
-           * list temporarily failed.
+           * IMPORTANT:
+           * /api/devices can fail temporarily while the
+           * TrustWipe Agent is still connected over Socket.IO.
+           * Never clear the current Agent state because of
+           * one failed polling request.
            */
-          setError(
-            err.message ||
-              "Unable to load connected TrustWipe Agents."
+          setAgents(
+            lastKnownAgentsRef.current
           );
-          return [];
+
+          // Keep the selected Agent during a transient refresh failure.
+          // Only show the refresh error if we have never received a
+          // successful Agent list in this page session.
+          if (
+            lastKnownAgentsRef.current.length ===
+            0
+          ) {
+            setError(
+              err.message ||
+                "Unable to load connected TrustWipe Agents."
+            );
+          }
+
+          console.warn(
+            "[Forensics] Agent status refresh failed:",
+            err?.message || err
+          );
+
+          return null;
         } finally {
           setAgentLoading(
             false
@@ -1467,7 +1489,7 @@ export default function Forensics() {
           loadAgents();
           loadEngineStatus();
         },
-        5000
+        10000
       );
 
     return () => {
@@ -1765,8 +1787,16 @@ export default function Forensics() {
       const latestAgents =
         await loadAgents();
 
+      // If the refresh failed, use the last successful Agent state.
+      // This prevents a transient /api/devices error from forcing the
+      // user back into the "Start TrustWipe Agent" modal.
+      const agentsToCheck =
+        Array.isArray(latestAgents)
+          ? latestAgents
+          : lastKnownAgentsRef.current;
+
       const connectedAgents =
-        latestAgents.filter(
+        agentsToCheck.filter(
           (agent) =>
             agent?.online !== false &&
             agent?.connected !== false
@@ -1815,8 +1845,17 @@ export default function Forensics() {
         return;
       }
 
+      const availableAgents =
+        onlineAgents.length > 0
+          ? onlineAgents
+          : lastKnownAgentsRef.current.filter(
+              (agent) =>
+                agent?.online !== false &&
+                agent?.connected !== false
+            );
+
       if (
-        onlineAgents.length === 0
+        availableAgents.length === 0
       ) {
         setError(
           "TrustWipe Agent is not connected. Install and run the Agent on the authorized Windows workstation."
@@ -3396,8 +3435,7 @@ export default function Forensics() {
         stopPolling,
       ]
     );
-
-  /* ==========================================================================
+     /* ==========================================================================
      REPORT
   ========================================================================== */
 
