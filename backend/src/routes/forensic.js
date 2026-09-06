@@ -97,7 +97,7 @@ const FORENSIC_API_KEY =
 const FORENSIC_EXECUTION_MODE =
   String(
     process.env.FORENSIC_EXECUTION_MODE ||
-      "local"
+      "agent"
   ).toLowerCase();
 
 const VALID_EXECUTION_MODES = [
@@ -2008,15 +2008,31 @@ async function buildScanResult({
         )
       : discoveredFiles;
 
-  const evidenceFile =
-    evidencePath(
-      fileName
-    );
+  const isPhysicalDevice =
+  Boolean(
+    execution?.devicePath ||
+    execution?.device_path ||
+    execution?.sourceType === "DEVICE" ||
+    execution?.sourceType === "PHYSICAL_DEVICE" ||
+    pythonResult?.devicePath ||
+    pythonResult?.device_path ||
+    pythonResult?.sourceType === "DEVICE" ||
+    pythonResult?.sourceType === "PHYSICAL_DEVICE"
+  );
 
-  const evidenceStats =
-    await fs.promises.stat(
-      evidenceFile
-    );
+let evidenceSize = 0;
+
+if (!isPhysicalDevice && fileName) {
+  const evidenceFile =
+    evidencePath(fileName);
+
+  if (fs.existsSync(evidenceFile)) {
+    const evidenceStats =
+      await fs.promises.stat(evidenceFile);
+
+    evidenceSize = evidenceStats.size;
+  }
+}
 
   const signaturesDetected =
     Number(
@@ -2068,11 +2084,11 @@ async function buildScanResult({
 
     scanStats: {
       evidenceSize:
-        Number(
-          pythonResult.evidence_size ??
-            pythonResult.evidenceSize ??
-            evidenceStats.size
-        ),
+  Number(
+    pythonResult.evidence_size ??
+      pythonResult.evidenceSize ??
+      evidenceSize
+  ),
 
       chunkSize:
         Number(
@@ -3083,20 +3099,29 @@ router.post(
           req.body
         );
 
-      const evidenceFile =
-        evidencePath(
-          fileName
-        );
+      const isPhysicalDevice =
+  Boolean(
+    sourceInfo.devicePath ||
+    sourceInfo.disk
+  );
 
-      await fs.promises.access(
-        evidenceFile,
-        fs.constants.R_OK
-      );
+let integrity = null;
+let evidenceFile = null;
 
-      const integrity =
-        await verifyEvidenceIntegrity(
-          fileName
-        );
+if (!isPhysicalDevice) {
+  evidenceFile =
+    evidencePath(fileName);
+
+  await fs.promises.access(
+    evidenceFile,
+    fs.constants.R_OK
+  );
+
+  integrity =
+    await verifyEvidenceIntegrity(
+      fileName
+    );
+}
 
       /*
        * Critical forensic boundary:
@@ -3171,7 +3196,11 @@ router.post(
           0,
 
         bytesTotal:
-          integrity.currentSize,
+  isPhysicalDevice
+    ? 0
+    : Number(
+        integrity?.currentSize || 0
+      ),
 
         artifactsFound:
           0,
@@ -3180,12 +3209,12 @@ router.post(
           0,
 
         evidenceId:
-          integrity.evidenceId,
+  integrity?.evidenceId || null,
 
         fileName,
 
         evidenceHash:
-          integrity.currentHash,
+  integrity?.currentHash || null,
 
         /*
          * Original source information.
@@ -3526,6 +3555,26 @@ async function executeLocalJob(
   req,
   job
 ) {
+  const isPhysicalDevice =
+  Boolean(
+    job.devicePath ||
+    job.device_path ||
+    job.disk ||
+    job.sourceType === "DEVICE" ||
+    job.sourceType === "PHYSICAL_DEVICE"
+  );
+
+if (isPhysicalDevice) {
+  const error =
+    new Error(
+      "Physical-device forensic jobs must run on the TrustWipe Windows Agent, not on Render."
+    );
+
+  error.code =
+    "PHYSICAL_DEVICE_REQUIRES_AGENT";
+
+  throw error;
+}
   const startedAt =
     new Date().toISOString();
 

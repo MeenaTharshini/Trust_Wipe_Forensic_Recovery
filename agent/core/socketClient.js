@@ -210,7 +210,7 @@ socket.on("discover-drives", async (request = {}) => {
   console.log("📀 Drive discovery requested");
 
   try {
-    const drives = await getAvailableDrives();
+    const drives = await runDriveDiscovery();
 
     socket.emit("drive-list", {
       success: true,

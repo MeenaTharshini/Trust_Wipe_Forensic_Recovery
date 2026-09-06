@@ -196,63 +196,54 @@ $result = foreach ($d in $drives) {
 
     [PSCustomObject]@{
 
+    deviceName =
+        $d.Model
 
-        deviceName =
-            $d.Model
+    name =
+        "\\.\PhysicalDrive$($d.Index)"
 
+    path =
+        "\\.\PhysicalDrive$($d.Index)"
 
+    devicePath =
+        "\\.\PhysicalDrive$($d.Index)"
 
-        serialNumber =
-            $d.SerialNumber
+    device_path =
+        "\\.\PhysicalDrive$($d.Index)"
 
+    serialNumber =
+        $d.SerialNumber
 
+    storageType =
+        $storageType
 
-        storageType =
-            $storageType
+    capacity =
+        [int64]$d.Size
 
+    size =
+        [int64]$d.Size
 
+    interface =
+        $d.InterfaceType
 
-        capacity =
-            "$size GB"
+    index =
+        $d.Index
 
+    status =
+        $d.Status
 
+    manufacturer =
+        $d.Manufacturer
 
-        interface =
-            $d.InterfaceType
+    modelNumber =
+        $d.Model
 
+    role =
+        $role
 
-
-        index =
-            $d.Index
-
-
-
-        status =
-            $d.Status
-
-
-
-        manufacturer =
-            $d.Manufacturer
-
-
-
-        modelNumber =
-            $d.Model
-
-
-
-        role =
-            $role
-
-
-
-        wipeAllowed =
-            $wipeAllowed
-
-
-    }
-
+    wipeAllowed =
+        $wipeAllowed
+}
 
 }
 
