@@ -3123,36 +3123,7 @@ if (!isPhysicalDevice) {
     );
 }
 
-      /*
-       * Critical forensic boundary:
-       *
-       * Never start analysis against evidence whose
-       * acquisition baseline is missing or mismatched.
-       */
-
-      if (
-        integrity.status !==
-          "VERIFIED" ||
-        integrity.verified !==
-          true ||
-        integrity.hashMatch !==
-          true
-      ) {
-        return res.status(409).json({
-          success: false,
-
-          code:
-            integrity.status ===
-            "TAMPERED"
-              ? "EVIDENCE_TAMPERED"
-              : "BASELINE_MISSING",
-
-          message:
-            "Forensic analysis is blocked because evidence integrity is not VERIFIED.",
-
-          integrity,
-        });
-      }
+      /* * Critical forensic boundary: * * Uploaded evidence must have a verified SHA-256 * acquisition baseline before analysis. * * Physical devices are different: * the Windows TrustWipe Agent performs the * acquisition/analysis directly against the device. * * Therefore Render must NOT try to verify an * uploaded evidence manifest for PhysicalDrive devices. */ if (!isPhysicalDevice) { if ( !integrity || integrity.status !== "VERIFIED" || integrity.verified !== true || integrity.hashMatch !== true ) { return res.status(409).json({ success: false, code: integrity?.status === "TAMPERED" ? "EVIDENCE_TAMPERED" : "BASELINE_MISSING", message: "Forensic analysis is blocked because evidence integrity is not VERIFIED.", integrity: integrity || null }); } }
 
       await fs.promises.mkdir(
         caseRecoveredDirectory(
