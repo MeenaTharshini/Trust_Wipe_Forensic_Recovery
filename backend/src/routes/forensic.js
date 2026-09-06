@@ -100,20 +100,6 @@ const FORENSIC_EXECUTION_MODE =
       "local"
   ).toLowerCase();
 
-/*
- * Supported:
- *
- * local
- *   Backend directly executes forensic Python.
- *
- * agent
- *   Backend creates a forensic job and dispatches it
- *   to the TrustWipe Agent.
- *
- * auto
- *   Use agent if an Agent bridge is available,
- *   otherwise fall back to local execution.
- */
 const VALID_EXECUTION_MODES = [
   "local",
   "agent",
@@ -152,16 +138,29 @@ function forensicAccess(req, res, next) {
   }
 
   const suppliedKey =
-    req.get("x-forensic-api-key");
+    req.get("x-forensic-api-key") || "";
+
+  const expectedKey =
+    FORENSIC_API_KEY || "";
+
+  let validKey = false;
 
   if (
-    FORENSIC_API_KEY &&
     suppliedKey &&
-    crypto.timingSafeEqual(
-      Buffer.from(suppliedKey),
-      Buffer.from(FORENSIC_API_KEY)
-    )
+    expectedKey &&
+    suppliedKey.length === expectedKey.length
   ) {
+    try {
+      validKey = crypto.timingSafeEqual(
+        Buffer.from(suppliedKey),
+        Buffer.from(expectedKey)
+      );
+    } catch {
+      validKey = false;
+    }
+  }
+
+  if (validKey) {
     return next();
   }
 
@@ -199,28 +198,22 @@ function fail(
     process.env.NODE_ENV !== "production" &&
     error
   ) {
-    response.details =
-      error.message;
+    response.details = error.message;
   }
 
-  return res.status(status).json(
-    response
-  );
+  return res.status(status).json(response);
 }
 
 /* ==========================================================================
    SECURITY HELPERS
    ========================================================================== */
 
-function decodeOriginalFilename(
-  filename
-) {
+function decodeOriginalFilename(filename) {
   if (!filename) {
     return "evidence";
   }
 
-  let decoded =
-    String(filename);
+  let decoded = String(filename);
 
   try {
     const repaired =
@@ -243,13 +236,9 @@ function decodeOriginalFilename(
   return decoded;
 }
 
-function sanitizeFilename(
-  filename
-) {
+function sanitizeFilename(filename) {
   const decoded =
-    decodeOriginalFilename(
-      filename
-    );
+    decodeOriginalFilename(filename);
 
   const basename =
     path.basename(decoded);
@@ -273,9 +262,7 @@ function sanitizeFilename(
   return safe || "evidence";
 }
 
-function sanitizeCaseId(
-  caseId
-) {
+function sanitizeCaseId(caseId) {
   const value =
     String(caseId || "")
       .trim()
@@ -304,9 +291,7 @@ function sanitizeCaseId(
   return value;
 }
 
-function sanitizeExaminer(
-  examiner
-) {
+function sanitizeExaminer(examiner) {
   const value =
     String(examiner || "")
       .trim()
@@ -325,6 +310,106 @@ function sanitizeExaminer(
   }
 
   return value;
+}
+
+/* ==========================================================================
+   PHYSICAL DEVICE / AGENT SOURCE NORMALIZATION
+   ========================================================================== */
+
+/*
+ * The Windows Agent performs forensic scanning against a physical
+ * device/disk path.
+ *
+ * Examples:
+ *
+ *   \\.\PhysicalDrive0
+ *   \\.\PhysicalDrive1
+ *
+ * The Render backend cannot access these paths directly.
+ *
+ * Therefore the backend only stores and forwards the value to the
+ * connected Windows Agent.
+ */
+
+function normalizeAgentSource(reqBody = {}) {
+  const directDevicePath =
+    reqBody.devicePath ||
+    reqBody.device_path ||
+    reqBody.physicalDevicePath ||
+    reqBody.physical_device_path ||
+    null;
+
+  if (
+    typeof directDevicePath === "string" &&
+    directDevicePath.trim()
+  ) {
+    return {
+      devicePath: directDevicePath.trim(),
+      sourceType: "PHYSICAL_DEVICE",
+    };
+  }
+
+  const disk =
+    reqBody.disk || null;
+
+  if (
+    disk &&
+    typeof disk === "object" &&
+    typeof disk.devicePath === "string" &&
+    disk.devicePath.trim()
+  ) {
+    return {
+      devicePath: disk.devicePath.trim(),
+      sourceType: "PHYSICAL_DEVICE",
+      disk: {
+        ...disk,
+        devicePath:
+          disk.devicePath.trim(),
+      },
+    };
+  }
+
+  if (
+    typeof disk === "string" &&
+    disk.trim()
+  ) {
+    return {
+      devicePath: disk.trim(),
+      sourceType: "PHYSICAL_DEVICE",
+    };
+  }
+
+  const source =
+    reqBody.source || null;
+
+  if (
+    source &&
+    typeof source === "object" &&
+    typeof source.devicePath === "string" &&
+    source.devicePath.trim()
+  ) {
+    return {
+      devicePath:
+        source.devicePath.trim(),
+      sourceType: "PHYSICAL_DEVICE",
+      source,
+    };
+  }
+
+  if (
+    typeof source === "string" &&
+    source.trim()
+  ) {
+    return {
+      devicePath: source.trim(),
+      sourceType: "SOURCE",
+    };
+  }
+
+  return {
+    devicePath: null,
+    sourceType: null,
+  };
 }
 
 /* ==========================================================================
@@ -385,9 +470,7 @@ function safePath(
   return target;
 }
 
-function evidencePath(
-  fileName
-) {
+function evidencePath(fileName) {
   return safePath(
     EVIDENCE_DIR,
     path.basename(
@@ -396,45 +479,35 @@ function evidencePath(
   );
 }
 
-function caseDirectory(
-  caseId
-) {
+function caseDirectory(caseId) {
   return safePath(
     CASES_DIR,
     sanitizeCaseId(caseId)
   );
 }
 
-function caseRecoveredDirectory(
-  caseId
-) {
+function caseRecoveredDirectory(caseId) {
   return safePath(
     caseDirectory(caseId),
     "recovered"
   );
 }
 
-function caseMetadataDirectory(
-  caseId
-) {
+function caseMetadataDirectory(caseId) {
   return safePath(
     caseDirectory(caseId),
     "metadata"
   );
 }
 
-function reportPath(
-  fileName
-) {
+function reportPath(fileName) {
   return safePath(
     REPORTS_DIR,
     fileName
   );
 }
 
-function jobPath(
-  jobId
-) {
+function jobPath(jobId) {
   return safePath(
     JOBS_DIR,
     `${jobId}.json`
@@ -572,7 +645,7 @@ const upload =
        * memory dumps
        * unknown binary files
        *
-       * Therefore MIME filtering is intentionally disabled.
+       * MIME filtering is intentionally disabled.
        */
       cb(
         null,
@@ -585,9 +658,7 @@ const upload =
    SHA-256
    ========================================================================== */
 
-async function calculateSHA256(
-  filePath
-) {
+async function calculateSHA256(filePath) {
   const hash =
     crypto.createHash(
       "sha256"
@@ -637,9 +708,7 @@ async function calculateSHA256(
    MANIFESTS
    ========================================================================== */
 
-async function saveManifest(
-  manifest
-) {
+async function saveManifest(manifest) {
   const target =
     safePath(
       MANIFESTS_DIR,
@@ -692,9 +761,7 @@ async function loadManifestByEvidenceId(
   }
 }
 
-async function loadManifest(
-  fileName
-) {
+async function loadManifest(fileName) {
   const entries =
     await fs.promises.readdir(
       MANIFESTS_DIR,
@@ -1137,9 +1204,7 @@ async function checkPython() {
    JOB STORAGE
    ========================================================================== */
 
-async function saveJob(
-  job
-) {
+async function saveJob(job) {
   const target =
     jobPath(
       job.jobId
@@ -1166,9 +1231,7 @@ async function saveJob(
   return job;
 }
 
-async function getJob(
-  jobId
-) {
+async function getJob(jobId) {
   const safeJobId =
     String(
       jobId || ""
@@ -2075,9 +2138,19 @@ async function buildScanResult({
    ========================================================================== */
 
 /*
- * This is the only function that should need modification if your existing
- * agentBridge uses a different method.
+ * IMPORTANT:
+ *
+ * The TrustWipe Agent bridge exposes:
+ *
+ *     sendForensicTask()
+ *
+ * NOT:
+ *
+ *     sendTask()
+ *
+ * Therefore every validation below uses sendForensicTask.
  */
+
 async function dispatchForensicJob(
   req,
   job
@@ -2089,12 +2162,12 @@ async function dispatchForensicJob(
 
   if (
     !agentBridge ||
-    typeof agentBridge.sendTask !==
+    typeof agentBridge.sendForensicTask !==
       "function"
   ) {
     const error =
       new Error(
-        "TrustWipe Agent bridge is unavailable."
+        "TrustWipe Agent forensic bridge is unavailable."
       );
 
     error.code =
@@ -2103,18 +2176,58 @@ async function dispatchForensicJob(
     throw error;
   }
 
+  /*
+   * Normalize physical disk information.
+   *
+   * The frontend can send:
+   *
+   * devicePath
+   * device_path
+   * physicalDevicePath
+   * physical_device_path
+   * disk
+   * source
+   */
+
+  const sourceInfo = {
+    devicePath:
+      job.devicePath ||
+      null,
+
+    sourceType:
+      job.sourceType ||
+      null,
+
+    disk:
+      job.disk ||
+      null,
+
+    source:
+      job.source ||
+      null,
+  };
+
   const task = {
     type:
       job.operation,
 
+    operation:
+      "FORENSIC_SCAN",
+
     jobId:
       job.jobId,
+
+    operationId:
+      job.operationId,
 
     caseId:
       job.caseId,
 
     examiner:
       job.examiner,
+
+    agentId:
+      job.agentId,
 
     evidence: {
       evidenceId:
@@ -2127,18 +2240,54 @@ async function dispatchForensicJob(
         job.evidenceHash,
     },
 
+    /*
+     * Physical source for the Windows Agent.
+     */
+    devicePath:
+      sourceInfo.devicePath,
+
+    device_path:
+      sourceInfo.devicePath,
+
+    disk:
+      sourceInfo.disk ||
+      (
+        sourceInfo.devicePath
+          ? {
+              devicePath:
+                sourceInfo.devicePath,
+            }
+          : null
+      ),
+
     source:
-      job.source || null,
+      sourceInfo.source,
+
+    sourceType:
+      sourceInfo.sourceType,
 
     createdAt:
       job.createdAt,
   };
 
-  /*
-   * Your existing Agent bridge should route this task
-   * to the TrustWipe Agent.
-   */
-  return agentBridge.sendTask(
+  console.log(
+    "[Forensics] Dispatching forensic job:",
+    {
+      jobId:
+        job.jobId,
+
+      agentId:
+        job.agentId,
+
+      operation:
+        job.operation,
+
+      devicePath:
+        sourceInfo.devicePath,
+    }
+  );
+
+  return agentBridge.sendForensicTask(
     job.agentId,
     task
   );
@@ -2413,10 +2562,14 @@ router.get(
           "agentBridge"
         );
 
+      /*
+       * IMPORTANT:
+       * TrustWipe bridge exposes sendForensicTask().
+       */
       const agentAvailable =
         Boolean(
           agentBridge &&
-            typeof agentBridge.sendTask ===
+            typeof agentBridge.sendForensicTask ===
               "function"
         );
 
@@ -2436,13 +2589,19 @@ router.get(
       ) {
         available =
           agentAvailable;
-      } else {
+      } else if (
+        FORENSIC_EXECUTION_MODE ===
+        "auto"
+      ) {
         available =
           agentAvailable ||
           (
             python.available &&
             cliAvailable
           );
+      } else {
+        available =
+          false;
       }
 
       return res.json({
@@ -2906,9 +3065,18 @@ router.post(
       const agentId =
         String(
           req.body?.agentId ||
+            req.body?.agent_id ||
             ""
         ).trim() ||
         null;
+
+      /*
+       * Normalize physical source information.
+       */
+      const sourceInfo =
+        normalizeAgentSource(
+          req.body
+        );
 
       const evidenceFile =
         evidencePath(
@@ -2931,6 +3099,7 @@ router.post(
        * Never start analysis against evidence whose
        * acquisition baseline is missing or mismatched.
        */
+
       if (
         integrity.status !==
           "VERIFIED" ||
@@ -3013,9 +3182,32 @@ router.post(
         evidenceHash:
           integrity.currentHash,
 
+        /*
+         * Original source information.
+         */
         source:
           req.body?.source ||
           null,
+
+        /*
+         * Physical device information for Agent.
+         */
+        devicePath:
+          sourceInfo.devicePath,
+
+        sourceType:
+          sourceInfo.sourceType,
+
+        disk:
+          sourceInfo.disk ||
+          (
+            sourceInfo.devicePath
+              ? {
+                  devicePath:
+                    sourceInfo.devicePath,
+                }
+              : null
+          ),
 
         executionMode:
           FORENSIC_EXECUTION_MODE,
@@ -3054,12 +3246,15 @@ router.post(
             integrity.evidenceId,
           evidenceHash:
             integrity.currentHash,
+          agentId,
+          devicePath:
+            sourceInfo.devicePath,
         }
       );
 
-      /*
-       * AGENT MODE
-       */
+      /* ====================================================================
+         AGENT MODE
+         ==================================================================== */
 
       if (
         FORENSIC_EXECUTION_MODE ===
@@ -3071,6 +3266,22 @@ router.post(
             400,
             "agentId is required when forensic execution mode is 'agent'.",
             "AGENT_ID_REQUIRED"
+          );
+        }
+
+        /*
+         * The physical Agent source is required for physical-drive scanning.
+         *
+         * If your Agent already determines the disk itself, this can be null.
+         */
+        if (
+          operation ===
+            "FORENSIC_SCAN" &&
+          !sourceInfo.devicePath &&
+          !sourceInfo.disk
+        ) {
+          console.warn(
+            "[Forensics] Agent job has no devicePath/disk. The Agent must provide or determine the source disk."
           );
         }
 
@@ -3143,9 +3354,9 @@ router.post(
         }
       }
 
-      /*
-       * LOCAL MODE
-       */
+      /* ====================================================================
+         LOCAL MODE
+         ==================================================================== */
 
       if (
         FORENSIC_EXECUTION_MODE ===
@@ -3184,9 +3395,9 @@ router.post(
         }
       }
 
-      /*
-       * AUTO MODE
-       */
+      /* ====================================================================
+         AUTO MODE
+         ==================================================================== */
 
       if (
         FORENSIC_EXECUTION_MODE ===
@@ -3197,10 +3408,14 @@ router.post(
             "agentBridge"
           );
 
+        /*
+         * IMPORTANT:
+         * Use sendForensicTask(), not sendTask().
+         */
         const agentAvailable =
           Boolean(
             agentBridge &&
-              typeof agentBridge.sendTask ===
+              typeof agentBridge.sendForensicTask ===
                 "function"
           );
 
@@ -3348,6 +3563,7 @@ async function executeLocalJob(
     /*
      * Verify immediately before execution.
      */
+
     const integrityBefore =
       await verifyEvidenceIntegrity(
         job.fileName
@@ -3405,6 +3621,7 @@ async function executeLocalJob(
     /*
      * Verify again after analysis.
      */
+
     const integrityAfter =
       await verifyEvidenceIntegrity(
         job.fileName
@@ -3559,11 +3776,6 @@ router.post(
     res
   ) => {
     try {
-      /*
-       * The old /scan API is preserved.
-       *
-       * Internally it now uses the job engine.
-       */
       const fileName =
         sanitizeFilename(
           req.body?.fileName
@@ -3582,14 +3794,10 @@ router.post(
       const agentId =
         String(
           req.body?.agentId ||
+            req.body?.agent_id ||
             ""
         ).trim() ||
         null;
-
-      /*
-       * Reuse the job endpoint logic by constructing
-       * the same validation flow here.
-       */
 
       const integrity =
         await verifyEvidenceIntegrity(
@@ -3619,6 +3827,11 @@ router.post(
           integrity,
         });
       }
+
+      const sourceInfo =
+        normalizeAgentSource(
+          req.body
+        );
 
       const job = {
         jobId:
@@ -3665,6 +3878,23 @@ router.post(
         source:
           req.body?.source ||
           null,
+
+        devicePath:
+          sourceInfo.devicePath,
+
+        sourceType:
+          sourceInfo.sourceType,
+
+        disk:
+          sourceInfo.disk ||
+          (
+            sourceInfo.devicePath
+              ? {
+                  devicePath:
+                    sourceInfo.devicePath,
+                }
+              : null
+          ),
 
         executionMode:
           "local",
@@ -3851,23 +4081,6 @@ router.get(
    AGENT CALLBACK / PROGRESS
    ========================================================================== */
 
-/*
- * Your TrustWipe Agent bridge can call this endpoint whenever the Agent
- * reports forensic progress.
- *
- * Example:
- *
- * POST /api/forensic/jobs/FJ-.../progress
- *
- * {
- *   "status": "RUNNING",
- *   "progress": 72,
- *   "bytesScanned": 734003200,
- *   "bytesTotal": 1073741824,
- *   "artifactsFound": 42,
- *   "artifactsValidated": 31
- * }
- */
 router.post(
   "/jobs/:jobId/progress",
   async (
@@ -4478,6 +4691,7 @@ router.post(
        * Reports are only valid when the original evidence
        * remains cryptographically identical to acquisition.
        */
+
       if (
         integrity.status !==
           "VERIFIED" ||
@@ -4609,8 +4823,7 @@ router.post(
           artifacts_recovered:
             artifacts.length,
 
-          artifacts:
-            artifacts,
+          artifacts,
         },
 
         methodology: {
@@ -4768,6 +4981,4 @@ router.get(
    EXPORT
    ========================================================================== */
 
-export default router;//forensic.js
-
-
+export default router;
