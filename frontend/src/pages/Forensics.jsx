@@ -19,14 +19,27 @@ if (!API_BASE) {
   throw new Error("VITE_API_BASE_URL is not configured.");
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
+/*
+ * Set this in Vercel:
+ *
+ * VITE_AGENT_DOWNLOAD_URL=https://YOUR-DOWNLOAD-LOCATION/TrustWipeAgentSetup.exe
+ *
+ * Do NOT use the old trust-wipe.onrender.com URL.
+ */
+const AGENT_DOWNLOAD_URL =
+  import.meta.env.VITE_AGENT_DOWNLOAD_URL || "";
 
-const CASE_STORAGE_KEY = "trustwipe_forensic_cases";
+const MAX_FILE_SIZE =
+  5 * 1024 * 1024 * 1024;
+
+const CASE_STORAGE_KEY =
+  "trustwipe_forensic_cases";
 
 const STEPS = {
   CASES: "CASES",
   CREATE_CASE: "CREATE_CASE",
-  EVIDENCE: "EVIDENCE",
+  AGENT: "AGENT",
+  SOURCE: "SOURCE",
   EXAMINATION: "EXAMINATION",
   ANALYSIS: "ANALYSIS",
   RESULTS: "RESULTS",
@@ -52,18 +65,27 @@ const INTEGRITY = {
   UNKNOWN: "UNKNOWN",
 };
 
+const SOURCE_TYPES = {
+  DEVICE: "DEVICE",
+  FILE: "FILE",
+};
+
 /* ============================================================================
    API HELPERS
 ============================================================================ */
 
 function apiUrl(path = "") {
-  if (!path) return API_BASE;
+  if (!path) {
+    return API_BASE;
+  }
 
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
 
-  return `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  return `${API_BASE}${
+    path.startsWith("/") ? path : `/${path}`
+  }`;
 }
 
 function getStoredToken() {
@@ -98,11 +120,24 @@ async function parseResponse(response) {
 
   let body = null;
 
-  if (contentType.includes("application/json")) {
-    body = await response.json().catch(() => null);
+  if (
+    contentType.includes(
+      "application/json"
+    )
+  ) {
+    body =
+      await response
+        .json()
+        .catch(() => null);
   } else {
-    const text = await response.text().catch(() => "");
-    body = text ? { message: text } : null;
+    const text =
+      await response
+        .text()
+        .catch(() => "");
+
+    body = text
+      ? { message: text }
+      : null;
   }
 
   if (!response.ok) {
@@ -112,11 +147,17 @@ async function parseResponse(response) {
       body?.detail ||
       `Request failed with HTTP ${response.status}`;
 
-    const error = new Error(message);
+    const error =
+      new Error(message);
 
-    error.status = response.status;
-    error.code = body?.code || null;
-    error.response = body;
+    error.status =
+      response.status;
+
+    error.code =
+      body?.code || null;
+
+    error.response =
+      body;
 
     throw error;
   }
@@ -124,23 +165,34 @@ async function parseResponse(response) {
   return body;
 }
 
-async function apiFetch(path, options = {}) {
-  const response = await fetch(apiUrl(path), {
-    ...options,
+async function apiFetch(
+  path,
+  options = {}
+) {
+  const response =
+    await fetch(
+      apiUrl(path),
+      {
+        ...options,
 
-    headers: authHeaders(
-      options.headers || {}
-    ),
-  });
+        headers: authHeaders(
+          options.headers || {}
+        ),
+      }
+    );
 
-  return parseResponse(response);
+  return parseResponse(
+    response
+  );
 }
 
 /* ============================================================================
    GENERAL HELPERS
 ============================================================================ */
 
-function firstDefined(...values) {
+function firstDefined(
+  ...values
+) {
   return values.find(
     (value) =>
       value !== undefined &&
@@ -150,15 +202,21 @@ function firstDefined(...values) {
 }
 
 function toBoolean(value) {
-  if (typeof value === "boolean") {
+  if (
+    typeof value === "boolean"
+  ) {
     return value;
   }
 
-  if (typeof value === "number") {
+  if (
+    typeof value === "number"
+  ) {
     return value !== 0;
   }
 
-  if (typeof value === "string") {
+  if (
+    typeof value === "string"
+  ) {
     return [
       "true",
       "yes",
@@ -178,16 +236,13 @@ function toBoolean(value) {
 }
 
 function formatBytes(bytes) {
-  const value = Number(bytes);
+  const value =
+    Number(bytes);
 
   if (
     !Number.isFinite(value) ||
-    value < 0
+    value <= 0
   ) {
-    return "—";
-  }
-
-  if (value === 0) {
     return "0 B";
   }
 
@@ -199,66 +254,85 @@ function formatBytes(bytes) {
     "TB",
   ];
 
-  const exponent = Math.min(
-    Math.floor(
-      Math.log(value) /
-        Math.log(1024)
-    ),
-    units.length - 1
-  );
+  const exponent =
+    Math.min(
+      Math.floor(
+        Math.log(value) /
+          Math.log(1024)
+      ),
+      units.length - 1
+    );
 
   const size =
     value /
-    1024 ** exponent;
+    Math.pow(
+      1024,
+      exponent
+    );
 
   return `${size.toFixed(
-    exponent === 0 ? 0 : 2
+    size >= 10 ||
+      exponent === 0
+      ? 0
+      : 2
   )} ${units[exponent]}`;
 }
 
 function formatDate(value) {
-  if (!value) return "—";
+  if (!value) {
+    return "—";
+  }
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
-    return String(value);
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "—";
   }
 
   return date.toLocaleString();
 }
 
 function formatDuration(ms) {
-  const value = Number(ms);
+  const value =
+    Number(ms);
 
-  if (!Number.isFinite(value)) {
+  if (
+    !Number.isFinite(value) ||
+    value < 0
+  ) {
     return "—";
   }
 
-  if (value < 1000) {
-    return `${Math.round(value)} ms`;
+  const seconds =
+    Math.floor(value / 1000);
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+  const remaining =
+    seconds % 60;
+
+  if (minutes === 0) {
+    return `${remaining}s`;
   }
 
-  if (value < 60000) {
-    return `${(
-      value / 1000
-    ).toFixed(2)} s`;
-  }
-
-  const minutes = Math.floor(
-    value / 60000
-  );
-
-  const seconds = Math.floor(
-    (value % 60000) / 1000
-  );
-
-  return `${minutes}m ${seconds}s`;
+  return `${minutes}m ${remaining}s`;
 }
 
-function getFileType(fileName = "") {
+function getFileType(
+  fileName = ""
+) {
   const cleanName =
-    String(fileName).split("?")[0];
+    String(fileName)
+      .split("?")[0]
+      .split("#")[0];
 
   const extension =
     cleanName
@@ -266,29 +340,43 @@ function getFileType(fileName = "") {
       .pop()
       ?.toUpperCase();
 
-  return extension || "FILE";
+  return extension
+    ? extension
+    : "FILE";
 }
 
 function createLocalCaseId() {
-  return `CASE-${new Date().getFullYear()}-${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2, 8)
-    .toUpperCase()}`;
+  const stamp =
+    Date.now();
+
+  const random =
+    Math.random()
+      .toString(36)
+      .slice(2, 8)
+      .toUpperCase();
+
+  return `CASE-${new Date()
+    .getFullYear()}-${stamp}-${random}`;
 }
 
-function getIntegrityClass(status) {
-  switch (status) {
+function getIntegrityClass(
+  status
+) {
+  switch (
+    String(status || "")
+      .toUpperCase()
+  ) {
     case INTEGRITY.VERIFIED:
       return "integrity-verified";
 
     case INTEGRITY.TAMPERED:
-      return "integrity-tampered";
+      return "integrity-failed";
 
     case INTEGRITY.BASELINE_MISSING:
       return "integrity-warning";
 
     default:
-      return "integrity-unknown";
+      return "";
   }
 }
 
@@ -296,25 +384,29 @@ function extractArray(
   response,
   keys = []
 ) {
-  if (Array.isArray(response)) {
+  if (
+    Array.isArray(response)
+  ) {
     return response;
   }
 
-  for (const key of keys) {
-    if (Array.isArray(response?.[key])) {
-      return response[key];
-    }
-
+  for (
+    const key of keys
+  ) {
     if (
       Array.isArray(
-        response?.data?.[key]
+        response?.[key]
       )
     ) {
-      return response.data[key];
+      return response[key];
     }
   }
 
-  if (Array.isArray(response?.data)) {
+  if (
+    Array.isArray(
+      response?.data
+    )
+  ) {
     return response.data;
   }
 
@@ -322,14 +414,13 @@ function extractArray(
 }
 
 /* ============================================================================
-   NORMALIZERS
+   EVIDENCE NORMALIZATION
 ============================================================================ */
 
-function normalizeEvidence(item) {
-  if (
-    !item ||
-    typeof item !== "object"
-  ) {
+function normalizeEvidence(
+  item
+) {
+  if (!item) {
     return null;
   }
 
@@ -340,15 +431,18 @@ function normalizeEvidence(item) {
       item.file_name,
       item.originalName,
       item.original_name
-    ) || "Unknown evidence";
+    );
+
+  if (!name) {
+    return null;
+  }
 
   const sizeValue =
     firstDefined(
       item.size,
       item.fileSize,
       item.file_size,
-      item.originalSize,
-      item.original_size
+      0
     );
 
   const evidenceId =
@@ -360,36 +454,30 @@ function normalizeEvidence(item) {
 
   const hash =
     firstDefined(
-      item.sha256,
       item.acquisitionHash,
       item.acquisition_hash,
+      item.sha256,
       item.hash
     );
-
-  const normalizedSize =
-    Number(sizeValue);
 
   return {
     ...item,
 
-    id:
-      item.id ||
-      evidenceId ||
-      `${name}-${sizeValue || 0}`,
-
-    name,
-
-    size: Number.isFinite(
-      normalizedSize
-    )
-      ? normalizedSize
-      : 0,
-
     evidenceId:
       evidenceId || null,
 
-    sha256:
-      hash || null,
+    name,
+
+    size:
+      Number(sizeValue) || 0,
+
+    type:
+      firstDefined(
+        item.type,
+        item.mimeType,
+        item.mime_type,
+        "application/octet-stream"
+      ),
 
     acquisitionHash:
       hash || null,
@@ -402,20 +490,19 @@ function normalizeEvidence(item) {
         item.created_at
       ) || null,
 
-    type:
+    source:
       firstDefined(
-        item.type,
-        item.mimeType,
-        item.mime_type
-      ) || getFileType(name),
+        item.source,
+        item.sourcePath,
+        item.source_path
+      ) || null,
   };
 }
 
-function normalizeIntegrity(value) {
-  if (
-    !value ||
-    typeof value !== "object"
-  ) {
+function normalizeIntegrity(
+  value
+) {
+  if (!value) {
     return null;
   }
 
@@ -424,10 +511,13 @@ function normalizeIntegrity(value) {
       value.status,
       value.integrityStatus,
       value.integrity_status
-    ) || INTEGRITY.UNKNOWN;
+    );
 
-  const status =
-    String(statusRaw).toUpperCase();
+  let status =
+    String(
+      statusRaw ||
+        INTEGRITY.UNKNOWN
+    ).toUpperCase();
 
   const verifiedValue =
     firstDefined(
@@ -448,185 +538,132 @@ function normalizeIntegrity(value) {
       value.size_match
     );
 
+  const verified =
+    toBoolean(
+      verifiedValue
+    );
+
+  const hashMatch =
+    toBoolean(
+      hashMatchValue
+    );
+
+  const sizeMatch =
+    toBoolean(
+      sizeMatchValue
+    );
+
+  if (
+    verified &&
+    hashMatch &&
+    sizeMatch
+  ) {
+    status =
+      INTEGRITY.VERIFIED;
+  }
+
   return {
     ...value,
 
     status,
 
-    verified:
-      verifiedValue !== undefined
-        ? toBoolean(
-            verifiedValue
-          )
-        : status ===
-          INTEGRITY.VERIFIED,
+    verified,
 
-    hashMatch:
-      hashMatchValue !== undefined
-        ? toBoolean(
-            hashMatchValue
-          )
-        : status ===
-          INTEGRITY.VERIFIED,
+    hashMatch,
 
-    sizeMatch:
-      sizeMatchValue !== undefined
-        ? toBoolean(
-            sizeMatchValue
-          )
-        : status ===
-          INTEGRITY.VERIFIED,
+    sizeMatch,
 
     originalHash:
       firstDefined(
         value.originalHash,
         value.original_hash,
         value.acquisitionHash,
-        value.acquisition_hash,
-        value.sha256
+        value.acquisition_hash
       ) || null,
 
     currentHash:
       firstDefined(
         value.currentHash,
         value.current_hash,
-        value.currentSha256,
-        value.current_sha256,
-        value.sha256
+        value.sha256,
+        value.hash
       ) || null,
-
-    originalSize:
-      firstDefined(
-        value.originalSize,
-        value.original_size
-      ) ?? null,
-
-    currentSize:
-      firstDefined(
-        value.currentSize,
-        value.current_size
-      ) ?? null,
-
-    evidenceId:
-      firstDefined(
-        value.evidenceId,
-        value.evidence_id
-      ) || null,
-
-    acquiredAt:
-      firstDefined(
-        value.acquiredAt,
-        value.acquired_at
-      ) || null,
-
-    message:
-      firstDefined(
-        value.message,
-        value.detail,
-        value.error
-      ) || "",
   };
 }
 
 function normalizeRecoveredFile(
   file
 ) {
-  if (
-    !file ||
-    typeof file !== "object"
-  ) {
+  if (!file) {
     return null;
   }
 
-  const name =
-    firstDefined(
-      file.name,
-      file.fileName,
-      file.file_name
-    ) || "Recovered artifact";
-
-  const sizeValue =
-    Number(file.size);
-
   return {
     ...file,
-
-    name,
-
-    path:
-      firstDefined(
-        file.path,
-        file.downloadPath,
-        file.download_path,
-        file.url
-      ) || null,
 
     artifactId:
       firstDefined(
         file.artifactId,
         file.artifact_id,
         file.id
-      ) || null,
+      ),
 
-    size: Number.isFinite(
-      sizeValue
-    )
-      ? sizeValue
-      : 0,
+    name:
+      firstDefined(
+        file.name,
+        file.fileName,
+        file.file_name
+      ) || "Recovered artifact",
 
     type:
       firstDefined(
         file.type,
         file.mimeType,
         file.mime_type
-      ) || getFileType(name),
+      ) || "Unknown",
 
-    extension:
-      firstDefined(
-        file.extension,
-        file.ext
-      ) || null,
-
-    sourceOffset:
-      firstDefined(
-        file.sourceOffset,
-        file.source_offset,
-        file.offset
-      ) ?? null,
-
-    sourceEnd:
-      firstDefined(
-        file.sourceEnd,
-        file.source_end,
-        file.endOffset
-      ) ?? null,
-
-    confidence:
-      firstDefined(
-        file.confidence,
-        file.validationConfidence
-      ) ?? null,
+    size:
+      Number(
+        firstDefined(
+          file.size,
+          file.fileSize,
+          file.file_size,
+          0
+        )
+      ) || 0,
 
     validationStatus:
       firstDefined(
         file.validationStatus,
         file.validation_status,
-        file.validated === true
-          ? "VALID"
-          : null
+        file.validation
       ) || "UNKNOWN",
+
+    confidence:
+      firstDefined(
+        file.confidence,
+        file.confidenceScore,
+        file.confidence_score
+      ),
 
     sha256:
       firstDefined(
         file.sha256,
         file.hash
+      ),
+
+    path:
+      firstDefined(
+        file.path,
+        file.downloadPath,
+        file.download_path
       ) || null,
 
-    modifiedAt:
+    sourceOffset:
       firstDefined(
-        file.modifiedAt,
-        file.modified_at
-      ) || null,
+        file.sourceOffset,
+        file.source_offset
+      ),
   };
 }
 
@@ -641,12 +678,16 @@ function loadLocalCases() {
         CASE_STORAGE_KEY
       );
 
-    if (!raw) return [];
+    if (!raw) {
+      return [];
+    }
 
     const parsed =
       JSON.parse(raw);
 
-    return Array.isArray(parsed)
+    return Array.isArray(
+      parsed
+    )
       ? parsed
       : [];
   } catch {
@@ -654,14 +695,16 @@ function loadLocalCases() {
   }
 }
 
-function saveLocalCases(cases) {
+function saveLocalCases(
+  cases
+) {
   try {
     localStorage.setItem(
       CASE_STORAGE_KEY,
       JSON.stringify(cases)
     );
   } catch {
-    // Ignore storage failures.
+    // Ignore storage errors.
   }
 }
 
@@ -676,137 +719,237 @@ export default function Forensics() {
   const pollingRef =
     useRef(null);
 
+  const agentRefreshRef =
+    useRef(null);
+
   /* --------------------------------------------------------------------------
      WORKFLOW
   -------------------------------------------------------------------------- */
 
-  const [currentStep, setCurrentStep] =
-    useState(STEPS.CASES);
+  const [
+    currentStep,
+    setCurrentStep,
+  ] = useState(
+    STEPS.CASES
+  );
 
   /* --------------------------------------------------------------------------
      CASE
   -------------------------------------------------------------------------- */
 
-  const [cases, setCases] =
-    useState(loadLocalCases);
+  const [
+    cases,
+    setCases,
+  ] = useState(
+    loadLocalCases
+  );
 
-  const [caseId, setCaseId] =
-    useState("");
+  const [
+    caseId,
+    setCaseId,
+  ] = useState("");
 
-  const [examiner, setExaminer] =
-    useState("");
+  const [
+    examiner,
+    setExaminer,
+  ] = useState("");
 
-  const [caseTitle, setCaseTitle] =
-    useState("");
+  const [
+    caseTitle,
+    setCaseTitle,
+  ] = useState("");
 
-  const [caseDescription, setCaseDescription] =
-    useState("");
+  const [
+    caseDescription,
+    setCaseDescription,
+  ] = useState("");
 
-  const [currentCase, setCurrentCase] =
-    useState(null);
+  const [
+    currentCase,
+    setCurrentCase,
+  ] = useState(null);
 
   /* --------------------------------------------------------------------------
      AGENT
   -------------------------------------------------------------------------- */
 
-  const [agents, setAgents] =
-    useState([]);
+  const [
+    agents,
+    setAgents,
+  ] = useState([]);
 
-  const [selectedAgent, setSelectedAgent] =
-    useState(null);
+  const [
+    selectedAgent,
+    setSelectedAgent,
+  ] = useState(null);
 
-  const [agentLoading, setAgentLoading] =
-    useState(false);
+  const [
+    agentLoading,
+    setAgentLoading,
+  ] = useState(false);
+
+  /* --------------------------------------------------------------------------
+     DEVICE DISCOVERY
+  -------------------------------------------------------------------------- */
+
+  const [
+    drives,
+    setDrives,
+  ] = useState([]);
+
+  const [
+    drivesLoading,
+    setDrivesLoading,
+  ] = useState(false);
+
+  const [
+    selectedDrive,
+    setSelectedDrive,
+  ] = useState(null);
+
+  const [
+    driveDiscoveryMessage,
+    setDriveDiscoveryMessage,
+  ] = useState("");
+
+  /* --------------------------------------------------------------------------
+     SOURCE
+  -------------------------------------------------------------------------- */
+
+  const [
+    sourceType,
+    setSourceType,
+  ] = useState(null);
 
   /* --------------------------------------------------------------------------
      ENGINE
   -------------------------------------------------------------------------- */
 
-  const [engine, setEngine] =
-    useState({
-      available: false,
-      version: null,
-      message:
-        "Checking forensic engine...",
-    });
+  const [
+    engine,
+    setEngine,
+  ] = useState({
+    available: false,
+    version: null,
+    message:
+      "Checking forensic engine...",
+  });
 
   /* --------------------------------------------------------------------------
      STATUS
   -------------------------------------------------------------------------- */
 
-  const [status, setStatus] =
-    useState(STATUS.IDLE);
+  const [
+    status,
+    setStatus,
+  ] = useState(
+    STATUS.IDLE
+  );
 
-  const [busy, setBusy] =
-    useState(false);
+  const [
+    busy,
+    setBusy,
+  ] = useState(false);
 
-  const [progressMessage, setProgressMessage] =
-    useState("");
+  const [
+    progressMessage,
+    setProgressMessage,
+  ] = useState("");
 
-  const [progress, setProgress] =
-    useState(0);
+  const [
+    progress,
+    setProgress,
+  ] = useState(0);
 
-  const [error, setError] =
-    useState("");
+  const [
+    error,
+    setError,
+  ] = useState("");
 
-  const [notice, setNotice] =
-    useState("");
+  const [
+    notice,
+    setNotice,
+  ] = useState("");
 
   /* --------------------------------------------------------------------------
      EVIDENCE
   -------------------------------------------------------------------------- */
 
-  const [evidence, setEvidence] =
-    useState([]);
+  const [
+    evidence,
+    setEvidence,
+  ] = useState([]);
 
-  const [selectedEvidence, setSelectedEvidence] =
-    useState(null);
+  const [
+    selectedEvidence,
+    setSelectedEvidence,
+  ] = useState(null);
 
   /* --------------------------------------------------------------------------
      INTEGRITY
   -------------------------------------------------------------------------- */
 
-  const [integrity, setIntegrity] =
-    useState(null);
+  const [
+    integrity,
+    setIntegrity,
+  ] = useState(null);
 
   /* --------------------------------------------------------------------------
      ANALYSIS
   -------------------------------------------------------------------------- */
 
-  const [analysisMode, setAnalysisMode] =
-    useState(null);
+  const [
+    analysisMode,
+    setAnalysisMode,
+  ] = useState(null);
 
-  const [scanStats, setScanStats] =
-    useState(null);
+  const [
+    scanStats,
+    setScanStats,
+  ] = useState(null);
 
-  const [scanOutput, setScanOutput] =
-    useState("");
+  const [
+    scanOutput,
+    setScanOutput,
+  ] = useState("");
 
-  const [lastScanDuration, setLastScanDuration] =
-    useState(null);
+  const [
+    lastScanDuration,
+    setLastScanDuration,
+  ] = useState(null);
 
-  const [lastOperation, setLastOperation] =
-    useState(null);
+  const [
+    lastOperation,
+    setLastOperation,
+  ] = useState(null);
 
-  const [forensicJobId, setForensicJobId] =
-    useState(null);
+  const [
+    forensicJobId,
+    setForensicJobId,
+  ] = useState(null);
 
   /* --------------------------------------------------------------------------
      RECOVERY
   -------------------------------------------------------------------------- */
 
-  const [recoveredFiles, setRecoveredFiles] =
-    useState([]);
+  const [
+    recoveredFiles,
+    setRecoveredFiles,
+  ] = useState([]);
 
   /* --------------------------------------------------------------------------
      REPORT
   -------------------------------------------------------------------------- */
 
-  const [report, setReport] =
-    useState(null);
+  const [
+    report,
+    setReport,
+  ] = useState(null);
 
-  const [reportFile, setReportFile] =
-    useState(null);
+  const [
+    reportFile,
+    setReportFile,
+  ] = useState(null);
 
   /* ==========================================================================
      DERIVED STATE
@@ -840,7 +983,9 @@ export default function Forensics() {
         );
 
       return {
-        total: evidence.length,
+        total:
+          evidence.length,
+
         totalSize,
       };
     }, [evidence]);
@@ -858,352 +1003,454 @@ export default function Forensics() {
       [recoveredFiles]
     );
 
-  const onlineAgents = useMemo(() => {
-    const unique = new Map();
+  const onlineAgents =
+    useMemo(() => {
+      const unique =
+        new Map();
 
-    agents.forEach((agent) => {
-      if (!agent?.agentId) return;
+      agents.forEach(
+        (agent) => {
+          if (
+            !agent?.agentId
+          ) {
+            return;
+          }
 
-      const key = String(agent.agentId).trim();
-      if (!key) return;
+          const key =
+            String(
+              agent.agentId
+            ).trim();
 
-      const isOnline =
-        agent.online !== false &&
-        agent.connected !== false;
+          if (!key) {
+            return;
+          }
 
-      if (isOnline) {
-        unique.set(key, agent);
-      }
-    });
+          const isOnline =
+            agent.online !==
+              false &&
+            agent.connected !==
+              false;
 
-    return Array.from(unique.values());
-  }, [agents]);
+          if (isOnline) {
+            unique.set(
+              key,
+              agent
+            );
+          }
+        }
+      );
+
+      return Array.from(
+        unique.values()
+      );
+    }, [agents]);
+
+  const selectedDrivePath =
+    selectedDrive?.devicePath ||
+    selectedDrive?.device_path ||
+    selectedDrive?.path ||
+    selectedDrive?.name ||
+    null;
+
+  const sourceReady =
+    sourceType ===
+      SOURCE_TYPES.DEVICE
+      ? Boolean(
+          selectedDrivePath
+        )
+      : sourceType ===
+          SOURCE_TYPES.FILE
+        ? Boolean(
+            selectedEvidence
+          )
+        : false;
 
   /* ==========================================================================
      AGENT STATUS
   ========================================================================== */
 
-  const loadAgents = useCallback(
-    async () => {
-      setAgentLoading(true);
+  const loadAgents =
+    useCallback(
+      async () => {
+        setAgentLoading(true);
 
-      try {
-        const response =
-          await apiFetch(
-            "/api/devices"
-          );
+        try {
+          const response =
+            await apiFetch(
+              "/api/devices"
+            );
 
-        const raw =
-          extractArray(
-            response,
-            [
-              "agents",
-              "devices",
-              "data",
-            ]
-          );
+          const raw =
+            extractArray(
+              response,
+              [
+                "agents",
+                "devices",
+                "data",
+              ]
+            );
 
-        const normalized =
-          raw.map((item) => ({
-            ...item,
+          const normalized =
+            raw
+              .map(
+                (item) => ({
+                  ...item,
 
-            agentId:
-              firstDefined(
-                item.agentId,
-                item.agent_id,
-                item.deviceId,
-                item.device_id,
-                item.id
-              ),
+                  agentId:
+                    firstDefined(
+                      item.agentId,
+                      item.agent_id,
+                      item.deviceId,
+                      item.device_id,
+                      item.id
+                    ),
 
-            deviceId:
-              firstDefined(
-                item.deviceId,
-                item.device_id,
-                item.agentId,
-                item.agent_id,
-                item.id
-              ),
+                  deviceId:
+                    firstDefined(
+                      item.deviceId,
+                      item.device_id,
+                      item.agentId,
+                      item.agent_id,
+                      item.id
+                    ),
 
-            hostname:
-              firstDefined(
-                item.hostname,
-                item.hostName,
-                item.name
-              ) || "Unknown device",
+                  hostname:
+                    firstDefined(
+                      item.hostname,
+                      item.hostName,
+                      item.name
+                    ) ||
+                    "Unknown device",
 
-            platform:
-              item.platform ||
-              "unknown",
+                  platform:
+                    item.platform ||
+                    "Windows",
 
-            online:
-              item.online !==
-                undefined
-                ? toBoolean(
-                    item.online
-                  )
-                : item.connected !==
-                  undefined
-                ? toBoolean(
-                    item.connected
-                  )
-                : true,
+                  online:
+                    item.online !==
+                    undefined
+                      ? toBoolean(
+                          item.online
+                        )
+                      : item.connected !==
+                        undefined
+                      ? toBoolean(
+                          item.connected
+                        )
+                      : true,
 
-            connected:
-              item.connected !==
-              undefined
-                ? toBoolean(
-                    item.connected
-                  )
-                : item.online !==
-                  undefined
-                ? toBoolean(
-                    item.online
-                  )
-                : true,
+                  connected:
+                    item.connected !==
+                    undefined
+                      ? toBoolean(
+                          item.connected
+                        )
+                      : item.online !==
+                        undefined
+                      ? toBoolean(
+                          item.online
+                        )
+                      : true,
 
-            capabilities:
-              Array.isArray(
-                item.capabilities
+                  capabilities:
+                    Array.isArray(
+                      item.capabilities
+                    )
+                      ? item.capabilities.map(
+                          (cap) =>
+                            String(
+                              cap
+                            )
+                              .trim()
+                              .toUpperCase()
+                        )
+                      : [],
+                })
               )
-                ? item.capabilities
-                : [],
-          }));
+              .filter(
+                (agent) =>
+                  agent?.agentId
+              );
 
-        const uniqueAgents = Array.from(
-          normalized
-            .filter((agent) => agent?.agentId)
-            .reduce((map, agent) => {
-              const key = String(agent.agentId).trim();
-              if (!key) return map;
+          const unique =
+            Array.from(
+              normalized.reduce(
+                (
+                  map,
+                  agent
+                ) => {
+                  const key =
+                    String(
+                      agent.agentId
+                    ).trim();
 
-              // One TrustWipe agent must appear only once.
-              // If the API returns duplicate rows, keep the newest
-              // record and merge useful fields from both records.
-              const existing = map.get(key);
+                  const existing =
+                    map.get(
+                      key
+                    );
 
-              if (!existing) {
-                map.set(key, agent);
-                return map;
+                  if (
+                    !existing
+                  ) {
+                    map.set(
+                      key,
+                      agent
+                    );
+
+                    return map;
+                  }
+
+                  map.set(
+                    key,
+                    {
+                      ...existing,
+                      ...agent,
+
+                      agentId:
+                        key,
+
+                      hostname:
+                        agent.hostname !==
+                        "Unknown device"
+                          ? agent.hostname
+                          : existing.hostname,
+
+                      platform:
+                        agent.platform !==
+                        "Windows"
+                          ? agent.platform
+                          : existing.platform,
+
+                      capabilities:
+                        Array.from(
+                          new Set([
+                            ...(existing.capabilities ||
+                              []),
+                            ...(agent.capabilities ||
+                              []),
+                          ])
+                        ),
+                    }
+                  );
+
+                  return map;
+                },
+                new Map()
+              ).values()
+            );
+
+          setAgents(
+            unique
+          );
+
+          setSelectedAgent(
+            (current) => {
+              if (
+                !current
+              ) {
+                return (
+                  unique.find(
+                    (agent) =>
+                      agent.capabilities?.includes(
+                        "FORENSIC_SCAN"
+                      )
+                  ) ||
+                  unique.find(
+                    (agent) =>
+                      agent.online &&
+                      agent.connected !==
+                        false
+                  ) ||
+                  null
+                );
               }
 
-              map.set(key, {
-                ...existing,
-                ...agent,
-                agentId: key,
-                deviceId:
-                  agent.deviceId ||
-                  existing.deviceId ||
-                  key,
-                hostname:
-                  agent.hostname !== "Unknown device"
-                    ? agent.hostname
-                    : existing.hostname,
-                platform:
-                  agent.platform !== "unknown"
-                    ? agent.platform
-                    : existing.platform,
-                online:
-                  agent.online || existing.online,
-                connected:
-                  agent.connected || existing.connected,
-                capabilities: Array.from(
-                  new Set([
-                    ...(existing.capabilities || []),
-                    ...(agent.capabilities || []),
-                  ])
-                ),
-              });
-
-              return map;
-            }, new Map())
-            .values()
-        );
-
-        setAgents(uniqueAgents);
-
-        setSelectedAgent(
-          (current) => {
-            if (!current) {
               return (
-                uniqueAgents.find(
+                unique.find(
                   (agent) =>
-                    agent.capabilities?.includes(
-                      "FORENSIC_SCAN"
+                    String(
+                      agent.agentId
+                    ) ===
+                    String(
+                      current.agentId
                     )
-                ) ||
-                uniqueAgents.find(
-                  (agent) =>
-                    agent.online &&
-                    agent.connected !== false
                 ) ||
                 null
               );
             }
+          );
+        } catch (err) {
+          setAgents([]);
 
-            return (
-              uniqueAgents.find(
-                (agent) =>
-                  String(agent.agentId) ===
-                  String(current.agentId)
-              ) || current
-            );
-          }
-        );
-      } catch (err) {
-        setAgents([]);
+          setSelectedAgent(
+            null
+          );
 
-        setSelectedAgent(null);
-
-        setError(
-          err.message ||
-            "Unable to load connected forensic agents."
-        );
-      } finally {
-        setAgentLoading(false);
-      }
-    },
-    []
-  );
+          /*
+           * Do not destroy the entire forensic
+           * workspace just because the device
+           * list temporarily failed.
+           */
+          setError(
+            err.message ||
+              "Unable to load connected TrustWipe Agents."
+          );
+        } finally {
+          setAgentLoading(
+            false
+          );
+        }
+      },
+      []
+    );
 
   /* ==========================================================================
      ENGINE STATUS
   ========================================================================== */
 
   const loadEngineStatus =
-    useCallback(async () => {
-      try {
-        const response =
-          await apiFetch(
-            "/api/forensic/status"
+    useCallback(
+      async () => {
+        try {
+          const response =
+            await apiFetch(
+              "/api/forensic/status"
+            );
+
+          const available =
+            toBoolean(
+              firstDefined(
+                response?.available,
+                response?.engineAvailable,
+                response?.engine_available,
+                response?.agentBridgeAvailable,
+                response?.agent_bridge_available
+              )
+            );
+
+          setEngine({
+            available,
+
+            version:
+              firstDefined(
+                response?.pythonVersion,
+                response?.python_version,
+                response?.version
+              ) ||
+              "Windows Agent",
+
+            message:
+              response?.message ||
+              (
+                available
+                  ? "Forensic engine is ready."
+                  : "Forensic engine is unavailable."
+              ),
+          });
+        } catch {
+          setEngine({
+            available: true,
+
+            version:
+              "Windows Agent",
+
+            message:
+              "Forensic processing is delegated to the connected TrustWipe Agent.",
+          });
+        }
+      },
+      []
+    );
+
+  /* ==========================================================================
+     EVIDENCE REPOSITORY
+  ========================================================================== */
+
+  const loadEvidence =
+    useCallback(
+      async () => {
+        try {
+          const response =
+            await apiFetch(
+              "/api/forensic/evidence"
+            );
+
+          const raw =
+            extractArray(
+              response,
+              ["evidence"]
+            );
+
+          const items =
+            raw
+              .map(
+                normalizeEvidence
+              )
+              .filter(Boolean);
+
+          setEvidence(
+            items
           );
 
-        const available =
-          toBoolean(
-            firstDefined(
-              response?.pythonAvailable,
-              response?.python_available,
-              response?.available,
-              response?.engineAvailable,
-              response?.engine_available
-            )
+          setSelectedEvidence(
+            (current) => {
+              if (
+                !current
+              ) {
+                return null;
+              }
+
+              return (
+                items.find(
+                  (item) =>
+                    current.evidenceId &&
+                    item.evidenceId ===
+                      current.evidenceId
+                ) ||
+                current
+              );
+            }
           );
-
-        const version =
-          firstDefined(
-            response?.pythonVersion,
-            response?.python_version,
-            response?.version,
-            response?.engineVersion,
-            response?.engine_version
-          ) || null;
-
-        setEngine({
-          available,
-          version,
-          message:
-            response?.message ||
-            (available
-              ? "Forensic engine is ready."
-              : "Forensic engine is unavailable.")
-        });
-      } catch {
-        /*
-          The forensic scan itself now runs through the
-          connected Windows agent.
-
-          Therefore an unavailable Render-side Python
-          status endpoint must NOT automatically prevent
-          the agent workflow from being used.
-        */
-
-        setEngine({
-          available: true,
-          version:
-            "Windows Agent",
-          message:
-            "Forensic processing is delegated to the connected TrustWipe Agent."
-        });
-      }
-    }, []);
+        } catch (err) {
+          setError(
+            err.message ||
+              "Unable to load evidence repository."
+          );
+        }
+      },
+      []
+    );
 
   /* ==========================================================================
      INITIAL LOAD
   ========================================================================== */
-
-  const loadEvidence =
-    useCallback(async () => {
-      try {
-        const response =
-          await apiFetch(
-            "/api/forensic/evidence"
-          );
-
-        const rawItems =
-          extractArray(
-            response,
-            ["evidence"]
-          );
-
-        const items =
-          rawItems
-            .map(
-              normalizeEvidence
-            )
-            .filter(Boolean);
-
-        setEvidence(items);
-
-        setSelectedEvidence(
-          (current) => {
-            if (!current) {
-              return null;
-            }
-
-            const refreshed =
-              items.find(
-                (item) =>
-                  (
-                    current.evidenceId &&
-                    item.evidenceId ===
-                      current.evidenceId
-                  ) ||
-                  (
-                    !current.evidenceId &&
-                    item.name ===
-                      current.name
-                  )
-              );
-
-            return (
-              refreshed ||
-              current
-            );
-          }
-        );
-      } catch (err) {
-        setError(
-          err.message ||
-            "Unable to load evidence repository."
-        );
-      }
-    }, []);
 
   useEffect(() => {
     loadEngineStatus();
     loadEvidence();
     loadAgents();
 
-    const interval =
+    agentRefreshRef.current =
       window.setInterval(
-        loadAgents,
-        15000
+        () => {
+          loadAgents();
+          loadEngineStatus();
+        },
+        5000
       );
 
-    return () =>
-      window.clearInterval(
-        interval
-      );
+    return () => {
+      if (
+        agentRefreshRef.current
+      ) {
+        window.clearInterval(
+          agentRefreshRef.current
+        );
+
+        agentRefreshRef.current =
+          null;
+      }
+    };
   }, [
     loadEngineStatus,
     loadEvidence,
@@ -1214,19 +1461,11 @@ export default function Forensics() {
      CLEAN POLLING
   ========================================================================== */
 
-  useEffect(() => {
-    return () => {
-      if (pollingRef.current) {
-        window.clearInterval(
-          pollingRef.current
-        );
-      }
-    };
-  }, []);
-
   const stopPolling =
     useCallback(() => {
-      if (pollingRef.current) {
+      if (
+        pollingRef.current
+      ) {
         window.clearInterval(
           pollingRef.current
         );
@@ -1236,6 +1475,14 @@ export default function Forensics() {
       }
     }, []);
 
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, [
+    stopPolling,
+  ]);
+
   /* ==========================================================================
      CASE MANAGEMENT
   ========================================================================== */
@@ -1243,23 +1490,27 @@ export default function Forensics() {
   const persistCase =
     useCallback(
       (newCase) => {
-        const updated = [
-          newCase,
+        setCases(
+          (current) => {
+            const updated = [
+              newCase,
 
-          ...cases.filter(
-            (item) =>
-              item.caseId !==
-              newCase.caseId
-          ),
-        ];
+              ...current.filter(
+                (item) =>
+                  item.caseId !==
+                  newCase.caseId
+              ),
+            ];
 
-        setCases(updated);
+            saveLocalCases(
+              updated
+            );
 
-        saveLocalCases(
-          updated
+            return updated;
+          }
         );
       },
-      [cases]
+      []
     );
 
   const createCase =
@@ -1267,17 +1518,23 @@ export default function Forensics() {
       setError("");
       setNotice("");
 
-      if (!caseTitle.trim()) {
+      if (
+        !caseTitle.trim()
+      ) {
         setError(
           "Case title is required."
         );
+
         return;
       }
 
-      if (!examiner.trim()) {
+      if (
+        !examiner.trim()
+      ) {
         setError(
           "Examiner name is required."
         );
+
         return;
       }
 
@@ -1298,9 +1555,11 @@ export default function Forensics() {
         createdAt:
           new Date().toISOString(),
 
-        status: "OPEN",
+        status:
+          "OPEN",
 
-        evidenceCount: 0,
+        evidenceCount:
+          0,
       };
 
       persistCase(
@@ -1320,7 +1579,7 @@ export default function Forensics() {
       );
 
       setCurrentStep(
-        STEPS.EVIDENCE
+        STEPS.AGENT
       );
     }, [
       caseId,
@@ -1360,7 +1619,7 @@ export default function Forensics() {
         );
 
         setCurrentStep(
-          STEPS.EVIDENCE
+          STEPS.AGENT
         );
       },
       []
@@ -1385,6 +1644,18 @@ export default function Forensics() {
         null
       );
 
+      setSelectedAgent(
+        null
+      );
+
+      setSelectedDrive(
+        null
+      );
+
+      setDrives([]);
+
+      setSourceType(null);
+
       setIntegrity(null);
 
       setCurrentStep(
@@ -1393,63 +1664,234 @@ export default function Forensics() {
     }, []);
 
   /* ==========================================================================
-     SELECT EVIDENCE
+     AGENT WORKFLOW
   ========================================================================== */
 
-  const selectEvidence =
-    useCallback(
-      (item) => {
-        if (busy) return;
+  const continueFromAgent =
+    useCallback(() => {
+      setError("");
+      setNotice("");
 
-        const normalized =
-          normalizeEvidence(
-            item
+      if (
+        onlineAgents.length === 0
+      ) {
+        setError(
+          "TrustWipe Agent is not connected. Install and run the Agent on the authorized Windows workstation."
+        );
+
+        return;
+      }
+
+      if (
+        !selectedAgent
+      ) {
+        setError(
+          "Select an online TrustWipe Agent."
+        );
+
+        return;
+      }
+
+      const capabilities =
+        Array.isArray(
+          selectedAgent.capabilities
+        )
+          ? selectedAgent.capabilities
+          : [];
+
+      if (
+        capabilities.length > 0 &&
+        !capabilities.includes(
+          "FORENSIC_SCAN"
+        )
+      ) {
+        setError(
+          "The selected Agent does not advertise FORENSIC_SCAN capability."
+        );
+
+        return;
+      }
+
+      setCurrentStep(
+        STEPS.SOURCE
+      );
+    }, [
+      onlineAgents.length,
+      selectedAgent,
+    ]);
+
+  /* ==========================================================================
+     DEVICE DISCOVERY
+  ========================================================================== */
+
+  const requestDriveDiscovery =
+    useCallback(
+      async () => {
+        if (
+          !selectedAgent
+        ) {
+          setError(
+            "Select a TrustWipe Agent first."
           );
 
-        if (!normalized) {
           return;
         }
 
-        setSelectedEvidence(
-          normalized
-        );
-
-        setIntegrity(null);
-        setRecoveredFiles([]);
-        setScanStats(null);
-        setReport(null);
-        setReportFile(null);
-        setScanOutput("");
-        setLastScanDuration(null);
-        setLastOperation(null);
-        setAnalysisMode(null);
-        setForensicJobId(null);
-        setProgress(0);
-
         setError("");
         setNotice("");
-
-        setStatus(
-          normalized.acquisitionHash
-            ? STATUS.READY
-            : STATUS.IDLE
+        setDrives([]);
+        setSelectedDrive(
+          null
+        );
+        setDrivesLoading(
+          true
+        );
+        setDriveDiscoveryMessage(
+          "Requesting physical drive information from the TrustWipe Agent..."
         );
 
-        setCurrentStep(
-          STEPS.EXAMINATION
-        );
+        /*
+         * The current backend/Agent architecture
+         * already supports drive discovery through
+         * Socket.IO.
+         *
+         * This frontend endpoint is intentionally
+         * isolated so it can use the existing
+         * discovery controller if present.
+         *
+         * If your backend already exposes a discovery
+         * route, this will use it.
+         */
+        try {
+          const response =
+            await apiFetch(
+              `/api/devices/${encodeURIComponent(
+                selectedAgent.agentId
+              )}/drives`,
+              {
+                method: "POST",
+              }
+            );
+
+          const discovered =
+            extractArray(
+              response,
+              [
+                "drives",
+                "data",
+              ]
+            );
+
+          setDrives(
+            discovered
+          );
+
+          if (
+            discovered.length === 0
+          ) {
+            setDriveDiscoveryMessage(
+              "No physical drives were returned. Make sure the TrustWipe Agent is running with the required Windows permissions."
+            );
+          } else {
+            setDriveDiscoveryMessage(
+              `${discovered.length} physical device(s) discovered.`
+            );
+          }
+        } catch (err) {
+          /*
+           * Keep this explicit rather than silently
+           * pretending the browser can access
+           * PhysicalDrive devices.
+           */
+          setDriveDiscoveryMessage(
+            ""
+          );
+
+          setError(
+            err.message ||
+              "Drive discovery is not available through the backend yet."
+          );
+        } finally {
+          setDrivesLoading(
+            false
+          );
+        }
       },
-      [busy]
+      [selectedAgent]
     );
 
   /* ==========================================================================
-     ACQUIRE EVIDENCE
+     SOURCE SELECTION
+  ========================================================================== */
+
+  const chooseDeviceSource =
+    useCallback(() => {
+      setError("");
+      setNotice("");
+
+      if (
+        !selectedAgent
+      ) {
+        setError(
+          "Connect and select the TrustWipe Agent first."
+        );
+
+        return;
+      }
+
+      setSourceType(
+        SOURCE_TYPES.DEVICE
+      );
+
+      setSelectedEvidence(
+        null
+      );
+
+      setIntegrity(
+        null
+      );
+
+      setSelectedDrive(
+        null
+      );
+
+      setDrives([]);
+
+      setNotice(
+        "Physical device mode selected. Discover the authorized workstation drives."
+      );
+    }, [
+      selectedAgent,
+    ]);
+
+  const chooseFileSource =
+    useCallback(() => {
+      setError("");
+      setNotice("");
+
+      setSourceType(
+        SOURCE_TYPES.FILE
+      );
+
+      setSelectedDrive(
+        null
+      );
+
+      setNotice(
+        "Evidence file mode selected. Choose an evidence file from the Evidence Repository."
+      );
+    }, []);
+
+  /* ==========================================================================
+     EVIDENCE ACQUISITION
   ========================================================================== */
 
   const acquireEvidence =
     useCallback(
       async (file) => {
-        if (!file) return;
+        if (!file) {
+          return;
+        }
 
         setBusy(true);
 
@@ -1465,12 +1907,21 @@ export default function Forensics() {
         );
 
         setIntegrity(null);
+
         setRecoveredFiles([]);
+
         setScanStats(null);
+
         setReport(null);
+
         setReportFile(null);
+
         setScanOutput("");
-        setLastOperation(null);
+
+        setLastOperation(
+          null
+        );
+
         setProgress(0);
 
         try {
@@ -1483,7 +1934,9 @@ export default function Forensics() {
             );
           }
 
-          if (file.size === 0) {
+          if (
+            file.size === 0
+          ) {
             throw new Error(
               "Empty evidence files are not accepted."
             );
@@ -1504,12 +1957,14 @@ export default function Forensics() {
                 "/api/forensic/upload"
               ),
               {
-                method: "POST",
+                method:
+                  "POST",
 
                 headers:
                   authHeaders(),
 
-                body: formData,
+                body:
+                  formData,
               }
             );
 
@@ -1526,7 +1981,9 @@ export default function Forensics() {
                 result
             );
 
-          if (!acquired) {
+          if (
+            !acquired
+          ) {
             throw new Error(
               "Server returned invalid evidence acquisition data."
             );
@@ -1534,6 +1991,10 @@ export default function Forensics() {
 
           setSelectedEvidence(
             acquired
+          );
+
+          setSourceType(
+            SOURCE_TYPES.FILE
           );
 
           if (
@@ -1553,13 +2014,15 @@ export default function Forensics() {
 
             setNotice(
               result?.message ||
-                "Evidence acquired successfully. Continue to integrity verification."
+                "Evidence acquired successfully. Verify its SHA-256 integrity before forensic processing."
             );
           }
 
           await loadEvidence();
 
-          if (currentCase) {
+          if (
+            currentCase
+          ) {
             const updatedCase = {
               ...currentCase,
 
@@ -1621,13 +2084,114 @@ export default function Forensics() {
     );
 
   /* ==========================================================================
-     VERIFY INTEGRITY
+     SELECT EXISTING EVIDENCE
+  ========================================================================== */
+
+  const selectEvidence =
+    useCallback(
+      (item) => {
+        if (busy) {
+          return;
+        }
+
+        const normalized =
+          normalizeEvidence(
+            item
+          );
+
+        if (
+          !normalized
+        ) {
+          return;
+        }
+
+        setSourceType(
+          SOURCE_TYPES.FILE
+        );
+
+        setSelectedDrive(
+          null
+        );
+
+        setSelectedEvidence(
+          normalized
+        );
+
+        setIntegrity(null);
+
+        setRecoveredFiles(
+          []
+        );
+
+        setScanStats(
+          null
+        );
+
+        setReport(null);
+
+        setReportFile(
+          null
+        );
+
+        setScanOutput(
+          ""
+        );
+
+        setLastScanDuration(
+          null
+        );
+
+        setLastOperation(
+          null
+        );
+
+        setAnalysisMode(
+          null
+        );
+
+        setForensicJobId(
+          null
+        );
+
+        setProgress(0);
+
+        setError("");
+        setNotice("");
+
+        setStatus(
+          normalized.acquisitionHash
+            ? STATUS.READY
+            : STATUS.IDLE
+        );
+
+        setCurrentStep(
+          STEPS.EXAMINATION
+        );
+      },
+      [busy]
+    );
+
+  /* ==========================================================================
+     INTEGRITY
   ========================================================================== */
 
   const verifyIntegrity =
     useCallback(
       async () => {
-        if (!selectedEvidence) {
+        if (
+          sourceType !==
+          SOURCE_TYPES.FILE
+        ) {
+          setNotice(
+            "Physical device examinations are handled directly by the TrustWipe Agent. File SHA-256 verification is performed against the acquired evidence baseline."
+          );
+
+          return true;
+        }
+
+        if (
+          !selectedEvidence
+        ) {
           setError(
             "Select evidence first."
           );
@@ -1653,7 +2217,8 @@ export default function Forensics() {
             await apiFetch(
               "/api/forensic/verify-integrity",
               {
-                method: "POST",
+                method:
+                  "POST",
 
                 headers: {
                   "Content-Type":
@@ -1684,7 +2249,9 @@ export default function Forensics() {
                 response
             );
 
-          if (!result) {
+          if (
+            !result
+          ) {
             throw new Error(
               "Server returned no integrity verification result."
             );
@@ -1701,13 +2268,15 @@ export default function Forensics() {
             result.hashMatch === true &&
             result.sizeMatch === true;
 
-          if (verified) {
+          if (
+            verified
+          ) {
             setStatus(
               STATUS.READY
             );
 
             setNotice(
-              "Evidence integrity VERIFIED. Forensic analysis is now unlocked."
+              "Evidence integrity VERIFIED. Forensic processing is unlocked."
             );
 
             return true;
@@ -1740,6 +2309,7 @@ export default function Forensics() {
         }
       },
       [
+        sourceType,
         selectedEvidence,
         selectedEvidenceId,
         selectedFileName,
@@ -1883,7 +2453,9 @@ export default function Forensics() {
             postScanIntegrity
           );
 
-        if (postScan) {
+        if (
+          postScan
+        ) {
           setIntegrity(
             postScan
           );
@@ -1971,7 +2543,7 @@ export default function Forensics() {
     );
 
   /* ==========================================================================
-     POLL FORENSIC JOB
+     JOB POLLING
   ========================================================================== */
 
   const pollForensicJob =
@@ -2024,7 +2596,7 @@ export default function Forensics() {
           setProgressMessage(
             job?.message ||
               job?.progressMessage ||
-              `Forensic scan ${Math.round(
+              `Forensic processing ${Math.round(
                 jobProgress
               )}% complete...`
           );
@@ -2062,24 +2634,27 @@ export default function Forensics() {
           ) {
             stopPolling();
 
-            setProgress(100);
+            setProgress(
+              100
+            );
 
             setProgressMessage(
               "Forensic processing completed. Loading results..."
             );
 
-            const result =
-              job?.result ||
-              job?.data ||
-              job;
-
             processScanResult(
-              result
+              job?.result ||
+                job?.data ||
+                job
             );
 
-            setBusy(false);
+            setBusy(
+              false
+            );
 
-            setProgressMessage("");
+            setProgressMessage(
+              ""
+            );
 
             return;
           }
@@ -2098,14 +2673,22 @@ export default function Forensics() {
               STATUS.FAILED
             );
 
-            setBusy(false);
+            setBusy(
+              false
+            );
 
-            setProgressMessage("");
+            setProgressMessage(
+              ""
+            );
 
             setError(
-              job?.error ||
-                job?.message ||
-                "Forensic scan failed on the connected TrustWipe Agent."
+              typeof job?.error ===
+                "object"
+                ? job.error.message ||
+                    "Forensic Agent reported an error."
+                : job?.error ||
+                    job?.message ||
+                    "Forensic scan failed on the TrustWipe Agent."
             );
 
             return;
@@ -2125,9 +2708,13 @@ export default function Forensics() {
               STATUS.CANCELLED
             );
 
-            setBusy(false);
+            setBusy(
+              false
+            );
 
-            setProgressMessage("");
+            setProgressMessage(
+              ""
+            );
 
             setNotice(
               "Forensic scan was cancelled."
@@ -2136,13 +2723,17 @@ export default function Forensics() {
         } catch (err) {
           stopPolling();
 
-          setBusy(false);
+          setBusy(
+            false
+          );
 
           setStatus(
             STATUS.FAILED
           );
 
-          setProgressMessage("");
+          setProgressMessage(
+            ""
+          );
 
           setError(
             err.message ||
@@ -2160,505 +2751,755 @@ export default function Forensics() {
      FORENSIC SCAN
   ========================================================================== */
 
-  const runForensicScan = useCallback(
-  async (mode = "recover") => {
-    if (!selectedEvidence) {
-      setError("Select evidence before starting analysis.");
-      return;
-    }
+  const runForensicScan =
+    useCallback(
+      async (
+        mode = "recover"
+      ) => {
+        if (
+          !selectedAgent
+        ) {
+          setError(
+            "Select a TrustWipe Agent first."
+          );
 
-    if (!integrityVerified) {
-      setError(
-        "Analysis is blocked until evidence integrity is VERIFIED."
-      );
-      return;
-    }
+          return;
+        }
 
-    if (!caseId.trim()) {
-      setError("Case ID is required.");
-      return;
-    }
+        if (
+          sourceType ===
+          SOURCE_TYPES.FILE
+        ) {
+          if (
+            !selectedEvidence
+          ) {
+            setError(
+              "Select an evidence file first."
+            );
 
-    if (!examiner.trim()) {
-      setError("Examiner name is required.");
-      return;
-    }
+            return;
+          }
 
-    if (!selectedAgent) {
-      setError("No TrustWipe forensic agent is selected.");
-      return;
-    }
+          if (
+            !integrityVerified
+          ) {
+            setError(
+              "File analysis is blocked until SHA-256 integrity is VERIFIED."
+            );
 
-    const agentOnline =
-      selectedAgent.online !== false &&
-      selectedAgent.connected !== false;
+            return;
+          }
+        }
 
-    if (!agentOnline) {
-      setError("The selected TrustWipe Agent is offline.");
-      return;
-    }
+        if (
+          sourceType ===
+          SOURCE_TYPES.DEVICE
+        ) {
+          if (
+            !selectedDrivePath
+          ) {
+            setError(
+              "Select a physical device discovered by the TrustWipe Agent."
+            );
 
-    const capabilities = Array.isArray(
-      selectedAgent.capabilities
-    )
-      ? selectedAgent.capabilities.map((item) =>
-          String(item).trim().toUpperCase()
-        )
-      : [];
+            return;
+          }
+        }
 
-    if (
-      capabilities.length > 0 &&
-      !capabilities.includes("FORENSIC_SCAN")
-    ) {
-      setError(
-        "The selected agent does not advertise FORENSIC_SCAN capability."
-      );
-      return;
-    }
+        if (
+          !sourceType
+        ) {
+          setError(
+            "Select an evidence source first."
+          );
 
-    setBusy(true);
-    setError("");
-    setNotice("");
-    setProgress(0);
-    setAnalysisMode(mode);
+          return;
+        }
 
-    setRecoveredFiles([]);
-    setScanStats(null);
-    setReport(null);
-    setReportFile(null);
-    setScanOutput("");
-    setLastOperation(null);
-    setForensicJobId(null);
+        if (
+          !caseId.trim()
+        ) {
+          setError(
+            "Case ID is required."
+          );
 
-    setStatus(STATUS.QUEUED);
+          return;
+        }
 
-    const messages = {
-      scan:
-        "Queuing disk scan on the connected TrustWipe Agent...",
-      recover:
-        "Queuing forensic recovery on the connected TrustWipe Agent...",
-      analyze:
-        "Queuing forensic analysis on the connected TrustWipe Agent...",
-    };
+        if (
+          !examiner.trim()
+        ) {
+          setError(
+            "Examiner name is required."
+          );
 
-    setProgressMessage(
-      messages[mode] || messages.recover
-    );
+          return;
+        }
 
-    try {
-      /*
-       * IMPORTANT
-       * ----------
-       * Do NOT call /api/forensic/scan.
-       *
-       * /scan is the old synchronous/local endpoint.
-       * The Agent architecture uses /jobs.
-       */
+        const agentOnline =
+          selectedAgent.online !==
+            false &&
+          selectedAgent.connected !==
+            false;
 
-      const response = await apiFetch(
-        "/api/forensic/jobs",
-        {
-          method: "POST",
+        if (
+          !agentOnline
+        ) {
+          setError(
+            "The selected TrustWipe Agent is offline."
+          );
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+          return;
+        }
 
-          body: JSON.stringify({
-            evidenceId: selectedEvidenceId,
-            evidence_id: selectedEvidenceId,
+        const capabilities =
+          Array.isArray(
+            selectedAgent.capabilities
+          )
+            ? selectedAgent.capabilities
+            : [];
 
-            fileName: selectedFileName,
-            file_name: selectedFileName,
+        if (
+          capabilities.length > 0 &&
+          !capabilities.includes(
+            "FORENSIC_SCAN"
+          )
+        ) {
+          setError(
+            "The selected Agent does not advertise FORENSIC_SCAN capability."
+          );
 
-            caseId: caseId.trim(),
-            case_id: caseId.trim(),
+          return;
+        }
 
-            examiner: examiner.trim(),
+        setBusy(true);
+
+        setError("");
+        setNotice("");
+
+        setStatus(
+          STATUS.QUEUED
+        );
+
+        setProgress(0);
+
+        setAnalysisMode(
+          mode
+        );
+
+        setRecoveredFiles(
+          []
+        );
+
+        setScanStats(
+          null
+        );
+
+        setReport(null);
+
+        setReportFile(
+          null
+        );
+
+        setScanOutput(
+          ""
+        );
+
+        setLastOperation(
+          null
+        );
+
+        setForensicJobId(
+          null
+        );
+
+        const modeLabel =
+          {
+            scan:
+              "disk scan",
+            recover:
+              "forensic recovery",
+            analyze:
+              "forensic analysis",
+          }[mode] ||
+          "forensic processing";
+
+        setProgressMessage(
+          `Queuing ${modeLabel} on the TrustWipe Agent...`
+        );
+
+        try {
+          const body = {
+            evidenceId:
+              selectedEvidenceId,
+
+            evidence_id:
+              selectedEvidenceId,
+
+            fileName:
+              selectedFileName,
+
+            file_name:
+              selectedFileName,
+
+            caseId:
+              caseId.trim(),
+
+            case_id:
+              caseId.trim(),
+
+            examiner:
+              examiner.trim(),
+
+            operation:
+              "FORENSIC_SCAN",
+
+            agentId:
+              selectedAgent.agentId,
+
+            agent_id:
+              selectedAgent.agentId,
+
+            sourceType:
+              sourceType,
+
+            source_type:
+              sourceType,
 
             /*
-             * Backend expects the forensic operation.
+             * Physical device source.
              */
-            operation: "FORENSIC_SCAN",
+            devicePath:
+              sourceType ===
+              SOURCE_TYPES.DEVICE
+                ? selectedDrivePath
+                : null,
+
+            device_path:
+              sourceType ===
+              SOURCE_TYPES.DEVICE
+                ? selectedDrivePath
+                : null,
+
+            disk:
+              sourceType ===
+              SOURCE_TYPES.DEVICE
+                ? selectedDrive
+                : null,
 
             /*
-             * Selected Windows TrustWipe Agent.
-             */
-            agentId: selectedAgent.agentId,
-            agent_id: selectedAgent.agentId,
-
-            /*
-             * Keep source information if your
-             * evidence record contains it.
+             * Evidence file source.
              */
             source:
-              selectedEvidence?.source ||
-              selectedEvidence?.sourcePath ||
-              selectedEvidence?.source_path ||
-              null,
-          }),
-        }
-      );
+              sourceType ===
+              SOURCE_TYPES.FILE
+                ? selectedEvidence?.source ||
+                  selectedEvidence?.sourcePath ||
+                  selectedEvidence?.source_path ||
+                  null
+                : selectedDrivePath,
 
-      const job =
-        response?.job ||
-        response?.data?.job ||
-        response;
+            evidence:
+              sourceType ===
+              SOURCE_TYPES.FILE
+                ? {
+                    evidenceId:
+                      selectedEvidenceId,
 
-      const jobId = firstDefined(
-        response?.jobId,
-        response?.job_id,
-        job?.jobId,
-        job?.job_id,
-        job?.id
-      );
+                    fileName:
+                      selectedFileName,
 
-      if (!jobId) {
-        throw new Error(
-          "Forensic server did not return a job ID."
-        );
-      }
+                    sha256:
+                      integrity?.currentHash ||
+                      selectedEvidence?.acquisitionHash ||
+                      null,
+                  }
+                : null,
+          };
 
-      setForensicJobId(jobId);
+          const response =
+            await apiFetch(
+              "/api/forensic/jobs",
+              {
+                method:
+                  "POST",
 
-      const immediateStatus = String(
-        job?.status ||
-          response?.status ||
-          "QUEUED"
-      ).toUpperCase();
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
 
-      if (
-        ["COMPLETED", "SUCCESS", "DONE"].includes(
-          immediateStatus
-        )
-      ) {
-        processScanResult(
-          job?.result || response
-        );
+                body:
+                  JSON.stringify(
+                    body
+                  ),
+              }
+            );
 
-        setBusy(false);
-        setProgressMessage("");
-        return;
-      }
+          const job =
+            response?.job ||
+            response?.data?.job ||
+            response;
 
-      if (
-        ["FAILED", "ERROR"].includes(
-          immediateStatus
-        )
-      ) {
-        throw new Error(
-          job?.error ||
-            job?.message ||
-            "Forensic job failed."
-        );
-      }
+          const jobId =
+            firstDefined(
+              response?.jobId,
+              response?.job_id,
+              job?.jobId,
+              job?.job_id,
+              job?.id
+            );
 
-      setStatus(
-        ["RUNNING", "SCANNING", "IN_PROGRESS"].includes(
-          immediateStatus
-        )
-          ? STATUS.SCANNING
-          : STATUS.QUEUED
-      );
+          if (
+            !jobId
+          ) {
+            throw new Error(
+              "Forensic server did not return a job ID."
+            );
+          }
 
-      setNotice(
-        `Forensic job ${jobId} has been queued on ${selectedAgent.agentId}.`
-      );
+          setForensicJobId(
+            jobId
+          );
 
-      /*
-       * Poll the backend for Agent progress.
-       */
-      stopPolling();
+          const immediateStatus =
+            String(
+              job?.status ||
+                response?.status ||
+                "QUEUED"
+            ).toUpperCase();
 
-      await pollForensicJob(jobId);
+          if (
+            [
+              "COMPLETED",
+              "SUCCESS",
+              "DONE",
+            ].includes(
+              immediateStatus
+            )
+          ) {
+            processScanResult(
+              job?.result ||
+                response
+            );
 
-      pollingRef.current = window.setInterval(
-        () => {
-          pollForensicJob(jobId);
-        },
-        2000
-      );
-    } catch (err) {
-      console.error(
-        "FORENSIC JOB ERROR:",
-        err
-      );
+            setBusy(
+              false
+            );
 
-      stopPolling();
+            setProgressMessage(
+              ""
+            );
 
-      setStatus(STATUS.FAILED);
-      setBusy(false);
-      setProgressMessage("");
+            return;
+          }
 
-      const serverIntegrity =
-        err?.response?.integrity ||
-        err?.response?.data?.integrity;
+          if (
+            [
+              "FAILED",
+              "ERROR",
+            ].includes(
+              immediateStatus
+            )
+          ) {
+            throw new Error(
+              job?.error ||
+                job?.message ||
+                "Forensic Agent rejected the job."
+            );
+          }
 
-      if (serverIntegrity) {
-        setIntegrity(
-          normalizeIntegrity(
+          setStatus(
+            [
+              "RUNNING",
+              "SCANNING",
+              "IN_PROGRESS",
+            ].includes(
+              immediateStatus
+            )
+              ? STATUS.SCANNING
+              : STATUS.QUEUED
+          );
+
+          setNotice(
+            `Forensic job ${jobId} has been queued on ${selectedAgent.agentId}.`
+          );
+
+          stopPolling();
+
+          await pollForensicJob(
+            jobId
+          );
+
+          pollingRef.current =
+            window.setInterval(
+              () => {
+                pollForensicJob(
+                  jobId
+                );
+              },
+              2000
+            );
+        } catch (err) {
+          console.error(
+            "FORENSIC JOB ERROR:",
+            err
+          );
+
+          stopPolling();
+
+          setStatus(
+            STATUS.FAILED
+          );
+
+          setBusy(
+            false
+          );
+
+          setProgressMessage(
+            ""
+          );
+
+          const serverIntegrity =
+            err?.response?.integrity ||
+            err?.response?.data?.integrity;
+
+          if (
             serverIntegrity
-          )
-        );
-      }
+          ) {
+            setIntegrity(
+              normalizeIntegrity(
+                serverIntegrity
+              )
+            );
+          }
 
-      setError(
-        err?.message ||
-          "Forensic processing failed."
-      );
-    }
-  },
-  [
-    selectedEvidence,
-    integrityVerified,
-    caseId,
-    examiner,
-    selectedAgent,
-    selectedEvidenceId,
-    selectedFileName,
-    processScanResult,
-    pollForensicJob,
-    stopPolling,
-  ]
-);
+          setError(
+            err?.message ||
+              "Unable to dispatch forensic job to TrustWipe Agent."
+          );
+        }
+      },
+      [
+        selectedAgent,
+        sourceType,
+        selectedEvidence,
+        integrityVerified,
+        selectedDrivePath,
+        caseId,
+        examiner,
+        selectedEvidenceId,
+        selectedFileName,
+        selectedDrive,
+        integrity,
+        processScanResult,
+        pollForensicJob,
+        stopPolling,
+      ]
+    );
 
   /* ==========================================================================
-     CANCEL FORENSIC JOB
+     CANCEL
   ========================================================================== */
 
   const cancelForensicScan =
-    useCallback(async () => {
-      if (!forensicJobId) {
-        return;
-      }
+    useCallback(
+      async () => {
+        if (
+          !forensicJobId
+        ) {
+          return;
+        }
 
-      try {
-        await apiFetch(
-          `/api/forensic/jobs/${encodeURIComponent(
-            forensicJobId
-          )}/cancel`,
-          {
-            method: "POST",
-          }
-        );
+        try {
+          await apiFetch(
+            `/api/forensic/jobs/${encodeURIComponent(
+              forensicJobId
+            )}/cancel`,
+            {
+              method:
+                "POST",
+            }
+          );
 
-        setNotice(
-          "Cancellation request sent to the forensic agent."
-        );
+          setNotice(
+            "Cancellation request sent to the TrustWipe Agent."
+          );
 
-        setStatus(
-          STATUS.CANCELLED
-        );
+          setStatus(
+            STATUS.CANCELLED
+          );
 
-        stopPolling();
+          stopPolling();
 
-        setBusy(false);
+          setBusy(
+            false
+          );
 
-        setProgressMessage("");
-      } catch (err) {
-        setError(
-          err.message ||
-            "Unable to cancel forensic scan."
-        );
-      }
-    }, [
-      forensicJobId,
-      stopPolling,
-    ]);
+          setProgressMessage(
+            ""
+          );
+        } catch (err) {
+          setError(
+            err.message ||
+              "Unable to cancel forensic scan."
+          );
+        }
+      },
+      [
+        forensicJobId,
+        stopPolling,
+      ]
+    );
 
   /* ==========================================================================
      REPORT
   ========================================================================== */
 
   const generateReport =
-    useCallback(async () => {
-      if (!selectedEvidence) {
-        setError(
-          "Select evidence first."
-        );
-
-        return;
-      }
-
-      if (!integrityVerified) {
-        setError(
-          "Report generation requires VERIFIED evidence."
-        );
-
-        return;
-      }
-
-      if (!caseId.trim()) {
-        setError(
-          "Case ID is required."
-        );
-
-        return;
-      }
-
-      if (!examiner.trim()) {
-        setError(
-          "Examiner name is required."
-        );
-
-        return;
-      }
-
-      setBusy(true);
-
-      setError("");
-      setNotice("");
-
-      setProgressMessage(
-        "Generating the forensic case report and evidence audit record..."
-      );
-
-      try {
-        const response =
-          await apiFetch(
-            "/api/forensic/report",
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body: JSON.stringify({
-                evidenceId:
-                  selectedEvidenceId,
-
-                evidence_id:
-                  selectedEvidenceId,
-
-                fileName:
-                  selectedFileName,
-
-                file_name:
-                  selectedFileName,
-
-                caseId:
-                  caseId.trim(),
-
-                case_id:
-                  caseId.trim(),
-
-                examiner:
-                  examiner.trim(),
-
-                jobId:
-                  forensicJobId,
-
-                job_id:
-                  forensicJobId,
-              }),
-            }
-          );
-
-        const generatedReport =
-          response?.report ||
-          response?.data?.report ||
-          response?.data ||
-          null;
-
+    useCallback(
+      async () => {
         if (
-          !generatedReport ||
-          typeof generatedReport !==
-            "object"
+          sourceType ===
+            SOURCE_TYPES.FILE &&
+          !selectedEvidence
         ) {
-          throw new Error(
-            "Report generation returned no report data."
+          setError(
+            "Select evidence first."
           );
+
+          return;
         }
 
-        setReport(
-          generatedReport
-        );
+        if (
+          sourceType ===
+            SOURCE_TYPES.FILE &&
+          !integrityVerified
+        ) {
+          setError(
+            "Report generation requires VERIFIED evidence."
+          );
 
-        const generatedReportFile =
-          response?.reportFile ||
-          response?.report_file ||
-          response?.downloadPath ||
-          response?.download_path ||
-          response?.data?.reportFile ||
-          response?.data?.report_file ||
-          generatedReport?.reportFile ||
-          generatedReport?.report_file ||
-          generatedReport?.downloadPath ||
-          generatedReport?.download_path ||
-          null;
-
-        setReportFile(
-          generatedReportFile
-        );
+          return;
+        }
 
         if (
-          generatedReport.integrity
+          sourceType ===
+            SOURCE_TYPES.DEVICE &&
+          !selectedDrivePath
         ) {
-          const normalized =
-            normalizeIntegrity(
-              generatedReport.integrity
+          setError(
+            "Select the physical device used for the examination."
+          );
+
+          return;
+        }
+
+        if (
+          !caseId.trim()
+        ) {
+          setError(
+            "Case ID is required."
+          );
+
+          return;
+        }
+
+        if (
+          !examiner.trim()
+        ) {
+          setError(
+            "Examiner name is required."
+          );
+
+          return;
+        }
+
+        setBusy(true);
+
+        setError("");
+        setNotice("");
+
+        setProgressMessage(
+          "Generating the forensic case report and evidence audit record..."
+        );
+
+        try {
+          const response =
+            await apiFetch(
+              "/api/forensic/report",
+              {
+                method:
+                  "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+
+                body:
+                  JSON.stringify({
+                    evidenceId:
+                      selectedEvidenceId,
+
+                    evidence_id:
+                      selectedEvidenceId,
+
+                    fileName:
+                      selectedFileName,
+
+                    file_name:
+                      selectedFileName,
+
+                    caseId:
+                      caseId.trim(),
+
+                    case_id:
+                      caseId.trim(),
+
+                    examiner:
+                      examiner.trim(),
+
+                    jobId:
+                      forensicJobId,
+
+                    job_id:
+                      forensicJobId,
+
+                    agentId:
+                      selectedAgent?.agentId ||
+                      null,
+
+                    sourceType:
+                      sourceType,
+
+                    source_type:
+                      sourceType,
+
+                    devicePath:
+                      selectedDrivePath,
+
+                    device_path:
+                      selectedDrivePath,
+                  }),
+              }
             );
 
-          if (normalized) {
-            setIntegrity(
-              normalized
+          const generatedReport =
+            response?.report ||
+            response?.data?.report ||
+            response?.data ||
+            null;
+
+          if (
+            !generatedReport ||
+            typeof generatedReport !==
+              "object"
+          ) {
+            throw new Error(
+              "Report generation returned no report data."
             );
+          }
+
+          setReport(
+            generatedReport
+          );
+
+          const generatedReportFile =
+            response?.reportFile ||
+            response?.report_file ||
+            response?.downloadPath ||
+            response?.download_path ||
+            response?.data?.reportFile ||
+            response?.data?.report_file ||
+            generatedReport?.reportFile ||
+            generatedReport?.report_file ||
+            generatedReport?.downloadPath ||
+            generatedReport?.download_path ||
+            null;
+
+          setReportFile(
+            generatedReportFile
+          );
+
+          if (
+            generatedReport.integrity
+          ) {
+            const normalized =
+              normalizeIntegrity(
+                generatedReport.integrity
+              );
 
             if (
-              normalized.status !==
-                INTEGRITY.VERIFIED ||
-              normalized.verified !==
-                true ||
-              normalized.hashMatch !==
-                true ||
-              normalized.sizeMatch !==
-                true
+              normalized
             ) {
-              setStatus(
-                STATUS.FAILED
+              setIntegrity(
+                normalized
               );
 
-              setError(
-                "The generated report indicates that evidence integrity is not VERIFIED."
-              );
+              if (
+                normalized.status !==
+                  INTEGRITY.VERIFIED ||
+                normalized.verified !==
+                  true ||
+                normalized.hashMatch !==
+                  true ||
+                normalized.sizeMatch !==
+                  true
+              ) {
+                setStatus(
+                  STATUS.FAILED
+                );
 
-              return;
+                setError(
+                  "The generated report indicates that evidence integrity is not VERIFIED."
+                );
+
+                return;
+              }
             }
           }
+
+          setStatus(
+            STATUS.COMPLETED
+          );
+
+          setNotice(
+            response?.message ||
+              "Forensic evidence report generated successfully."
+          );
+
+          setCurrentStep(
+            STEPS.REPORT
+          );
+        } catch (err) {
+          setError(
+            err.message ||
+              "Unable to generate forensic report."
+          );
+        } finally {
+          setBusy(
+            false
+          );
+
+          setProgressMessage(
+            ""
+          );
         }
-
-        setStatus(
-          STATUS.COMPLETED
-        );
-
-        setNotice(
-          response?.message ||
-            "Forensic evidence report generated successfully."
-        );
-
-        setCurrentStep(
-          STEPS.REPORT
-        );
-      } catch (err) {
-        setError(
-          err.message ||
-            "Unable to generate forensic report."
-        );
-      } finally {
-        setBusy(false);
-        setProgressMessage("");
-      }
-    }, [
-      selectedEvidence,
-      selectedEvidenceId,
-      selectedFileName,
-      integrityVerified,
-      caseId,
-      examiner,
-      forensicJobId,
-    ]);
+      },
+      [
+        sourceType,
+        selectedEvidence,
+        integrityVerified,
+        selectedDrivePath,
+        caseId,
+        examiner,
+        selectedEvidenceId,
+        selectedFileName,
+        forensicJobId,
+        selectedAgent,
+      ]
+    );
 
   /* ==========================================================================
      DOWNLOADS
@@ -2667,7 +3508,9 @@ export default function Forensics() {
   const downloadRecoveredFile =
     useCallback(
       (file) => {
-        if (!file?.path) {
+        if (
+          !file?.path
+        ) {
           setError(
             "This artifact has no download path."
           );
@@ -2676,7 +3519,9 @@ export default function Forensics() {
         }
 
         window.open(
-          apiUrl(file.path),
+          apiUrl(
+            file.path
+          ),
           "_blank",
           "noopener,noreferrer"
         );
@@ -2686,7 +3531,9 @@ export default function Forensics() {
 
   const downloadReport =
     useCallback(() => {
-      if (!reportFile) {
+      if (
+        !reportFile
+      ) {
         setError(
           "No report file is available."
         );
@@ -2695,7 +3542,9 @@ export default function Forensics() {
       }
 
       const reportPath =
-        String(reportFile);
+        String(
+          reportFile
+        );
 
       const url =
         reportPath.startsWith(
@@ -2711,7 +3560,9 @@ export default function Forensics() {
         "_blank",
         "noopener,noreferrer"
       );
-    }, [reportFile]);
+    }, [
+      reportFile,
+    ]);
 
   /* ==========================================================================
      RESET
@@ -2719,7 +3570,11 @@ export default function Forensics() {
 
   const resetWorkspace =
     useCallback(() => {
-      if (busy) return;
+      if (
+        busy
+      ) {
+        return;
+      }
 
       stopPolling();
 
@@ -2731,17 +3586,59 @@ export default function Forensics() {
         null
       );
 
-      setIntegrity(null);
-      setRecoveredFiles([]);
-      setScanStats(null);
-      setReport(null);
-      setReportFile(null);
-      setScanOutput("");
-      setLastScanDuration(null);
-      setLastOperation(null);
-      setAnalysisMode(null);
-      setForensicJobId(null);
-      setProgress(0);
+      setSelectedDrive(
+        null
+      );
+
+      setDrives([]);
+
+      setSourceType(
+        null
+      );
+
+      setIntegrity(
+        null
+      );
+
+      setRecoveredFiles(
+        []
+      );
+
+      setScanStats(
+        null
+      );
+
+      setReport(
+        null
+      );
+
+      setReportFile(
+        null
+      );
+
+      setScanOutput(
+        ""
+      );
+
+      setLastScanDuration(
+        null
+      );
+
+      setLastOperation(
+        null
+      );
+
+      setAnalysisMode(
+        null
+      );
+
+      setForensicJobId(
+        null
+      );
+
+      setProgress(
+        0
+      );
 
       setError("");
       setNotice("");
@@ -2750,7 +3647,9 @@ export default function Forensics() {
         STATUS.IDLE
       );
 
-      setCurrentCase(null);
+      setCurrentCase(
+        null
+      );
 
       setCaseId("");
       setCaseTitle("");
@@ -2771,27 +3670,39 @@ export default function Forensics() {
 
   const goBack =
     useCallback(() => {
-      if (busy) return;
+      if (
+        busy
+      ) {
+        return;
+      }
 
       setError("");
       setNotice("");
 
-      switch (currentStep) {
+      switch (
+        currentStep
+      ) {
         case STEPS.CREATE_CASE:
           setCurrentStep(
             STEPS.CASES
           );
           break;
 
-        case STEPS.EVIDENCE:
+        case STEPS.AGENT:
           setCurrentStep(
-            STEPS.CASES
+            STEPS.CREATE_CASE
+          );
+          break;
+
+        case STEPS.SOURCE:
+          setCurrentStep(
+            STEPS.AGENT
           );
           break;
 
         case STEPS.EXAMINATION:
           setCurrentStep(
-            STEPS.EVIDENCE
+            STEPS.SOURCE
           );
           break;
 
@@ -2824,17 +3735,17 @@ export default function Forensics() {
     ]);
 
   /* ==========================================================================
-     WORKFLOW STEPS
+     WORKFLOW
   ========================================================================== */
 
   const stepItems = [
     {
-      key: STEPS.CASES,
-      label: "Case",
+      key: STEPS.AGENT,
+      label: "Agent",
     },
     {
-      key: STEPS.EVIDENCE,
-      label: "Evidence",
+      key: STEPS.SOURCE,
+      label: "Source",
     },
     {
       key: STEPS.EXAMINATION,
@@ -2882,7 +3793,7 @@ export default function Forensics() {
 
           <p>
             Authorized evidence acquisition,
-            integrity verification, forensic
+            workstation-based forensic examination,
             recovery and evidence reporting.
           </p>
         </div>
@@ -2898,13 +3809,15 @@ export default function Forensics() {
 
           <div>
             <strong>
-              {onlineAgents.length > 0
+              {onlineAgents.length >
+              0
                 ? "FORENSIC AGENT ONLINE"
                 : "FORENSIC AGENT OFFLINE"}
             </strong>
 
             <small>
-              {onlineAgents.length > 0
+              {onlineAgents.length >
+              0
                 ? `${onlineAgents.length} connected agent${
                     onlineAgents.length ===
                     1
@@ -2955,20 +3868,21 @@ export default function Forensics() {
           </div>
         )}
 
-        {notice && !error && (
-          <div
-            className="forensics-alert success"
-            role="status"
-          >
-            <strong>
-              Operation status
-            </strong>
+        {notice &&
+          !error && (
+            <div
+              className="forensics-alert success"
+              role="status"
+            >
+              <strong>
+                Operation status
+              </strong>
 
-            <span>
-              {notice}
-            </span>
-          </div>
-        )}
+              <span>
+                {notice}
+              </span>
+            </div>
+          )}
 
         {progressMessage && (
           <div className="operation-progress">
@@ -2978,15 +3892,14 @@ export default function Forensics() {
               {progressMessage}
             </span>
 
-            {busy &&
-              progress >= 0 && (
-                <strong>
-                  {Math.round(
-                    progress
-                  )}
-                  %
-                </strong>
-              )}
+            {busy && (
+              <strong>
+                {Math.round(
+                  progress
+                )}
+                %
+              </strong>
+            )}
           </div>
         )}
       </>
@@ -3000,7 +3913,10 @@ export default function Forensics() {
     () => (
       <div className="forensics-workflow">
         {stepItems.map(
-          (item, index) => {
+          (
+            item,
+            index
+          ) => {
             const completed =
               index <
               currentStepIndex;
@@ -3012,7 +3928,9 @@ export default function Forensics() {
             return (
               <button
                 type="button"
-                key={item.key}
+                key={
+                  item.key
+                }
                 className={[
                   "workflow-step",
 
@@ -3062,7 +3980,7 @@ export default function Forensics() {
     );
 
   /* ==========================================================================
-     CASE SELECTION
+     CASES
   ========================================================================== */
 
   const renderCaseSelection =
@@ -3092,7 +4010,9 @@ export default function Forensics() {
             onClick={
               startNewCaseScreen
             }
-            disabled={busy}
+            disabled={
+              busy
+            }
           >
             <div className="case-action-icon">
               +
@@ -3122,13 +4042,14 @@ export default function Forensics() {
             </strong>
 
             <span>
-              Continue an investigation from the
-              case repository.
+              Continue an investigation from
+              the case repository.
             </span>
 
             <small>
               {cases.length} saved case
-              {cases.length === 1
+              {cases.length ===
+              1
                 ? ""
                 : "s"}
             </small>
@@ -3148,7 +4069,8 @@ export default function Forensics() {
             </div>
           </div>
 
-          {cases.length === 0 ? (
+          {cases.length ===
+          0 ? (
             <div className="empty-state">
               No forensic cases have been
               created yet.
@@ -3168,28 +4090,24 @@ export default function Forensics() {
                         item
                       )
                     }
-                    disabled={busy}
+                    disabled={
+                      busy
+                    }
                   >
                     <div className="case-id">
-                      {
-                        item.caseId
-                      }
+                      {item.caseId}
                     </div>
 
                     <div className="case-details">
                       <strong>
-                        {
-                          item.title ||
-                          "Untitled Investigation"
-                        }
+                        {item.title ||
+                          "Untitled Investigation"}
                       </strong>
 
                       <span>
                         Examiner:{" "}
-                        {
-                          item.examiner ||
-                          "—"
-                        }
+                        {item.examiner ||
+                          "—"}
                       </span>
 
                       <span>
@@ -3202,17 +4120,13 @@ export default function Forensics() {
 
                     <div className="case-meta">
                       <span className="state-badge ready">
-                        {
-                          item.status ||
-                          "OPEN"
-                        }
+                        {item.status ||
+                          "OPEN"}
                       </span>
 
                       <span>
-                        {
-                          item.evidenceCount ||
-                          0
-                        }{" "}
+                        {item.evidenceCount ||
+                          0}{" "}
                         evidence
                       </span>
                     </div>
@@ -3244,7 +4158,8 @@ export default function Forensics() {
 
             <p>
               Establish the investigation identity
-              before acquiring evidence.
+              before connecting the examination
+              workstation.
             </p>
           </div>
         </div>
@@ -3330,8 +4245,12 @@ export default function Forensics() {
           <button
             type="button"
             className="secondary-button"
-            onClick={goBack}
-            disabled={busy}
+            onClick={
+              goBack
+            }
+            disabled={
+              busy
+            }
           >
             ← Back
           </button>
@@ -3342,7 +4261,9 @@ export default function Forensics() {
             onClick={
               createCase
             }
-            disabled={busy}
+            disabled={
+              busy
+            }
           >
             CREATE CASE →
           </button>
@@ -3351,211 +4272,219 @@ export default function Forensics() {
     );
 
   /* ==========================================================================
-     EVIDENCE
+     AGENT INSTALLATION + SELECTION
   ========================================================================== */
 
-  const renderEvidenceAcquisition =
+  const renderAgentSetup =
     () => (
       <>
         <section className="forensics-panel">
           <div className="panel-header">
             <div>
               <span className="panel-kicker">
-                STEP 02 • EVIDENCE ACQUISITION
+                STEP 01 • EXAMINATION WORKSTATION
               </span>
 
               <h2>
-                Acquire Evidence
+                TrustWipe Agent
               </h2>
 
               <p>
-                Evidence is copied into the
-                forensic repository and assigned
-                an acquisition SHA-256 baseline.
+                Forensic operations run on an
+                authorized Windows workstation through
+                the TrustWipe Agent.
               </p>
             </div>
 
-            <span className="secure-badge">
-              AUTHORIZED
-            </span>
-          </div>
-
-          <div className="case-context">
-            <div>
-              <span>
-                CASE
-              </span>
-
-              <strong>
-                {caseId ||
-                  "Not selected"}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                EXAMINER
-              </span>
-
-              <strong>
-                {examiner ||
-                  "Not assigned"}
-              </strong>
-            </div>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            hidden
-            onChange={
-              handleFileChange
-            }
-            disabled={busy}
-          />
-
-          <button
-            type="button"
-            className="upload-zone"
-            onClick={() =>
-              fileInputRef.current?.click()
-            }
-            disabled={busy}
-          >
-            <span className="upload-icon">
-              ↑
-            </span>
-
-            <strong>
-              Select Evidence File
-            </strong>
-
-            <small>
-              Maximum supported size: 5 GB
-            </small>
-
-            <span className="browse-button">
-              BROWSE EVIDENCE
-            </span>
-          </button>
-        </section>
-
-        <section className="forensics-panel">
-          <div className="repository-header">
-            <div>
-              <strong>
-                EVIDENCE REPOSITORY
-              </strong>
-
-              <span>
-                {evidence.length} Assets •{" "}
-                {formatBytes(
-                  repositoryStats.totalSize
-                )}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              className="icon-button"
-              onClick={
-                loadEvidence
+            <span
+              className={
+                onlineAgents.length >
+                0
+                  ? "secure-badge"
+                  : "state-badge failed"
               }
-              disabled={busy}
-              title="Refresh evidence"
             >
-              ↻
-            </button>
+              {onlineAgents.length >
+              0
+                ? "ONLINE"
+                : "OFFLINE"}
+            </span>
           </div>
 
-          <div className="evidence-list">
-            {evidence.length ===
-            0 ? (
-              <div className="empty-state">
-                No evidence has been
-                acquired.
+          {onlineAgents.length ===
+          0 ? (
+            <div className="agent-install-card">
+              <div className="case-action-icon">
+                ⬇
               </div>
-            ) : (
-              evidence.map(
-                (item) => {
-                  const selected =
-                    item.evidenceId &&
-                    selectedEvidenceId
-                      ? item.evidenceId ===
-                        selectedEvidenceId
-                      : item.name ===
-                        selectedFileName;
 
-                  return (
-                    <button
-                      type="button"
-                      key={
-                        item.evidenceId ||
-                        item.id
-                      }
-                      className={
-                        selected
-                          ? "evidence-item selected"
-                          : "evidence-item"
-                      }
-                      onClick={() =>
-                        selectEvidence(
-                          item
-                        )
-                      }
-                      disabled={
-                        busy
-                      }
-                    >
-                      <div className="evidence-type">
-                        {getFileType(
-                          item.name
-                        )}
-                      </div>
+              <div>
+                <span className="panel-kicker">
+                  WINDOWS FORENSIC AGENT
+                </span>
 
-                      <div className="evidence-details">
-                        <strong>
-                          {
-                            item.name
-                          }
-                        </strong>
+                <h3>
+                  Install TrustWipe Agent
+                </h3>
 
-                        <small>
-                          {formatBytes(
-                            item.size
-                          )}{" "}
-                          •{" "}
-                          {
-                            item.type
-                          }
-                        </small>
+                <p>
+                  Download the TrustWipe Agent
+                  installer, install it on the
+                  authorized Windows examination
+                  workstation, and run the Agent.
+                </p>
 
-                        {item.evidenceId && (
-                          <small>
-                            {
-                              item.evidenceId
-                            }
-                          </small>
-                        )}
-                      </div>
+                <ol className="agent-steps">
+                  <li>
+                    Download
+                    <strong>
+                      TrustWipeAgentSetup.exe
+                    </strong>
+                  </li>
 
-                      <div className="evidence-state">
-                        {item.acquisitionHash ? (
-                          <span className="mini-verified">
-                            ✓
+                  <li>
+                    Install the Agent on the
+                    authorized Windows workstation.
+                  </li>
+
+                  <li>
+                    Start the TrustWipe Agent.
+                  </li>
+
+                  <li>
+                    Wait for the Agent to show
+                    <strong>
+                      ONLINE
+                    </strong>
+                    here.
+                  </li>
+                </ol>
+
+                {AGENT_DOWNLOAD_URL ? (
+                  <a
+                    href={
+                      AGENT_DOWNLOAD_URL
+                    }
+                    className="primary-button"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    ⬇ DOWNLOAD TRUSTWIPE AGENT
+                  </a>
+                ) : (
+                  <div className="forensic-policy-note">
+                    <strong>
+                      Agent download URL not configured
+                    </strong>
+
+                    <span>
+                      Add VITE_AGENT_DOWNLOAD_URL to
+                      the Vercel environment variables
+                      and redeploy the frontend.
+                    </span>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => {
+                    loadAgents();
+                    loadEngineStatus();
+                  }}
+                  disabled={
+                    agentLoading ||
+                    busy
+                  }
+                >
+                  {agentLoading
+                    ? "CHECKING..."
+                    : "CHECK AGENT CONNECTION"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="forensics-alert success">
+                <strong>
+                  TrustWipe Agent connected
+                </strong>
+
+                <span>
+                  The authorized Windows
+                  examination workstation is ready.
+                </span>
+              </div>
+
+              <div className="case-list">
+                {onlineAgents.map(
+                  (agent) => {
+                    const selected =
+                      selectedAgent?.agentId ===
+                      agent.agentId;
+
+                    return (
+                      <button
+                        type="button"
+                        key={
+                          agent.agentId
+                        }
+                        className={
+                          selected
+                            ? "case-list-item selected"
+                            : "case-list-item"
+                        }
+                        onClick={() =>
+                          setSelectedAgent(
+                            agent
+                          )
+                        }
+                        disabled={
+                          busy
+                        }
+                      >
+                        <div className="case-id">
+                          🟢
+                        </div>
+
+                        <div className="case-details">
+                          <strong>
+                            {agent.hostname ||
+                              "Windows Workstation"}
+                          </strong>
+
+                          <span>
+                            Agent ID:{" "}
+                            {agent.agentId}
                           </span>
-                        ) : (
-                          <span className="mini-warning">
-                            !
+
+                          <span>
+                            Platform:{" "}
+                            {agent.platform ||
+                              "Windows"}
                           </span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                }
-              )
-            )}
-          </div>
+                        </div>
+
+                        <div className="case-meta">
+                          <span className="state-badge completed">
+                            ONLINE
+                          </span>
+
+                          <span>
+                            {agent.capabilities?.includes(
+                              "FORENSIC_SCAN"
+                            )
+                              ? "FORENSIC_SCAN ✓"
+                              : "Capability check pending"}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </>
+          )}
         </section>
 
         <div className="action-row">
@@ -3565,9 +4494,509 @@ export default function Forensics() {
             onClick={
               goBack
             }
-            disabled={busy}
+            disabled={
+              busy
+            }
           >
-            ← Case Selection
+            ← Case
+          </button>
+
+          <button
+            type="button"
+            className="primary-button"
+            onClick={
+              continueFromAgent
+            }
+            disabled={
+              busy ||
+              onlineAgents.length ===
+                0 ||
+              !selectedAgent
+            }
+          >
+            CONTINUE TO SOURCE →
+          </button>
+        </div>
+      </>
+    );
+
+  /* ==========================================================================
+     SOURCE SELECTION
+  ========================================================================== */
+
+  const renderSourceSelection =
+    () => (
+      <>
+        <section className="forensics-panel">
+          <div className="panel-header">
+            <div>
+              <span className="panel-kicker">
+                STEP 02 • EVIDENCE SOURCE
+              </span>
+
+              <h2>
+                Choose Examination Source
+              </h2>
+
+              <p>
+                Select whether the TrustWipe Agent
+                should examine a physical Windows
+                device or an acquired evidence file.
+              </p>
+            </div>
+
+            <span className="secure-badge">
+              AGENT CONTROLLED
+            </span>
+          </div>
+
+          <div className="source-selection-grid">
+            <button
+              type="button"
+              className={
+                sourceType ===
+                SOURCE_TYPES.DEVICE
+                  ? "case-action-card selected"
+                  : "case-action-card"
+              }
+              onClick={
+                chooseDeviceSource
+              }
+              disabled={
+                busy ||
+                !selectedAgent
+              }
+            >
+              <div className="case-action-icon">
+                💽
+              </div>
+
+              <strong>
+                Scan Physical Device
+              </strong>
+
+              <span>
+                Discover and examine a physical
+                disk connected to the authorized
+                Windows workstation.
+              </span>
+
+              <small>
+                Agent discovers drives →
+              </small>
+            </button>
+
+            <button
+              type="button"
+              className={
+                sourceType ===
+                SOURCE_TYPES.FILE
+                  ? "case-action-card selected"
+                  : "case-action-card"
+              }
+              onClick={
+                chooseFileSource
+              }
+              disabled={
+                busy ||
+                !selectedAgent
+              }
+            >
+              <div className="case-action-icon">
+                📁
+              </div>
+
+              <strong>
+                Select Evidence File
+              </strong>
+
+              <span>
+                Choose an evidence file already
+                acquired into the TrustWipe repository.
+              </span>
+
+              <small>
+                Upload or select evidence →
+              </small>
+            </button>
+          </div>
+        </section>
+
+        {sourceType ===
+          SOURCE_TYPES.DEVICE && (
+          <section className="forensics-panel">
+            <div className="panel-header">
+              <div>
+                <span className="panel-kicker">
+                  PHYSICAL DEVICE DISCOVERY
+                </span>
+
+                <h2>
+                  Discover Workstation Drives
+                </h2>
+
+                <p>
+                  The browser never accesses a
+                  physical disk directly. The TrustWipe
+                  Agent discovers the authorized
+                  Windows devices.
+                </p>
+              </div>
+
+              <span className="secure-badge">
+                WINDOWS AGENT
+              </span>
+            </div>
+
+            <div className="forensic-policy-note">
+              <strong>
+                Selected workstation
+              </strong>
+
+              <span>
+                {selectedAgent?.hostname ||
+                  "Windows Workstation"}{" "}
+                —{" "}
+                {selectedAgent?.agentId ||
+                  "No Agent"}
+              </span>
+            </div>
+
+            <div className="action-row">
+              <button
+                type="button"
+                className="primary-button"
+                onClick={
+                  requestDriveDiscovery
+                }
+                disabled={
+                  busy ||
+                  drivesLoading ||
+                  !selectedAgent
+                }
+              >
+                {drivesLoading
+                  ? "DISCOVERING..."
+                  : "DISCOVER PHYSICAL DEVICES"}
+              </button>
+            </div>
+
+            {driveDiscoveryMessage && (
+              <div className="forensic-policy-note">
+                <strong>
+                  Device discovery
+                </strong>
+
+                <span>
+                  {driveDiscoveryMessage}
+                </span>
+              </div>
+            )}
+
+            {drives.length >
+              0 && (
+              <div className="case-list">
+                {drives.map(
+                  (
+                    drive,
+                    index
+                  ) => {
+                    const path =
+                      firstDefined(
+                        drive.devicePath,
+                        drive.device_path,
+                        drive.path,
+                        drive.name
+                      );
+
+                    const selected =
+                      selectedDrivePath ===
+                      path;
+
+                    return (
+                      <button
+                        type="button"
+                        key={
+                          drive.id ||
+                          path ||
+                          index
+                        }
+                        className={
+                          selected
+                            ? "case-list-item selected"
+                            : "case-list-item"
+                        }
+                        onClick={() =>
+                          setSelectedDrive(
+                            drive
+                          )
+                        }
+                        disabled={
+                          busy
+                        }
+                      >
+                        <div className="case-id">
+                          💽
+                        </div>
+
+                        <div className="case-details">
+                          <strong>
+                            {drive.label ||
+                              drive.name ||
+                              path ||
+                              `Physical Device ${
+                                index + 1
+                              }`}
+                          </strong>
+
+                          <span>
+                            Device:{" "}
+                            {path ||
+                              "Unknown path"}
+                          </span>
+
+                          <span>
+                            {drive.model ||
+                              drive.description ||
+                              drive.type ||
+                              "Physical disk"}
+                          </span>
+                        </div>
+
+                        <div className="case-meta">
+                          <span className="state-badge completed">
+                            AVAILABLE
+                          </span>
+
+                          <span>
+                            {formatBytes(
+                              drive.size ||
+                                drive.capacity ||
+                                0
+                            )}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            )}
+
+            {selectedDrive && (
+              <div className="forensic-policy-note">
+                <strong>
+                  Selected physical device
+                </strong>
+
+                <span>
+                  {selectedDrivePath}
+                </span>
+              </div>
+            )}
+          </section>
+        )}
+
+        {sourceType ===
+          SOURCE_TYPES.FILE && (
+          <section className="forensics-panel">
+            <div className="panel-header">
+              <div>
+                <span className="panel-kicker">
+                  EVIDENCE FILE
+                </span>
+
+                <h2>
+                  Select Evidence
+                </h2>
+
+                <p>
+                  Upload new evidence or select an
+                  existing evidence asset from the
+                  repository.
+                </p>
+              </div>
+            </div>
+
+            <input
+              ref={
+                fileInputRef
+              }
+              type="file"
+              hidden
+              onChange={
+                handleFileChange
+              }
+              disabled={
+                busy
+              }
+            />
+
+            <button
+              type="button"
+              className="upload-zone"
+              onClick={() =>
+                fileInputRef.current?.click()
+              }
+              disabled={
+                busy
+              }
+            >
+              <span className="upload-icon">
+                ↑
+              </span>
+
+              <strong>
+                Select Evidence File
+              </strong>
+
+              <small>
+                Maximum supported size: 5 GB
+              </small>
+
+              <span className="browse-button">
+                BROWSE EVIDENCE
+              </span>
+            </button>
+
+            <div className="repository-header">
+              <div>
+                <strong>
+                  EVIDENCE REPOSITORY
+                </strong>
+
+                <span>
+                  {evidence.length} Assets •{" "}
+                  {formatBytes(
+                    repositoryStats.totalSize
+                  )}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                className="icon-button"
+                onClick={
+                  loadEvidence
+                }
+                disabled={
+                  busy
+                }
+                title="Refresh evidence"
+              >
+                ↻
+              </button>
+            </div>
+
+            <div className="evidence-list">
+              {evidence.length ===
+              0 ? (
+                <div className="empty-state">
+                  No evidence has been acquired.
+                </div>
+              ) : (
+                evidence.map(
+                  (item) => {
+                    const selected =
+                      selectedEvidenceId &&
+                      item.evidenceId ===
+                        selectedEvidenceId;
+
+                    return (
+                      <button
+                        type="button"
+                        key={
+                          item.evidenceId ||
+                          item.id
+                        }
+                        className={
+                          selected
+                            ? "evidence-item selected"
+                            : "evidence-item"
+                        }
+                        onClick={() =>
+                          selectEvidence(
+                            item
+                          )
+                        }
+                        disabled={
+                          busy
+                        }
+                      >
+                        <div className="evidence-type">
+                          {getFileType(
+                            item.name
+                          )}
+                        </div>
+
+                        <div className="evidence-details">
+                          <strong>
+                            {item.name}
+                          </strong>
+
+                          <small>
+                            {formatBytes(
+                              item.size
+                            )}{" "}
+                            •{" "}
+                            {item.type}
+                          </small>
+
+                          {item.evidenceId && (
+                            <small>
+                              {item.evidenceId}
+                            </small>
+                          )}
+                        </div>
+
+                        <div className="evidence-state">
+                          {item.acquisitionHash ? (
+                            <span className="mini-verified">
+                              ✓
+                            </span>
+                          ) : (
+                            <span className="mini-warning">
+                              !
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  }
+                )
+              )}
+            </div>
+          </section>
+        )}
+
+        <div className="action-row">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={
+              goBack
+            }
+            disabled={
+              busy
+            }
+          >
+            ← Agent
+          </button>
+
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() =>
+              setCurrentStep(
+                STEPS.EXAMINATION
+              )
+            }
+            disabled={
+              busy ||
+              !sourceReady
+            }
+          >
+            CONTINUE TO EXAMINATION →
           </button>
         </div>
       </>
@@ -3587,13 +5016,13 @@ export default function Forensics() {
             </span>
 
             <h2>
-              Evidence Examination
+              Confirm Examination Source
             </h2>
 
             <p>
-              Confirm the evidence identity and
-              cryptographic integrity before
-              forensic processing.
+              Confirm the selected Agent, source and
+              integrity controls before forensic
+              processing.
             </p>
           </div>
 
@@ -3604,401 +5033,355 @@ export default function Forensics() {
           </span>
         </div>
 
-        {!selectedEvidence ? (
-          <div className="empty-active-state">
-            <div className="empty-icon">
-              ◇
-            </div>
-
-            <h3>
-              No evidence selected
-            </h3>
-
-            <p>
-              Return to Evidence Acquisition
-              and select an evidence asset.
-            </p>
-
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() =>
-                setCurrentStep(
-                  STEPS.EVIDENCE
-                )
-              }
-            >
-              ← Select Evidence
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="active-evidence-banner">
-              <div>
-                <span>
-                  ACTIVE EVIDENCE
-                </span>
-
-                <strong>
-                  {
-                    selectedEvidence.name
-                  }
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  EVIDENCE ID
-                </span>
-
-                <strong>
-                  {
-                    selectedEvidence.evidenceId ||
-                    "—"
-                  }
-                </strong>
-              </div>
-            </div>
-
-            <div className="metadata-grid">
-              <div>
-                <span>
-                  SIZE
-                </span>
-
-                <strong>
-                  {formatBytes(
-                    selectedEvidence.size
-                  )}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  TYPE
-                </span>
-
-                <strong>
-                  {
-                    selectedEvidence.type
-                  }
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  ACQUIRED
-                </span>
-
-                <strong>
-                  {formatDate(
-                    selectedEvidence.acquiredAt
-                  )}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  BASELINE
-                </span>
-
-                <strong>
-                  {selectedEvidence.acquisitionHash
-                    ? "SHA-256 PRESENT"
-                    : "MISSING"}
-                </strong>
-              </div>
-            </div>
-
-            <div className="integrity-card">
-              <div className="integrity-card-header">
-                <div>
-                  <span className="panel-kicker">
-                    CRYPTOGRAPHIC INTEGRITY
-                  </span>
-
-                  <h3>
-                    SHA-256 Verification
-                  </h3>
-                </div>
-
-                <strong
-                  className={
-                    integrity
-                      ? getIntegrityClass(
-                          integrity.status
-                        )
-                      : ""
-                  }
-                >
-                  {integrity?.status ||
-                    "NOT VERIFIED"}
-                </strong>
-              </div>
-
-              <div className="hash-grid">
-                <div>
-                  <span>
-                    ACQUISITION SHA-256
-                  </span>
-
-                  <code>
-                    {integrity?.originalHash ||
-                      selectedEvidence.acquisitionHash ||
-                      "—"}
-                  </code>
-                </div>
-
-                <div>
-                  <span>
-                    CURRENT SHA-256
-                  </span>
-
-                  <code>
-                    {integrity?.currentHash ||
-                      "Not calculated"}
-                  </code>
-                </div>
-              </div>
-
-              {integrity && (
-                <div className="integrity-checks">
-                  <span
-                    className={
-                      integrity.hashMatch
-                        ? "check-ok"
-                        : "check-failed"
-                    }
-                  >
-                    {integrity.hashMatch
-                      ? "✓"
-                      : "✕"}{" "}
-                    HASH MATCH
-                  </span>
-
-                  <span
-                    className={
-                      integrity.sizeMatch
-                        ? "check-ok"
-                        : "check-failed"
-                    }
-                  >
-                    {integrity.sizeMatch
-                      ? "✓"
-                      : "✕"}{" "}
-                    SIZE MATCH
-                  </span>
-
-                  <span
-                    className={
-                      integrity.verified
-                        ? "check-ok"
-                        : "check-failed"
-                    }
-                  >
-                    {integrity.verified
-                      ? "✓"
-                      : "✕"}{" "}
-                    EVIDENCE VERIFIED
-                  </span>
-                </div>
-              )}
-
-              <div className="action-row">
-                <button
-                  type="button"
-                  className="primary-button"
-                  onClick={
-                    verifyIntegrity
-                  }
-                  disabled={
-                    busy
-                  }
-                >
-                  {busy &&
-                  status ===
-                    STATUS.VERIFYING
-                    ? "VERIFYING..."
-                    : "CALCULATE & VERIFY SHA-256"}
-                </button>
-              </div>
-            </div>
-
-            <div className="action-row">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={
-                  goBack
-                }
-                disabled={
-                  busy
-                }
-              >
-                ← Evidence
-              </button>
-
-              <button
-                type="button"
-                className="primary-button"
-                onClick={() =>
-                  setCurrentStep(
-                    STEPS.ANALYSIS
-                  )
-                }
-                disabled={
-                  busy ||
-                  !integrityVerified
-                }
-              >
-                CONTINUE TO ANALYSIS →
-              </button>
-            </div>
-          </>
-        )}
-      </section>
-    );
-
-  /* ==========================================================================
-     AGENT SELECTOR
-  ========================================================================== */
-
-  const renderAgentSelector =
-    () => (
-      <div className="forensics-panel">
-        <div className="panel-header">
+        <div className="analysis-context">
           <div>
-            <span className="panel-kicker">
-              TRUSTWIPE FORENSIC AGENT
+            <span>
+              CASE
             </span>
 
-            <h2>
-              Select Examination Workstation
-            </h2>
-
-            <p>
-              The forensic operation executes on an
-              authorized Windows workstation through
-              the TrustWipe Agent.
-            </p>
+            <strong>
+              {caseId}
+            </strong>
           </div>
 
-          <span
-            className={
-              onlineAgents.length > 0
-                ? "secure-badge"
-                : "state-badge failed"
-            }
-          >
-            {onlineAgents.length > 0
-              ? "AGENT ONLINE"
-              : "AGENT OFFLINE"}
-          </span>
+          <div>
+            <span>
+              AGENT
+            </span>
+
+            <strong>
+              {selectedAgent?.agentId ||
+                "NOT SELECTED"}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              SOURCE
+            </span>
+
+            <strong>
+              {sourceType ===
+              SOURCE_TYPES.DEVICE
+                ? "PHYSICAL DEVICE"
+                : "EVIDENCE FILE"}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              TARGET
+            </span>
+
+            <strong>
+              {sourceType ===
+              SOURCE_TYPES.DEVICE
+                ? selectedDrivePath ||
+                  "NOT SELECTED"
+                : selectedFileName ||
+                  "NOT SELECTED"}
+            </strong>
+          </div>
         </div>
 
-        {onlineAgents.length ===
-        0 ? (
-          <div className="forensics-alert danger">
-            <strong>
-              No forensic agent connected
-            </strong>
+        {sourceType ===
+          SOURCE_TYPES.DEVICE && (
+          <div className="integrity-card">
+            <div className="integrity-card-header">
+              <div>
+                <span className="panel-kicker">
+                  PHYSICAL DEVICE
+                </span>
 
-            <span>
-              Start TrustWipeAgent.exe on the
-              authorized Windows examination
-              workstation and wait for the
-              connection to Render.
-            </span>
+                <h3>
+                  Agent Examination Target
+                </h3>
+              </div>
+
+              <strong className="integrity-verified">
+                AGENT CONTROLLED
+              </strong>
+            </div>
+
+            <div className="hash-grid">
+              <div>
+                <span>
+                  DEVICE PATH
+                </span>
+
+                <code>
+                  {selectedDrivePath ||
+                    "—"}
+                </code>
+              </div>
+
+              <div>
+                <span>
+                  WORKSTATION
+                </span>
+
+                <code>
+                  {selectedAgent?.hostname ||
+                    "—"}
+                </code>
+              </div>
+            </div>
+
+            <div className="forensic-policy-note">
+              <strong>
+                Important
+              </strong>
+
+              <span>
+                The browser does not access this
+                physical device. The TrustWipe Windows
+                Agent performs the authorized forensic
+                examination.
+              </span>
+            </div>
           </div>
-        ) : (
-          <div className="case-list">
-            {onlineAgents.map(
-              (agent) => {
-                const selected =
-                  selectedAgent?.agentId ===
-                  agent.agentId;
+        )}
 
-                return (
+        {sourceType ===
+          SOURCE_TYPES.FILE &&
+          selectedEvidence && (
+            <>
+              <div className="active-evidence-banner">
+                <div>
+                  <span>
+                    ACTIVE EVIDENCE
+                  </span>
+
+                  <strong>
+                    {selectedEvidence.name}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    EVIDENCE ID
+                  </span>
+
+                  <strong>
+                    {selectedEvidence.evidenceId ||
+                      "—"}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="metadata-grid">
+                <div>
+                  <span>
+                    SIZE
+                  </span>
+
+                  <strong>
+                    {formatBytes(
+                      selectedEvidence.size
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    TYPE
+                  </span>
+
+                  <strong>
+                    {selectedEvidence.type}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    ACQUIRED
+                  </span>
+
+                  <strong>
+                    {formatDate(
+                      selectedEvidence.acquiredAt
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    BASELINE
+                  </span>
+
+                  <strong>
+                    {selectedEvidence.acquisitionHash
+                      ? "SHA-256 PRESENT"
+                      : "MISSING"}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="integrity-card">
+                <div className="integrity-card-header">
+                  <div>
+                    <span className="panel-kicker">
+                      CRYPTOGRAPHIC INTEGRITY
+                    </span>
+
+                    <h3>
+                      SHA-256 Verification
+                    </h3>
+                  </div>
+
+                  <strong
+                    className={
+                      integrity
+                        ? getIntegrityClass(
+                            integrity.status
+                          )
+                        : ""
+                    }
+                  >
+                    {integrity?.status ||
+                      "NOT VERIFIED"}
+                  </strong>
+                </div>
+
+                <div className="hash-grid">
+                  <div>
+                    <span>
+                      ACQUISITION SHA-256
+                    </span>
+
+                    <code>
+                      {integrity?.originalHash ||
+                        selectedEvidence.acquisitionHash ||
+                        "—"}
+                    </code>
+                  </div>
+
+                  <div>
+                    <span>
+                      CURRENT SHA-256
+                    </span>
+
+                    <code>
+                      {integrity?.currentHash ||
+                        "Not calculated"}
+                    </code>
+                  </div>
+                </div>
+
+                {integrity && (
+                  <div className="integrity-checks">
+                    <span
+                      className={
+                        integrity.hashMatch
+                          ? "check-ok"
+                          : "check-failed"
+                      }
+                    >
+                      {integrity.hashMatch
+                        ? "✓"
+                        : "✕"}{" "}
+                      HASH MATCH
+                    </span>
+
+                    <span
+                      className={
+                        integrity.sizeMatch
+                          ? "check-ok"
+                          : "check-failed"
+                      }
+                    >
+                      {integrity.sizeMatch
+                        ? "✓"
+                        : "✕"}{" "}
+                      SIZE MATCH
+                    </span>
+
+                    <span
+                      className={
+                        integrity.verified
+                          ? "check-ok"
+                          : "check-failed"
+                      }
+                    >
+                      {integrity.verified
+                        ? "✓"
+                        : "✕"}{" "}
+                      EVIDENCE VERIFIED
+                    </span>
+                  </div>
+                )}
+
+                <div className="action-row">
                   <button
                     type="button"
-                    key={
-                      agent.agentId
-                    }
-                    className={
-                      selected
-                        ? "case-list-item selected"
-                        : "case-list-item"
-                    }
-                    onClick={() =>
-                      setSelectedAgent(
-                        agent
-                      )
+                    className="primary-button"
+                    onClick={
+                      verifyIntegrity
                     }
                     disabled={
                       busy
                     }
                   >
-                    <div className="case-id">
-                      ●
-                    </div>
-
-                    <div className="case-details">
-                      <strong>
-                        {
-                          agent.hostname
-                        }
-                      </strong>
-
-                      <span>
-                        Agent ID:{" "}
-                        {
-                          agent.agentId
-                        }
-                      </span>
-
-                      <span>
-                        Platform:{" "}
-                        {
-                          agent.platform
-                        }
-                      </span>
-                    </div>
-
-                    <div className="case-meta">
-                      <span className="state-badge completed">
-                        ONLINE
-                      </span>
-
-                      <span>
-                        {agent.capabilities?.includes(
-                          "FORENSIC_SCAN"
-                        )
-                          ? "FORENSIC_SCAN"
-                          : "Capability unknown"}
-                      </span>
-                    </div>
+                    {busy &&
+                    status ===
+                      STATUS.VERIFYING
+                      ? "VERIFYING..."
+                      : "CALCULATE & VERIFY SHA-256"}
                   </button>
-                );
-              }
-            )}
-          </div>
-        )}
+                </div>
+              </div>
+            </>
+          )}
 
-        {selectedAgent && (
-          <div className="forensic-policy-note">
-            <strong>
-              Selected Agent
-            </strong>
+        <div className="forensic-policy-note">
+          <strong>
+            Evidence protection policy
+          </strong>
 
-            <span>
-              {selectedAgent.agentId} —{" "}
-              {
-                selectedAgent.hostname
-              }
-            </span>
-          </div>
-        )}
-      </div>
+          <span>
+            Processing is performed through the
+            authorized TrustWipe Agent. The original
+            evidence source must remain unchanged
+            throughout examination.
+          </span>
+        </div>
+
+        <div className="action-row">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={
+              goBack
+            }
+            disabled={
+              busy
+            }
+          >
+            ← Source
+          </button>
+
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() =>
+              setCurrentStep(
+                STEPS.ANALYSIS
+              )
+            }
+            disabled={
+              busy ||
+              (sourceType ===
+                SOURCE_TYPES.FILE &&
+                !integrityVerified) ||
+              (sourceType ===
+                SOURCE_TYPES.DEVICE &&
+                !selectedDrivePath)
+            }
+          >
+            CONTINUE TO ANALYSIS →
+          </button>
+        </div>
+      </section>
     );
 
   /* ==========================================================================
@@ -4008,8 +5391,6 @@ export default function Forensics() {
   const renderAnalysis =
     () => (
       <>
-        {renderAgentSelector()}
-
         <section className="forensics-panel">
           <div className="panel-header">
             <div>
@@ -4022,14 +5403,17 @@ export default function Forensics() {
               </h2>
 
               <p>
-                Process the verified evidence using
-                the authorized TrustWipe examination
+                Execute forensic processing on the
+                authorized Windows examination
                 workstation.
               </p>
             </div>
 
             <span className="secure-badge">
-              INTEGRITY VERIFIED
+              {sourceType ===
+              SOURCE_TYPES.DEVICE
+                ? "PHYSICAL DEVICE"
+                : "EVIDENCE FILE"}
             </span>
           </div>
 
@@ -4046,11 +5430,14 @@ export default function Forensics() {
 
             <div>
               <span>
-                EVIDENCE
+                TARGET
               </span>
 
               <strong>
-                {selectedFileName}
+                {sourceType ===
+                SOURCE_TYPES.DEVICE
+                  ? selectedDrivePath
+                  : selectedFileName}
               </strong>
             </div>
 
@@ -4084,7 +5471,7 @@ export default function Forensics() {
                     cancelForensicScan
                   }
                 >
-                  CANCEL SCAN
+                  CANCEL
                 </button>
               </div>
             )}
@@ -4100,8 +5487,11 @@ export default function Forensics() {
               }
               disabled={
                 busy ||
-                !integrityVerified ||
-                !selectedAgent
+                !selectedAgent ||
+                !sourceReady ||
+                (sourceType ===
+                  SOURCE_TYPES.FILE &&
+                  !integrityVerified)
               }
             >
               <span>
@@ -4113,8 +5503,9 @@ export default function Forensics() {
               </strong>
 
               <small>
-                Stream-scan the evidence and discover
-                forensic signatures.
+                Stream-scan the selected physical
+                device or evidence source for forensic
+                signatures.
               </small>
             </button>
 
@@ -4128,8 +5519,11 @@ export default function Forensics() {
               }
               disabled={
                 busy ||
-                !integrityVerified ||
-                !selectedAgent
+                !selectedAgent ||
+                !sourceReady ||
+                (sourceType ===
+                  SOURCE_TYPES.FILE &&
+                  !integrityVerified)
               }
             >
               <span>
@@ -4142,7 +5536,7 @@ export default function Forensics() {
 
               <small>
                 Carve candidate ranges and validate
-                recoverable artifacts.
+                recoverable forensic artifacts.
               </small>
             </button>
 
@@ -4156,8 +5550,11 @@ export default function Forensics() {
               }
               disabled={
                 busy ||
-                !integrityVerified ||
-                !selectedAgent
+                !selectedAgent ||
+                !sourceReady ||
+                (sourceType ===
+                  SOURCE_TYPES.FILE &&
+                  !integrityVerified)
               }
             >
               <span>
@@ -4169,22 +5566,22 @@ export default function Forensics() {
               </strong>
 
               <small>
-                Execute forensic processing and
-                inspect scan and artifact results.
+                Execute forensic processing and inspect
+                scan and artifact results.
               </small>
             </button>
           </div>
 
           <div className="forensic-policy-note">
             <strong>
-              Evidence protection policy
+              Examination target
             </strong>
 
             <span>
-              Processing is permitted only after
-              SHA-256 integrity verification. The
-              original evidence source must remain
-              unchanged throughout examination.
+              {sourceType ===
+              SOURCE_TYPES.DEVICE
+                ? `Physical device ${selectedDrivePath} on ${selectedAgent?.hostname || "the authorized workstation"}`
+                : `Evidence file ${selectedFileName} through ${selectedAgent?.agentId || "the TrustWipe Agent"}`}
             </span>
           </div>
 
@@ -4225,9 +5622,8 @@ export default function Forensics() {
               </h2>
 
               <p>
-                Review discovered signatures,
-                candidate ranges and validated
-                forensic artifacts.
+                Review discovered signatures, candidate
+                ranges and validated forensic artifacts.
               </p>
             </div>
 
@@ -4293,9 +5689,7 @@ export default function Forensics() {
                 </span>
 
                 <strong>
-                  {
-                    scanStats.signaturesDetected
-                  }
+                  {scanStats.signaturesDetected}
                 </strong>
               </div>
 
@@ -4305,9 +5699,7 @@ export default function Forensics() {
                 </span>
 
                 <strong>
-                  {
-                    scanStats.candidatesFound
-                  }
+                  {scanStats.candidatesFound}
                 </strong>
               </div>
 
@@ -4317,9 +5709,7 @@ export default function Forensics() {
                 </span>
 
                 <strong>
-                  {
-                    scanStats.artifactsCarved
-                  }
+                  {scanStats.artifactsCarved}
                 </strong>
               </div>
 
@@ -4329,9 +5719,7 @@ export default function Forensics() {
                 </span>
 
                 <strong>
-                  {
-                    scanStats.artifactsValidated
-                  }
+                  {scanStats.artifactsValidated}
                 </strong>
               </div>
 
@@ -4367,8 +5755,8 @@ export default function Forensics() {
           {recoveredFiles.length ===
           0 ? (
             <div className="empty-state">
-              No recovered artifacts were
-              returned by the forensic engine.
+              No recovered artifacts were returned
+              by the forensic engine.
             </div>
           ) : (
             <div className="artifact-table-wrapper">
@@ -4426,26 +5814,24 @@ export default function Forensics() {
                         >
                           <td>
                             <strong>
-                              {
-                                file.name
-                              }
+                              {file.name}
                             </strong>
 
                             {file.sourceOffset !==
-                              null && (
-                              <small>
-                                Offset:{" "}
-                                {
-                                  file.sourceOffset
-                                }
-                              </small>
-                            )}
+                              null &&
+                              file.sourceOffset !==
+                                undefined && (
+                                <small>
+                                  Offset:{" "}
+                                  {
+                                    file.sourceOffset
+                                  }
+                                </small>
+                              )}
                           </td>
 
                           <td>
-                            {
-                              file.type
-                            }
+                            {file.type}
                           </td>
 
                           <td>
@@ -4464,8 +5850,7 @@ export default function Forensics() {
                             >
                               {valid
                                 ? "✓ VALID"
-                                : "⚠ " +
-                                  file.validationStatus}
+                                : `⚠ ${file.validationStatus}`}
                             </span>
                           </td>
 
@@ -4554,34 +5939,41 @@ export default function Forensics() {
                 }
               >
                 {integrity?.status ||
-                  "NOT VERIFIED"}
+                  (
+                    sourceType ===
+                    SOURCE_TYPES.DEVICE
+                      ? "AGENT CONTROLLED"
+                      : "NOT VERIFIED"
+                  )}
               </strong>
             </div>
 
-            <div className="hash-grid">
-              <div>
-                <span>
-                  ACQUISITION HASH
-                </span>
+            {integrity && (
+              <div className="hash-grid">
+                <div>
+                  <span>
+                    ACQUISITION HASH
+                  </span>
 
-                <code>
-                  {integrity?.originalHash ||
-                    selectedEvidence?.acquisitionHash ||
-                    "—"}
-                </code>
+                  <code>
+                    {integrity.originalHash ||
+                      selectedEvidence?.acquisitionHash ||
+                      "—"}
+                  </code>
+                </div>
+
+                <div>
+                  <span>
+                    CURRENT HASH
+                  </span>
+
+                  <code>
+                    {integrity.currentHash ||
+                      "—"}
+                  </code>
+                </div>
               </div>
-
-              <div>
-                <span>
-                  CURRENT HASH
-                </span>
-
-                <code>
-                  {integrity?.currentHash ||
-                    "—"}
-                </code>
-              </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -4606,8 +5998,7 @@ export default function Forensics() {
               generateReport
             }
             disabled={
-              busy ||
-              !integrityVerified
+              busy
             }
           >
             GENERATE FORENSIC REPORT →
@@ -4636,9 +6027,8 @@ export default function Forensics() {
 
               <p>
                 Final investigation record containing
-                case identity, evidence integrity,
-                examination results and recovered
-                artifacts.
+                case identity, examination source,
+                integrity status and recovered artifacts.
               </p>
             </div>
 
@@ -4670,28 +6060,25 @@ export default function Forensics() {
 
             <div>
               <span>
-                EVIDENCE
+                SOURCE
               </span>
 
               <strong>
-                {selectedFileName}
+                {sourceType ===
+                SOURCE_TYPES.DEVICE
+                  ? selectedDrivePath
+                  : selectedFileName}
               </strong>
             </div>
 
             <div>
               <span>
-                INTEGRITY
+                AGENT
               </span>
 
-              <strong
-                className={
-                  getIntegrityClass(
-                    integrity?.status
-                  )
-                }
-              >
-                {integrity?.status ||
-                  "UNKNOWN"}
+              <strong>
+                {selectedAgent?.agentId ||
+                  "—"}
               </strong>
             </div>
           </div>
@@ -4736,7 +6123,7 @@ export default function Forensics() {
               <code>
                 {integrity?.originalHash ||
                   selectedEvidence?.acquisitionHash ||
-                  "—"}
+                  "Agent controlled"}
               </code>
             </div>
 
@@ -4747,7 +6134,7 @@ export default function Forensics() {
 
               <code>
                 {integrity?.currentHash ||
-                  "—"}
+                  "Agent controlled"}
               </code>
             </div>
 
@@ -4809,101 +6196,150 @@ export default function Forensics() {
 
   /* ==========================================================================
      MAIN RENDER
-
-     IMPORTANT:
-     Do NOT render Sidebar here.
-
-     Sidebar.jsx should wrap this page through your
-     DashboardLayout / AppRoutes.
   ========================================================================== */
 
   return (
-  <div className="forensics-page">
-    {renderHeader()}
+    <div className="forensics-page">
+      {renderHeader()}
 
-    {renderAlerts()}
+      {renderAlerts()}
 
-    {currentStep !== STEPS.CASES &&
-      currentStep !== STEPS.CREATE_CASE &&
-      renderProgress()}
+      {currentStep !==
+        STEPS.CASES &&
+        currentStep !==
+          STEPS.CREATE_CASE &&
+        renderProgress()}
 
-    <section className="forensics-summary">
-      <div className="summary-card">
-        <span>CASE</span>
-        <strong>{caseId || "—"}</strong>
-        <small>
-          {currentCase?.title || "No active case"}
-        </small>
-      </div>
+      <section className="forensics-summary">
+        <div className="summary-card">
+          <span>
+            CASE
+          </span>
 
-      <div className="summary-card">
-        <span>EVIDENCE ASSETS</span>
-        <strong>{repositoryStats.total}</strong>
-        <small>
-          {formatBytes(repositoryStats.totalSize)} total
-        </small>
-      </div>
+          <strong>
+            {caseId || "—"}
+          </strong>
 
-      <div className="summary-card">
-        <span>INTEGRITY</span>
-        <strong
-          className={
-            integrity
-              ? getIntegrityClass(integrity.status)
-              : ""
-          }
-        >
-          {integrity?.status || "NOT VERIFIED"}
-        </strong>
-        <small>SHA-256 evidence control</small>
-      </div>
+          <small>
+            {currentCase?.title ||
+              "No active case"}
+          </small>
+        </div>
 
-      <div className="summary-card">
-        <span>FORENSIC AGENT</span>
-        <strong>
-          {onlineAgents.length > 0
-            ? "ONLINE"
-            : "OFFLINE"}
-        </strong>
-        <small>
-          {selectedAgent?.agentId ||
-            "No agent selected"}
-        </small>
-      </div>
-    </section>
+        <div className="summary-card">
+          <span>
+            EVIDENCE ASSETS
+          </span>
 
-    <main className="forensics-content">
-      {currentStep === STEPS.CASES &&
-        renderCaseSelection()}
+          <strong>
+            {repositoryStats.total}
+          </strong>
 
-      {currentStep === STEPS.CREATE_CASE &&
-        renderCreateCase()}
+          <small>
+            {formatBytes(
+              repositoryStats.totalSize
+            )}{" "}
+            total
+          </small>
+        </div>
 
-      {currentStep === STEPS.EVIDENCE &&
-        renderEvidenceAcquisition()}
+        <div className="summary-card">
+          <span>
+            INTEGRITY
+          </span>
 
-      {currentStep === STEPS.EXAMINATION &&
-        renderExamination()}
+          <strong
+            className={
+              integrity
+                ? getIntegrityClass(
+                    integrity.status
+                  )
+                : ""
+            }
+          >
+            {integrity?.status ||
+              (
+                sourceType ===
+                SOURCE_TYPES.DEVICE
+                  ? "AGENT CONTROLLED"
+                  : "NOT VERIFIED"
+              )}
+          </strong>
 
-      {currentStep === STEPS.ANALYSIS &&
-        renderAnalysis()}
+          <small>
+            SHA-256 evidence control
+          </small>
+        </div>
 
-      {currentStep === STEPS.RESULTS &&
-        renderResults()}
+        <div className="summary-card">
+          <span>
+            FORENSIC AGENT
+          </span>
 
-      {currentStep === STEPS.REPORT &&
-        renderReport()}
-    </main>
+          <strong>
+            {onlineAgents.length >
+            0
+              ? "ONLINE"
+              : "OFFLINE"}
+          </strong>
 
-    <footer className="forensics-footer">
-      <span>TrustWipe Digital Forensics</span>
-      <span>SHA-256 Integrity Control</span>
-      <span>
-        {onlineAgents.length > 0
-          ? "Forensic Agent Online"
-          : "Forensic Agent Offline"}
-      </span>
-    </footer>
-  </div>
-);
+          <small>
+            {selectedAgent?.agentId ||
+              "No agent selected"}
+          </small>
+        </div>
+      </section>
+
+      <main className="forensics-content">
+        {currentStep ===
+          STEPS.CASES &&
+          renderCaseSelection()}
+
+        {currentStep ===
+          STEPS.CREATE_CASE &&
+          renderCreateCase()}
+
+        {currentStep ===
+          STEPS.AGENT &&
+          renderAgentSetup()}
+
+        {currentStep ===
+          STEPS.SOURCE &&
+          renderSourceSelection()}
+
+        {currentStep ===
+          STEPS.EXAMINATION &&
+          renderExamination()}
+
+        {currentStep ===
+          STEPS.ANALYSIS &&
+          renderAnalysis()}
+
+        {currentStep ===
+          STEPS.RESULTS &&
+          renderResults()}
+
+        {currentStep ===
+          STEPS.REPORT &&
+          renderReport()}
+      </main>
+
+      <footer className="forensics-footer">
+        <span>
+          TrustWipe Digital Forensics
+        </span>
+
+        <span>
+          SHA-256 Integrity Control
+        </span>
+
+        <span>
+          {onlineAgents.length >
+          0
+            ? "Forensic Agent Online"
+            : "Forensic Agent Offline"}
+        </span>
+      </footer>
+    </div>
+  );
 }

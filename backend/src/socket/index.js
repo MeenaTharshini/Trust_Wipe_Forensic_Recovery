@@ -10,6 +10,7 @@ import {
   unregisterAgent,
   updateAgentHeartbeat,
   resolvePendingDiscovery,
+  resolveDriveDiscovery,
   getAgent as getBridgeAgent,
   listAgents,
   isAgentConnected,
@@ -349,46 +350,131 @@ export const initAgentClient = (
 
 
       /* ===============================================
-         DRIVE DISCOVERY
-      =============================================== */
+   DRIVE DISCOVERY
+=============================================== */
 
-      socket.on(
-        "drive-list",
-        (data = {}) => {
+socket.on(
+  "drive-list",
+  (data = {}) => {
 
-          console.log(
-            "📀 Drive list received from agent:",
-            data.deviceId ||
-            data.agentId ||
-            "unknown"
+    try {
+
+      const deviceId =
+        String(
+          data.deviceId ||
+          data.agentId ||
+          ""
+        ).trim();
+
+
+      console.log(
+        "📀 Drive list received from agent:",
+        deviceId || "unknown"
+      );
+
+
+      /* -------------------------------------------
+         RESOLVE REQUEST-ID BASED DISCOVERY
+      ------------------------------------------- */
+
+      if (data.requestId) {
+
+        const resolved =
+          resolveDriveDiscovery(
+            data.requestId,
+            data
           );
 
+        console.log(
+          resolved
+            ? "✅ Drive discovery request resolved:"
+            : "⚠️ No pending drive request found:",
+          data.requestId
+        );
 
-          /*
-           * Resolve the pending HTTP request.
-           */
-
-          if (data.userId) {
-
-            resolvePendingDiscovery(
-              data.userId,
-              data
-            );
-
-          }
+      }
 
 
-          /*
-           * Also broadcast to dashboard clients.
-           */
+      /* -------------------------------------------
+         RESOLVE LEGACY USER-ID DISCOVERY
+      ------------------------------------------- */
 
-          io.emit(
-            "drive-list",
-            data
+      if (data.userId) {
+
+        resolvePendingDiscovery(
+          data.userId,
+          data
+        );
+
+      }
+
+
+      /* -------------------------------------------
+         LOG DISCOVERED DRIVES
+      ------------------------------------------- */
+
+      const drives =
+        Array.isArray(data.drives)
+          ? data.drives
+          : [];
+
+
+      console.log(
+        `📀 ${drives.length} drive(s) discovered`
+      );
+
+
+      drives.forEach(
+        (drive, index) => {
+
+          console.log(
+            `   ${index + 1}.`,
+            drive.name ||
+            drive.driveLetter ||
+            drive.devicePath ||
+            drive.path ||
+            "Unknown drive"
           );
 
         }
       );
+
+
+      /* -------------------------------------------
+         BROADCAST TO FRONTEND
+      ------------------------------------------- */
+
+      io.emit(
+        "drive-list",
+        {
+          ...data,
+
+          deviceId,
+
+          agentId:
+            data.agentId ||
+            deviceId,
+
+          drives,
+
+          timestamp:
+            data.timestamp ||
+            new Date().toISOString(),
+        }
+      );
+
+    }
+    catch (err) {
+
+      console.error(
+        "❌ drive-list handler error:",
+        err.message
+      );
+
+    }
+
+  }
+);
 
 
       /* ===============================================

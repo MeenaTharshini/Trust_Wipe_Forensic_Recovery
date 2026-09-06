@@ -43,8 +43,16 @@ export async function startForensicTask(socket, job) {
     console.log("Disk   :", sourceDisk);
     console.log("Agent  :", job.agentId || "unknown");
     console.log("================================");
-
-
+    runForensicScan({
+  jobId,
+  disk: sourceDisk,
+  devicePath: sourceDisk.devicePath,
+  caseId,
+  examiner,
+  agentId: job.agentId || null,
+  operationId: job.operationId || null,
+  socket,
+});
     /* -------------------------------------------------
        VALIDATION
     ------------------------------------------------- */

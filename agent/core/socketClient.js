@@ -206,112 +206,39 @@ setInterval(
    DRIVE DISCOVERY
 ===================================================== */
 
-socket.on(
-  "discover-drives",
-  async (payload = {}) => {
+socket.on("discover-drives", async (request = {}) => {
+  console.log("📀 Drive discovery requested");
 
-    console.log("");
-    console.log(
-      "📀 Drive discovery requested"
+  try {
+    const drives = await getAvailableDrives();
+
+    socket.emit("drive-list", {
+      success: true,
+      requestId: request.requestId,
+      agentId: AGENT_ID,
+      deviceId: AGENT_ID,
+      hostname: os.hostname(),
+      platform: process.platform,
+      drives,
+    });
+
+    console.log("📀 Drive list sent to server");
+  } catch (error) {
+    console.error(
+      "❌ Drive discovery failed:",
+      error.message
     );
 
-    console.log(
-      "   User:",
-      payload.userId || "unknown"
-    );
-
-    try {
-
-      /*
-       * Discover physical drives
-       */
-
-      const drives =
-        await runDriveDiscovery();
-
-
-      console.log(
-        "📀 Discovered drives:",
-        drives.length
-      );
-
-
-      console.log(
-        JSON.stringify(
-          drives,
-          null,
-          2
-        )
-      );
-
-
-      /*
-       * Send drives to backend
-       */
-
-      socket.emit(
-        "drive-list",
-        {
-
-          deviceId:
-            AGENT_ID,
-
-          userId:
-            payload.userId || null,
-
-          requestId:
-            payload.requestId || null,
-
-          drives,
-
-          timestamp:
-            new Date().toISOString(),
-
-        }
-      );
-
-
-      console.log(
-        "📤 Drive list sent to server"
-      );
-
-    }
-    catch (err) {
-
-      console.error(
-        "❌ Drive discovery failed:",
-        err.message
-      );
-
-
-      socket.emit(
-        "drive-list",
-        {
-
-          deviceId:
-            AGENT_ID,
-
-          userId:
-            payload.userId || null,
-
-          requestId:
-            payload.requestId || null,
-
-          drives: [],
-
-          error:
-            err.message,
-
-          timestamp:
-            new Date().toISOString(),
-
-        }
-      );
-
-    }
-
+    socket.emit("drive-list", {
+      success: false,
+      requestId: request.requestId,
+      agentId: AGENT_ID,
+      deviceId: AGENT_ID,
+      drives: [],
+      error: error.message,
+    });
   }
-);
+});
 
 
 /* =====================================================

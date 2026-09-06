@@ -1389,7 +1389,69 @@ if (
   cleanupTimer.unref();
 
 }
+const pendingDriveDiscovery = new Map();
 
+export const requestDriveList = (agentId, userId = null) => {
+  const agent = getAgentInternal(agentId);
+
+  if (!agent) {
+    const error = new Error(`Agent not found: ${agentId}`);
+    error.code = "AGENT_NOT_FOUND";
+    throw error;
+  }
+
+  if (!agent.socket || !agent.socket.connected) {
+    const error = new Error(`Agent is not connected: ${agentId}`);
+    error.code = "AGENT_OFFLINE";
+    throw error;
+  }
+
+  return new Promise((resolve, reject) => {
+    const requestId = `DRIVE-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
+
+    const timeout = setTimeout(() => {
+      pendingDriveDiscovery.delete(requestId);
+
+      const error = new Error(
+        "Timed out waiting for drive information from TrustWipe Agent."
+      );
+
+      error.code = "DRIVE_DISCOVERY_TIMEOUT";
+      reject(error);
+    }, 30000);
+
+    pendingDriveDiscovery.set(requestId, {
+      resolve,
+      reject,
+      timeout,
+      agentId,
+      userId,
+    });
+
+    agent.socket.emit("discover-drives", {
+      requestId,
+      agentId,
+      userId,
+    });
+  });
+};
+
+export const resolveDriveDiscovery = (requestId, data) => {
+  const pending = pendingDriveDiscovery.get(requestId);
+
+  if (!pending) {
+    return false;
+  }
+
+  clearTimeout(pending.timeout);
+  pendingDriveDiscovery.delete(requestId);
+
+  pending.resolve(data);
+
+  return true;
+};
 
 /* =====================================================
    DEFAULT EXPORT
@@ -1442,5 +1504,7 @@ export default {
   cleanupStaleAgents,
 
   getAgentSnapshot,
+  requestDriveList,
+  resolveDriveDiscovery,
 
 };
