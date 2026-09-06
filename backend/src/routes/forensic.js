@@ -4830,7 +4830,64 @@ router.post(
 
           message:
             integrity.message,
-        },
+        },evidence: {
+  evidence_id:
+    integrity?.evidenceId || null,
+
+  file_name:
+    fileName || null,
+
+  size:
+    stats?.size || 0,
+
+  modified_at:
+    stats?.mtime
+      ? stats.mtime.toISOString()
+      : null,
+
+  sha256:
+    integrity?.currentHash || null,
+
+  hash_algorithm:
+    "SHA-256",
+
+  acquired_at:
+    integrity?.acquiredAt || null,
+},
+
+integrity: {
+  status:
+    integrity?.status ||
+    "AGENT_CONTROLLED",
+
+  verified:
+    integrity?.verified ??
+    false,
+
+  hash_match:
+    integrity?.hashMatch ??
+    false,
+
+  size_match:
+    integrity?.sizeMatch ??
+    false,
+
+  acquisition_hash:
+    integrity?.originalHash ||
+    null,
+
+  current_hash:
+    integrity?.currentHash ||
+    null,
+
+  original_source_modified:
+    integrity?.originalSourceModified ??
+    false,
+
+  message:
+    integrity?.message ||
+    "Physical-device evidence was examined by the authorized TrustWipe Agent.",
+},
 
         analysis: {
           job_id:
