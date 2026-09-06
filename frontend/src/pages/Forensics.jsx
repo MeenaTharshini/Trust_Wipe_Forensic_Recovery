@@ -858,16 +858,26 @@ export default function Forensics() {
       [recoveredFiles]
     );
 
-  const onlineAgents =
-    useMemo(
-      () =>
-        agents.filter(
-          (agent) =>
-            agent.online !== false &&
-            agent.connected !== false
-        ),
-      [agents]
-    );
+  const onlineAgents = useMemo(() => {
+    const unique = new Map();
+
+    agents.forEach((agent) => {
+      if (!agent?.agentId) return;
+
+      const key = String(agent.agentId).trim();
+      if (!key) return;
+
+      const isOnline =
+        agent.online !== false &&
+        agent.connected !== false;
+
+      if (isOnline) {
+        unique.set(key, agent);
+      }
+    });
+
+    return Array.from(unique.values());
+  }, [agents]);
 
   /* ==========================================================================
      AGENT STATUS
@@ -960,33 +970,82 @@ export default function Forensics() {
                 : [],
           }));
 
-        setAgents(
+        const uniqueAgents = Array.from(
           normalized
+            .filter((agent) => agent?.agentId)
+            .reduce((map, agent) => {
+              const key = String(agent.agentId).trim();
+              if (!key) return map;
+
+              // One TrustWipe agent must appear only once.
+              // If the API returns duplicate rows, keep the newest
+              // record and merge useful fields from both records.
+              const existing = map.get(key);
+
+              if (!existing) {
+                map.set(key, agent);
+                return map;
+              }
+
+              map.set(key, {
+                ...existing,
+                ...agent,
+                agentId: key,
+                deviceId:
+                  agent.deviceId ||
+                  existing.deviceId ||
+                  key,
+                hostname:
+                  agent.hostname !== "Unknown device"
+                    ? agent.hostname
+                    : existing.hostname,
+                platform:
+                  agent.platform !== "unknown"
+                    ? agent.platform
+                    : existing.platform,
+                online:
+                  agent.online || existing.online,
+                connected:
+                  agent.connected || existing.connected,
+                capabilities: Array.from(
+                  new Set([
+                    ...(existing.capabilities || []),
+                    ...(agent.capabilities || []),
+                  ])
+                ),
+              });
+
+              return map;
+            }, new Map())
+            .values()
         );
+
+        setAgents(uniqueAgents);
 
         setSelectedAgent(
           (current) => {
             if (!current) {
               return (
-                normalized.find(
+                uniqueAgents.find(
                   (agent) =>
                     agent.capabilities?.includes(
                       "FORENSIC_SCAN"
                     )
                 ) ||
-                normalized.find(
+                uniqueAgents.find(
                   (agent) =>
-                    agent.online
+                    agent.online &&
+                    agent.connected !== false
                 ) ||
                 null
               );
             }
 
             return (
-              normalized.find(
+              uniqueAgents.find(
                 (agent) =>
-                  agent.agentId ===
-                  current.agentId
+                  String(agent.agentId) ===
+                  String(current.agentId)
               ) || current
             );
           }
@@ -2101,339 +2160,267 @@ export default function Forensics() {
      FORENSIC SCAN
   ========================================================================== */
 
-  const runForensicScan =
-    useCallback(
-      async (mode = "recover") => {
-        if (!selectedEvidence) {
-          setError(
-            "Select evidence before starting analysis."
-          );
-
-          return;
-        }
-
-        if (!integrityVerified) {
-          setError(
-            "Analysis is blocked until evidence integrity is VERIFIED."
-          );
-
-          return;
-        }
-
-        if (!caseId.trim()) {
-          setError(
-            "Case ID is required."
-          );
-
-          return;
-        }
-
-        if (!examiner.trim()) {
-          setError(
-            "Examiner name is required."
-          );
-
-          return;
-        }
-
-        if (!selectedAgent) {
-          setError(
-            "No TrustWipe forensic agent is selected."
-          );
-
-          return;
-        }
-
-        const agentOnline =
-          selectedAgent.online !== false &&
-          selectedAgent.connected !== false;
-
-        if (!agentOnline) {
-          setError(
-            "The selected TrustWipe Agent is offline."
-          );
-
-          return;
-        }
-
-        const capabilities =
-          selectedAgent.capabilities ||
-          [];
-
-        if (
-          capabilities.length > 0 &&
-          !capabilities.includes(
-            "FORENSIC_SCAN"
-          )
-        ) {
-          setError(
-            "The selected agent does not advertise FORENSIC_SCAN capability."
-          );
-
-          return;
-        }
-
-        setBusy(true);
-
-        setError("");
-        setNotice("");
-
-        setStatus(
-          STATUS.QUEUED
-        );
-
-        setProgress(0);
-
-        setAnalysisMode(
-          mode
-        );
-
-        setRecoveredFiles([]);
-        setScanStats(null);
-        setReport(null);
-        setReportFile(null);
-        setScanOutput("");
-        setLastOperation(null);
-
-        const messages = {
-          scan:
-            "Queuing disk scan on the connected TrustWipe Agent...",
-
-          recover:
-            "Queuing forensic recovery on the connected TrustWipe Agent...",
-
-          analyze:
-            "Queuing forensic analysis on the connected TrustWipe Agent...",
-        };
-
-        setProgressMessage(
-          messages[mode] ||
-            messages.recover
-        );
-
-        try {
-          /*
-            IMPORTANT:
-            The frontend does NOT send a physical disk path.
-
-            The backend/agent is responsible for resolving
-            the authorized evidence source.
-
-            This prevents the browser from attempting
-            to access a Windows physical disk directly.
-          */
-
-          const response =
-            await apiFetch(
-              "/api/forensic/scan",
-              {
-                method: "POST",
-
-                headers: {
-                  "Content-Type":
-                    "application/json",
-                },
-
-                body: JSON.stringify({
-                  evidenceId:
-                    selectedEvidenceId,
-
-                  evidence_id:
-                    selectedEvidenceId,
-
-                  fileName:
-                    selectedFileName,
-
-                  file_name:
-                    selectedFileName,
-
-                  caseId:
-                    caseId.trim(),
-
-                  case_id:
-                    caseId.trim(),
-
-                  examiner:
-                    examiner.trim(),
-
-                  operation:
-                    mode,
-
-                  agentId:
-                    selectedAgent.agentId,
-
-                  agent_id:
-                    selectedAgent.agentId,
-                }),
-              }
-            );
-
-          /*
-            Expected architecture:
-
-            HTTP 202
-              ↓
-            job created
-              ↓
-            backend sends FORENSIC_SCAN
-              ↓
-            TrustWipeAgent performs scan
-          */
-
-          const job =
-            response?.job ||
-            response?.data?.job ||
-            response;
-
-          const jobId =
-            firstDefined(
-              response?.jobId,
-              response?.job_id,
-              job?.jobId,
-              job?.job_id,
-              job?.id
-            );
-
-          if (!jobId) {
-            /*
-              Some backends may still return the
-              complete result synchronously.
-            */
-
-            const completed =
-              response?.status ===
-                "COMPLETED" ||
-              response?.scanStats ||
-              response?.scan_stats ||
-              response?.recoveredFiles ||
-              response?.recovered_files ||
-              response?.artifacts;
-
-            if (completed) {
-              processScanResult(
-                response
-              );
-
-              setBusy(false);
-              setProgressMessage("");
-
-              return;
-            }
-
-            throw new Error(
-              "Forensic server did not return a job ID."
-            );
-          }
-
-          setForensicJobId(
-            jobId
-          );
-
-          const immediateStatus =
-            String(
-              job?.status ||
-                response?.status ||
-                "QUEUED"
-            ).toUpperCase();
-
-          if (
-            [
-              "COMPLETED",
-              "SUCCESS",
-              "DONE",
-            ].includes(
-              immediateStatus
-            )
-          ) {
-            processScanResult(
-              job?.result ||
-                response
-            );
-
-            setBusy(false);
-            setProgressMessage("");
-
-            return;
-          }
-
-          setStatus(
-            [
-              "RUNNING",
-              "SCANNING",
-              "IN_PROGRESS",
-            ].includes(
-              immediateStatus
-            )
-              ? STATUS.SCANNING
-              : STATUS.QUEUED
-          );
-
-          setNotice(
-            `Forensic job ${jobId} has been queued on ${selectedAgent.agentId}.`
-          );
-
-          /*
-            Start polling.
-
-            Polling is deliberately kept in the frontend
-            because it works even if the browser does not
-            have a Socket.IO connection.
-          */
-
-          stopPolling();
-
-          await pollForensicJob(
-            jobId
-          );
-
-          pollingRef.current =
-            window.setInterval(
-              () =>
-                pollForensicJob(
-                  jobId
-                ),
-              2000
-            );
-        } catch (err) {
-          setStatus(
-            STATUS.FAILED
-          );
-
-          setBusy(false);
-
-          setProgressMessage("");
-
-          const serverIntegrity =
-            err.response?.integrity ||
-            err.response?.data?.integrity;
-
-          if (serverIntegrity) {
-            setIntegrity(
-              normalizeIntegrity(
-                serverIntegrity
-              )
-            );
-          }
-
-          setError(
-            err.message ||
-              "Forensic processing failed."
-          );
-        }
-      },
-      [
-        selectedEvidence,
-        integrityVerified,
-        caseId,
-        examiner,
-        selectedAgent,
-        selectedEvidenceId,
-        selectedFileName,
-        processScanResult,
-        pollForensicJob,
-        stopPolling,
-      ]
+  const runForensicScan = useCallback(
+  async (mode = "recover") => {
+    if (!selectedEvidence) {
+      setError("Select evidence before starting analysis.");
+      return;
+    }
+
+    if (!integrityVerified) {
+      setError(
+        "Analysis is blocked until evidence integrity is VERIFIED."
+      );
+      return;
+    }
+
+    if (!caseId.trim()) {
+      setError("Case ID is required.");
+      return;
+    }
+
+    if (!examiner.trim()) {
+      setError("Examiner name is required.");
+      return;
+    }
+
+    if (!selectedAgent) {
+      setError("No TrustWipe forensic agent is selected.");
+      return;
+    }
+
+    const agentOnline =
+      selectedAgent.online !== false &&
+      selectedAgent.connected !== false;
+
+    if (!agentOnline) {
+      setError("The selected TrustWipe Agent is offline.");
+      return;
+    }
+
+    const capabilities = Array.isArray(
+      selectedAgent.capabilities
+    )
+      ? selectedAgent.capabilities.map((item) =>
+          String(item).trim().toUpperCase()
+        )
+      : [];
+
+    if (
+      capabilities.length > 0 &&
+      !capabilities.includes("FORENSIC_SCAN")
+    ) {
+      setError(
+        "The selected agent does not advertise FORENSIC_SCAN capability."
+      );
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    setNotice("");
+    setProgress(0);
+    setAnalysisMode(mode);
+
+    setRecoveredFiles([]);
+    setScanStats(null);
+    setReport(null);
+    setReportFile(null);
+    setScanOutput("");
+    setLastOperation(null);
+    setForensicJobId(null);
+
+    setStatus(STATUS.QUEUED);
+
+    const messages = {
+      scan:
+        "Queuing disk scan on the connected TrustWipe Agent...",
+      recover:
+        "Queuing forensic recovery on the connected TrustWipe Agent...",
+      analyze:
+        "Queuing forensic analysis on the connected TrustWipe Agent...",
+    };
+
+    setProgressMessage(
+      messages[mode] || messages.recover
     );
+
+    try {
+      /*
+       * IMPORTANT
+       * ----------
+       * Do NOT call /api/forensic/scan.
+       *
+       * /scan is the old synchronous/local endpoint.
+       * The Agent architecture uses /jobs.
+       */
+
+      const response = await apiFetch(
+        "/api/forensic/jobs",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            evidenceId: selectedEvidenceId,
+            evidence_id: selectedEvidenceId,
+
+            fileName: selectedFileName,
+            file_name: selectedFileName,
+
+            caseId: caseId.trim(),
+            case_id: caseId.trim(),
+
+            examiner: examiner.trim(),
+
+            /*
+             * Backend expects the forensic operation.
+             */
+            operation: "FORENSIC_SCAN",
+
+            /*
+             * Selected Windows TrustWipe Agent.
+             */
+            agentId: selectedAgent.agentId,
+            agent_id: selectedAgent.agentId,
+
+            /*
+             * Keep source information if your
+             * evidence record contains it.
+             */
+            source:
+              selectedEvidence?.source ||
+              selectedEvidence?.sourcePath ||
+              selectedEvidence?.source_path ||
+              null,
+          }),
+        }
+      );
+
+      const job =
+        response?.job ||
+        response?.data?.job ||
+        response;
+
+      const jobId = firstDefined(
+        response?.jobId,
+        response?.job_id,
+        job?.jobId,
+        job?.job_id,
+        job?.id
+      );
+
+      if (!jobId) {
+        throw new Error(
+          "Forensic server did not return a job ID."
+        );
+      }
+
+      setForensicJobId(jobId);
+
+      const immediateStatus = String(
+        job?.status ||
+          response?.status ||
+          "QUEUED"
+      ).toUpperCase();
+
+      if (
+        ["COMPLETED", "SUCCESS", "DONE"].includes(
+          immediateStatus
+        )
+      ) {
+        processScanResult(
+          job?.result || response
+        );
+
+        setBusy(false);
+        setProgressMessage("");
+        return;
+      }
+
+      if (
+        ["FAILED", "ERROR"].includes(
+          immediateStatus
+        )
+      ) {
+        throw new Error(
+          job?.error ||
+            job?.message ||
+            "Forensic job failed."
+        );
+      }
+
+      setStatus(
+        ["RUNNING", "SCANNING", "IN_PROGRESS"].includes(
+          immediateStatus
+        )
+          ? STATUS.SCANNING
+          : STATUS.QUEUED
+      );
+
+      setNotice(
+        `Forensic job ${jobId} has been queued on ${selectedAgent.agentId}.`
+      );
+
+      /*
+       * Poll the backend for Agent progress.
+       */
+      stopPolling();
+
+      await pollForensicJob(jobId);
+
+      pollingRef.current = window.setInterval(
+        () => {
+          pollForensicJob(jobId);
+        },
+        2000
+      );
+    } catch (err) {
+      console.error(
+        "FORENSIC JOB ERROR:",
+        err
+      );
+
+      stopPolling();
+
+      setStatus(STATUS.FAILED);
+      setBusy(false);
+      setProgressMessage("");
+
+      const serverIntegrity =
+        err?.response?.integrity ||
+        err?.response?.data?.integrity;
+
+      if (serverIntegrity) {
+        setIntegrity(
+          normalizeIntegrity(
+            serverIntegrity
+          )
+        );
+      }
+
+      setError(
+        err?.message ||
+          "Forensic processing failed."
+      );
+    }
+  },
+  [
+    selectedEvidence,
+    integrityVerified,
+    caseId,
+    examiner,
+    selectedAgent,
+    selectedEvidenceId,
+    selectedFileName,
+    processScanResult,
+    pollForensicJob,
+    stopPolling,
+  ]
+);
 
   /* ==========================================================================
      CANCEL FORENSIC JOB

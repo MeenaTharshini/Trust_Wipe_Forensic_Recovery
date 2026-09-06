@@ -24,8 +24,7 @@ dotenv.config();
 
 const SERVER_URL =
   process.env.SERVER_URL ||
-  "https://trust-wipe.onrender.com";
-
+  "https://trust-wipe-forensic-recovery-glwn.onrender.com";
 
 /* =====================================================
    SOCKET CONNECTION
