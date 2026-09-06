@@ -1,12 +1,9 @@
 // backend/src/services/driveDiscovery.js
 
 import {
-  getSocket,
-  addPendingDiscovery,
-  removePendingDiscovery,
+  listOnlineAgents,
+  requestDriveList,
 } from "../socket/agentBridge.js";
-
-import { getConnectedAgents } from "../socket/index.js";
 
 /**
  * ==========================================
@@ -21,9 +18,24 @@ export const discoverDrives = async (req, res) => {
   } catch (err) {
     console.error("Drive Discovery Error:", err);
 
-    return res.status(500).json({
+    let status = 500;
+
+    if (err.code === "AGENT_NOT_FOUND") {
+      status = 404;
+    }
+
+    if (err.code === "AGENT_OFFLINE") {
+      status = 503;
+    }
+
+    if (err.code === "DRIVE_DISCOVERY_TIMEOUT") {
+      status = 504;
+    }
+
+    return res.status(status).json({
       success: false,
       message: err.message,
+      code: err.code || "DRIVE_DISCOVERY_ERROR",
     });
   }
 };
@@ -34,85 +46,70 @@ export const discoverDrives = async (req, res) => {
  * ==========================================
  */
 export const requestDriveDiscovery = async (userId) => {
-  const io = getSocket();
-  const agents = getConnectedAgents();
+  const agents = listOnlineAgents();
 
   console.log("====================================");
-  console.log("CONNECTED AGENTS");
+  console.log("CONNECTED ONLINE AGENTS");
   console.table(agents);
   console.log("====================================");
 
   if (!agents.length) {
-    throw new Error("No TrustWipe Agent Connected");
-  }
-
-  const agent = agents[0];
-
-  console.log("Using Agent:", agent.deviceId);
-
-  return new Promise((resolve) => {
-    const timeout = setTimeout(() => {
-      console.warn("Drive discovery timed out.");
-
-      removePendingDiscovery(userId);
-
-      resolve({
-        success: false,
-        devices: [],
-        message: "Agent timeout",
-      });
-    }, 10000);
-
-    addPendingDiscovery(userId, (payload) => {
-      clearTimeout(timeout);
-
-      removePendingDiscovery(userId);
-
-      console.log("============== AGENT RESPONSE ==============");
-      console.log(JSON.stringify(payload, null, 2));
-      console.log("============================================");
-
-      if (!payload) {
-        return resolve({
-          success: false,
-          devices: [],
-          message: "Empty response from agent",
-        });
-      }
-
-      if (!Array.isArray(payload.drives)) {
-        return resolve({
-          success: false,
-          devices: [],
-          message: "Invalid drive list received",
-        });
-      }
-
-      const devices = payload.drives.map((drive) => ({
-        ...drive,
-
-        // IMPORTANT
-        agentId: payload.deviceId,
-
-        discoveredAt: new Date(),
-      }));
-
-      console.log("Returning Drives:");
-      console.table(devices);
-
-      resolve({
-        success: true,
-        devices,
-        message: `${devices.length} drive(s) discovered`,
-      });
-    });
-
-    console.log(
-      `Sending discover-drives -> agent:${agent.deviceId}`
+    const error = new Error(
+      "No TrustWipe Agent Connected"
     );
 
-    io.to(`agent:${agent.deviceId}`).emit("discover-drives", {
-      userId,
-    });
-  });
+    error.code = "AGENT_NOT_FOUND";
+
+    throw error;
+  }
+
+  // Use the first online agent
+  const agent = agents[0];
+
+  console.log(
+    "Using Agent:",
+    agent.deviceId || agent.agentId
+  );
+
+  const result = await requestDriveList(
+    agent.agentId,
+    userId
+  );
+
+  if (!result) {
+    return {
+      success: false,
+      devices: [],
+      message: "Empty response from agent",
+    };
+  }
+
+  if (!Array.isArray(result.drives)) {
+    return {
+      success: false,
+      devices: [],
+      message: "Invalid drive list received",
+    };
+  }
+
+  const devices = result.drives.map((drive) => ({
+    ...drive,
+
+    agentId:
+      result.deviceId ||
+      result.agentId ||
+      agent.deviceId ||
+      agent.agentId,
+
+    discoveredAt: new Date(),
+  }));
+
+  console.log("Returning Drives:");
+  console.table(devices);
+
+  return {
+    success: true,
+    devices,
+    message: `${devices.length} drive(s) discovered`,
+  };
 };

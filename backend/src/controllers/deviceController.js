@@ -1,7 +1,7 @@
 import Device from "../models/Device.js";
-import { discoverDrives } from "../services/driveDiscovery.js";
-import { requestDriveDiscovery } from "../services/driveDiscovery.js";
-// =====================================
+import {
+  requestDriveDiscovery
+} from "../services/driveDiscovery.js";// =====================================
 // AUTO DISCOVER DRIVES
 // =====================================
 

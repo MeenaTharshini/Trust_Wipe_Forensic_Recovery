@@ -32,7 +32,9 @@ let ioInstance = null;
 ===================================================== */
 
 const connectedAgents = new Map();
-
+export const getConnectedAgents = () => {
+  return Array.from(connectedAgents.values());
+};
 
 /* =====================================================
    LEGACY PENDING DISCOVERY
