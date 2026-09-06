@@ -3893,12 +3893,12 @@ router.post(
           0,
 
         evidenceId:
-          integrity.evidenceId,
+  integrity?.evidenceId || null,
 
         fileName,
 
         evidenceHash:
-          integrity.currentHash,
+  integrity?.currentHash || null,
 
         source:
           req.body?.source ||
@@ -4784,11 +4784,11 @@ router.post(
           generatedAt,
 
         evidence: {
-          evidence_id:
-            integrity.evidenceId,
+  evidence_id:
+    integrity?.evidenceId || null,
 
-          file_name:
-            fileName,
+  file_name:
+    fileName || null,
 
           size:
             stats.size,
@@ -4914,15 +4914,15 @@ router.post(
         caseId,
         "FORENSIC_REPORT_GENERATED",
         {
-          reportFile:
-            reportFileName,
+  reportFile:
+    reportFileName,
 
-          evidenceId:
-            integrity.evidenceId,
+  evidenceId:
+    integrity?.evidenceId || null,
 
-          evidenceHash:
-            integrity.currentHash,
-        }
+  evidenceHash:
+    integrity?.currentHash || null,
+}
       );
 
       return res.json({
