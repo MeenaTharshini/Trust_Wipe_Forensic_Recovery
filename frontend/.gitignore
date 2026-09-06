@@ -22,8 +22,26 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
+node_modules/
+.env
+*.log
+*.blob
 # Forensic generated evidence
 backend/forensic_recovery/evidence/*.zip
 backend/forensic_recovery/recovered/
 backend/forensic_recovery/evidence/
+
+# Forensic evidence / generated files
+backend/forensic_recovery/evidence/
+backend/forensic_recovery/recovered/
+backend/forensic_recovery/reports/
+
+# Forensic generated evidence
+backend/forensic_recovery/evidence/*.zip
+
+# Large archives
+*.zip
+
+# TrustWipe Agent
+agent/node_modules/
+*.blob
