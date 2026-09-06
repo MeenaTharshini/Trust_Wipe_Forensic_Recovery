@@ -27,7 +27,8 @@ if (!API_BASE) {
  * Do NOT use the old trust-wipe.onrender.com URL.
  */
 const AGENT_DOWNLOAD_URL =
-  import.meta.env.VITE_AGENT_DOWNLOAD_URL || "";
+  import.meta.env.VITE_AGENT_DOWNLOAD_URL ||
+  `${API_BASE}/downloads/TrustWipeAgent.exe`;
 
 const MAX_FILE_SIZE =
   5 * 1024 * 1024 * 1024;
@@ -788,6 +789,26 @@ export default function Forensics() {
     setAgentLoading,
   ] = useState(false);
 
+  const [
+    showAgentPrompt,
+    setShowAgentPrompt,
+  ] = useState(false);
+
+  const [
+    showRunGuide,
+    setShowRunGuide,
+  ] = useState(false);
+
+  const [
+    agentRunMessage,
+    setAgentRunMessage,
+  ] = useState(
+    "Download and run the TrustWipe Agent on this authorized Windows workstation before continuing."
+  );
+
+  // Mandatory Dashboard/Devices-style Agent onboarding choice.
+  const [agentSetupChoice, setAgentSetupChoice] = useState(null);
+
   /* --------------------------------------------------------------------------
      DEVICE DISCOVERY
   -------------------------------------------------------------------------- */
@@ -1065,6 +1086,13 @@ export default function Forensics() {
           )
         : false;
 
+  // Force the setup choice when entering the Agent step.
+  useEffect(() => {
+    if (currentStep === STEPS.AGENT && onlineAgents.length === 0 && !agentSetupChoice) {
+      setShowAgentPrompt(true);
+    }
+  }, [currentStep, onlineAgents.length, agentSetupChoice]);
+
   /* ==========================================================================
      AGENT STATUS
   ========================================================================== */
@@ -1279,6 +1307,8 @@ export default function Forensics() {
               );
             }
           );
+
+          return unique;
         } catch (err) {
           setAgents([]);
 
@@ -1295,6 +1325,7 @@ export default function Forensics() {
             err.message ||
               "Unable to load connected TrustWipe Agents."
           );
+          return [];
         } finally {
           setAgentLoading(
             false
@@ -1578,6 +1609,10 @@ export default function Forensics() {
         `Case ${newCase.caseId} created successfully.`
       );
 
+      setAgentSetupChoice(null);
+      setShowAgentPrompt(true);
+      setShowRunGuide(false);
+
       setCurrentStep(
         STEPS.AGENT
       );
@@ -1618,6 +1653,10 @@ export default function Forensics() {
             ""
         );
 
+        setAgentSetupChoice(null);
+        setShowAgentPrompt(true);
+        setShowRunGuide(false);
+
         setCurrentStep(
           STEPS.AGENT
         );
@@ -1648,6 +1687,10 @@ export default function Forensics() {
         null
       );
 
+      setAgentSetupChoice(null);
+      setShowAgentPrompt(false);
+      setShowRunGuide(false);
+
       setSelectedDrive(
         null
       );
@@ -1667,10 +1710,110 @@ export default function Forensics() {
      AGENT WORKFLOW
   ========================================================================== */
 
+  const openAgentPrompt =
+    useCallback(() => {
+      setError("");
+      setNotice("");
+      setShowAgentPrompt(true);
+      setShowRunGuide(false);
+    }, []);
+
+  const downloadAgent =
+    useCallback(() => {
+      if (!AGENT_DOWNLOAD_URL) {
+        setError(
+          "TrustWipe Agent download URL is not configured."
+        );
+        return;
+      }
+
+      window.open(
+        AGENT_DOWNLOAD_URL,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      setAgentSetupChoice("downloaded");
+      setShowAgentPrompt(false);
+      setAgentRunMessage(
+        "The Agent download has started. Install it if required, then run TrustWipeAgent.exe as Administrator."
+      );
+      setShowRunGuide(true);
+    }, []);
+
+  const openRunGuide =
+    useCallback(() => {
+      setAgentSetupChoice("already-downloaded");
+      setShowAgentPrompt(false);
+      setAgentRunMessage(
+        "Start the TrustWipe Agent and wait for the green ONLINE status before continuing."
+      );
+      setShowRunGuide(true);
+    }, []);
+
+  const checkAgentAndContinue =
+    useCallback(async () => {
+      setError("");
+      setNotice("Checking TrustWipe Agent connection...");
+
+      if (!agentSetupChoice) {
+        setShowAgentPrompt(true);
+        setError("Choose Download Agent or Already Downloaded first.");
+        return;
+      }
+
+      const latestAgents =
+        await loadAgents();
+
+      const connectedAgents =
+        latestAgents.filter(
+          (agent) =>
+            agent?.online !== false &&
+            agent?.connected !== false
+        );
+
+      const online =
+        connectedAgents.length > 0;
+
+      if (!online) {
+        setShowRunGuide(true);
+        setError(
+          "TrustWipe Agent is not connected yet. Start TrustWipeAgent.exe as Administrator and wait for the Agent to connect."
+        );
+        return;
+      }
+
+      const capable =
+        connectedAgents.find((agent) =>
+          Array.isArray(agent.capabilities) &&
+          agent.capabilities.length > 0
+            ? agent.capabilities.includes("FORENSIC_SCAN")
+            : true
+        );
+
+      if (!capable) {
+        setShowRunGuide(true);
+        setError(
+          "The connected Agent is online but does not advertise FORENSIC_SCAN capability."
+        );
+        return;
+      }
+
+      setSelectedAgent(capable);
+      setShowRunGuide(false);
+      setNotice("TrustWipe Agent is online and ready for forensic processing.");
+    }, [loadAgents, agentSetupChoice]);
+
   const continueFromAgent =
     useCallback(() => {
       setError("");
       setNotice("");
+
+      if (!agentSetupChoice) {
+        setShowAgentPrompt(true);
+        setError("Complete the Agent setup first: Download Agent or Already Downloaded.");
+        return;
+      }
 
       if (
         onlineAgents.length === 0
@@ -1678,7 +1821,7 @@ export default function Forensics() {
         setError(
           "TrustWipe Agent is not connected. Install and run the Agent on the authorized Windows workstation."
         );
-
+        setShowRunGuide(true);
         return;
       }
 
@@ -1718,6 +1861,7 @@ export default function Forensics() {
     }, [
       onlineAgents.length,
       selectedAgent,
+      agentSetupChoice,
     ]);
 
   /* ==========================================================================
@@ -1759,17 +1903,16 @@ export default function Forensics() {
          * isolated so it can use the existing
          * discovery controller if present.
          *
-         * If your backend already exposes a discovery
-         * route, this will use it.
+         * The Dashboard/Devices flow uses GET /api/devices/discover
+         * with the authenticated user session. That controller
+         * delegates discovery to the connected TrustWipe Agent.
          */
         try {
           const response =
             await apiFetch(
-              `/api/devices/${encodeURIComponent(
-                selectedAgent.agentId
-              )}/drives`,
+              `/api/devices/discover`,
               {
-                method: "POST",
+                method: "GET",
               }
             );
 
@@ -1777,6 +1920,7 @@ export default function Forensics() {
             extractArray(
               response,
               [
+                "devices",
                 "drives",
                 "data",
               ]
@@ -2848,6 +2992,7 @@ export default function Forensics() {
           setError(
             "The selected TrustWipe Agent is offline."
           );
+          setShowRunGuide(true);
 
           return;
         }
@@ -3586,6 +3731,10 @@ export default function Forensics() {
         null
       );
 
+      setAgentSetupChoice(null);
+      setShowAgentPrompt(false);
+      setShowRunGuide(false);
+
       setSelectedDrive(
         null
       );
@@ -3642,6 +3791,8 @@ export default function Forensics() {
 
       setError("");
       setNotice("");
+      setShowAgentPrompt(false);
+      setShowRunGuide(false);
 
       setStatus(
         STATUS.IDLE
@@ -4285,203 +4436,141 @@ export default function Forensics() {
                 STEP 01 • EXAMINATION WORKSTATION
               </span>
 
-              <h2>
-                TrustWipe Agent
-              </h2>
+              <h2>TrustWipe Agent</h2>
 
               <p>
-                Forensic operations run on an
-                authorized Windows workstation through
-                the TrustWipe Agent.
+                The TrustWipe Agent must be downloaded, started, and connected
+                before physical-device forensic operations are allowed.
               </p>
             </div>
 
             <span
               className={
-                onlineAgents.length >
-                0
+                onlineAgents.length > 0
                   ? "secure-badge"
                   : "state-badge failed"
               }
             >
-              {onlineAgents.length >
-              0
-                ? "ONLINE"
-                : "OFFLINE"}
+              {onlineAgents.length > 0 ? "ONLINE" : "OFFLINE"}
             </span>
           </div>
 
-          {onlineAgents.length ===
-          0 ? (
+          {onlineAgents.length === 0 ? (
             <div className="agent-install-card">
-              <div className="case-action-icon">
-                ⬇
-              </div>
+              <div className="case-action-icon">🛡️</div>
 
               <div>
-                <span className="panel-kicker">
-                  WINDOWS FORENSIC AGENT
-                </span>
+                <span className="panel-kicker">WINDOWS FORENSIC AGENT</span>
 
-                <h3>
-                  Install TrustWipe Agent
-                </h3>
+                <h3>TrustWipe Agent Required</h3>
 
                 <p>
-                  Download the TrustWipe Agent
-                  installer, install it on the
-                  authorized Windows examination
-                  workstation, and run the Agent.
+                  Your browser cannot directly access Windows physical disks.
+                  Download the Agent, run it on the authorized examination
+                  workstation, and wait until TrustWipe shows the Agent as ONLINE.
                 </p>
 
                 <ol className="agent-steps">
-                  <li>
-                    Download
-                    <strong>
-                      TrustWipeAgentSetup.exe
-                    </strong>
-                  </li>
-
-                  <li>
-                    Install the Agent on the
-                    authorized Windows workstation.
-                  </li>
-
-                  <li>
-                    Start the TrustWipe Agent.
-                  </li>
-
-                  <li>
-                    Wait for the Agent to show
-                    <strong>
-                      ONLINE
-                    </strong>
-                    here.
-                  </li>
+                  <li>Download <strong>TrustWipeAgent.exe</strong>.</li>
+                  <li>If required, install the Agent.</li>
+                  <li>Right-click <strong>TrustWipeAgent.exe</strong> and choose <strong>Run as Administrator</strong>.</li>
+                  <li>Wait for <strong>🟢 Connected to TrustWipe Server</strong> and Agent registration.</li>
+                  <li>Return here and click <strong>CHECK AGENT CONNECTION</strong>.</li>
                 </ol>
 
-                {AGENT_DOWNLOAD_URL ? (
-                  <a
-                    href={
-                      AGENT_DOWNLOAD_URL
-                    }
+                <div className="agent-actions">
+                  <button
+                    type="button"
                     className="primary-button"
-                    target="_blank"
-                    rel="noreferrer"
+                    onClick={downloadAgent}
+                    disabled={busy}
                   >
                     ⬇ DOWNLOAD TRUSTWIPE AGENT
-                  </a>
-                ) : (
-                  <div className="forensic-policy-note">
-                    <strong>
-                      Agent download URL not configured
-                    </strong>
+                  </button>
 
-                    <span>
-                      Add VITE_AGENT_DOWNLOAD_URL to
-                      the Vercel environment variables
-                      and redeploy the frontend.
-                    </span>
-                  </div>
-                )}
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={openRunGuide}
+                    disabled={busy}
+                  >
+                    ALREADY DOWNLOADED
+                  </button>
 
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => {
-                    loadAgents();
-                    loadEngineStatus();
-                  }}
-                  disabled={
-                    agentLoading ||
-                    busy
-                  }
-                >
-                  {agentLoading
-                    ? "CHECKING..."
-                    : "CHECK AGENT CONNECTION"}
-                </button>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={checkAgentAndContinue}
+                    disabled={agentLoading || busy}
+                  >
+                    {agentLoading ? "CHECKING..." : "CHECK AGENT CONNECTION"}
+                  </button>
+                </div>
+
+                <div className="forensic-policy-note">
+                  <strong>Scanning is locked until an online Agent is detected.</strong>
+                  <span>{agentRunMessage}</span>
+                </div>
               </div>
             </div>
           ) : (
             <>
               <div className="forensics-alert success">
-                <strong>
-                  TrustWipe Agent connected
-                </strong>
-
+                <strong>🟢 TrustWipe Agent connected</strong>
                 <span>
-                  The authorized Windows
-                  examination workstation is ready.
+                  The authorized Windows examination workstation is ready.
                 </span>
               </div>
 
               <div className="case-list">
-                {onlineAgents.map(
-                  (agent) => {
-                    const selected =
-                      selectedAgent?.agentId ===
-                      agent.agentId;
+                {onlineAgents.map((agent) => {
+                  const selected =
+                    selectedAgent?.agentId === agent.agentId;
 
-                    return (
-                      <button
-                        type="button"
-                        key={
-                          agent.agentId
-                        }
-                        className={
-                          selected
-                            ? "case-list-item selected"
-                            : "case-list-item"
-                        }
-                        onClick={() =>
-                          setSelectedAgent(
-                            agent
-                          )
-                        }
-                        disabled={
-                          busy
-                        }
-                      >
-                        <div className="case-id">
-                          🟢
-                        </div>
+                  const forensicCapable =
+                    !Array.isArray(agent.capabilities) ||
+                    agent.capabilities.length === 0 ||
+                    agent.capabilities.includes("FORENSIC_SCAN");
 
-                        <div className="case-details">
-                          <strong>
-                            {agent.hostname ||
-                              "Windows Workstation"}
-                          </strong>
+                  return (
+                    <button
+                      type="button"
+                      key={agent.agentId}
+                      className={
+                        selected
+                          ? "case-list-item selected"
+                          : "case-list-item"
+                      }
+                      onClick={() => setSelectedAgent(agent)}
+                      disabled={busy}
+                    >
+                      <div className="case-id">🟢</div>
 
-                          <span>
-                            Agent ID:{" "}
-                            {agent.agentId}
-                          </span>
+                      <div className="case-details">
+                        <strong>{agent.hostname || "Windows Workstation"}</strong>
+                        <span>Agent ID: {agent.agentId}</span>
+                        <span>Platform: {agent.platform || "Windows"}</span>
+                        <span>Architecture: {agent.architecture || agent.arch || "x64"}</span>
+                      </div>
 
-                          <span>
-                            Platform:{" "}
-                            {agent.platform ||
-                              "Windows"}
-                          </span>
-                        </div>
+                      <div className="case-meta">
+                        <span className="state-badge completed">ONLINE</span>
+                        <span>
+                          {forensicCapable
+                            ? "FORENSIC_SCAN ✓"
+                            : "Capability check failed"}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
-                        <div className="case-meta">
-                          <span className="state-badge completed">
-                            ONLINE
-                          </span>
-
-                          <span>
-                            {agent.capabilities?.includes(
-                              "FORENSIC_SCAN"
-                            )
-                              ? "FORENSIC_SCAN ✓"
-                              : "Capability check pending"}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  }
-                )}
+              <div className="forensic-policy-note">
+                <strong>Agent ready.</strong>
+                <span>
+                  Physical-device discovery and forensic processing are now unlocked.
+                </span>
               </div>
             </>
           )}
@@ -4491,12 +4580,8 @@ export default function Forensics() {
           <button
             type="button"
             className="secondary-button"
-            onClick={
-              goBack
-            }
-            disabled={
-              busy
-            }
+            onClick={goBack}
+            disabled={busy}
           >
             ← Case
           </button>
@@ -4504,13 +4589,11 @@ export default function Forensics() {
           <button
             type="button"
             className="primary-button"
-            onClick={
-              continueFromAgent
-            }
+            onClick={continueFromAgent}
             disabled={
               busy ||
-              onlineAgents.length ===
-                0 ||
+              !agentSetupChoice ||
+              onlineAgents.length === 0 ||
               !selectedAgent
             }
           >
@@ -4521,8 +4604,116 @@ export default function Forensics() {
     );
 
   /* ==========================================================================
-     SOURCE SELECTION
+     AGENT MODALS
   ========================================================================== */
+
+  const renderAgentModals =
+    () => (
+      <>
+        {showAgentPrompt && (
+          <div className="agent-modal-overlay">
+            <div className="agent-modal">
+              <h2>TrustWipe Agent Required</h2>
+
+              <p>
+                Before physical-device discovery or forensic scanning, the
+                TrustWipe Agent must be installed and running on the authorized
+                Windows workstation.
+              </p>
+
+              <div className="agent-features">
+                <div>✔ Detects physical and external drives</div>
+                <div>✔ Performs forensic processing through the Windows Agent</div>
+                <div>✔ Streams forensic job progress</div>
+                <div>✔ Keeps physical disk access outside the browser</div>
+              </div>
+
+              <div className="agent-actions">
+                <button
+                  type="button"
+                  className="download-btn"
+                  onClick={downloadAgent}
+                >
+                  ⬇ Download Agent
+                </button>
+
+                <button
+                  type="button"
+                  className="already-btn"
+                  onClick={openRunGuide}
+                >
+                  ✓ Already Downloaded
+                </button>
+
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setShowAgentPrompt(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showRunGuide && (
+          <div className="agent-modal-overlay">
+            <div className="agent-modal">
+              <h2>Start TrustWipe Agent</h2>
+
+              <p>{agentRunMessage}</p>
+
+              <div className="agent-features">
+                <div>1. Locate <b>TrustWipeAgent.exe</b>.</div>
+                <div>2. Right-click it and choose <b>Run as Administrator</b>.</div>
+                <div>3. If Windows SmartScreen appears, use <b>More info → Run anyway</b>.</div>
+                <div>4. Wait until the Agent console shows the connection and registration messages.</div>
+              </div>
+
+              <div
+                style={{
+                  background: "#111",
+                  color: "#0f0",
+                  padding: "15px",
+                  borderRadius: "8px",
+                  margin: "18px 0",
+                  fontFamily: "monospace",
+                  textAlign: "left",
+                }}
+              >
+                🟢 Connected to TrustWipe Server<br />
+                📡 Agent registration sent<br />
+              </div>
+
+              <p>
+                Keep the Agent running. This page automatically checks the
+                connection every few seconds.
+              </p>
+
+              <div className="agent-actions">
+                <button
+                  type="button"
+                  className="download-btn"
+                  onClick={checkAgentAndContinue}
+                  disabled={agentLoading}
+                >
+                  {agentLoading ? "Checking..." : "I HAVE STARTED THE AGENT — CHECK CONNECTION"}
+                </button>
+
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setShowRunGuide(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
 
   const renderSourceSelection =
     () => (
@@ -5487,6 +5678,7 @@ export default function Forensics() {
               }
               disabled={
                 busy ||
+                !agentSetupChoice ||
                 !selectedAgent ||
                 !sourceReady ||
                 (sourceType ===
@@ -5519,6 +5711,7 @@ export default function Forensics() {
               }
               disabled={
                 busy ||
+                !agentSetupChoice ||
                 !selectedAgent ||
                 !sourceReady ||
                 (sourceType ===
@@ -5550,6 +5743,7 @@ export default function Forensics() {
               }
               disabled={
                 busy ||
+                !agentSetupChoice ||
                 !selectedAgent ||
                 !sourceReady ||
                 (sourceType ===
@@ -6324,6 +6518,8 @@ export default function Forensics() {
           renderReport()}
       </main>
 
+      {renderAgentModals()}
+
       <footer className="forensics-footer">
         <span>
           TrustWipe Digital Forensics
@@ -6342,4 +6538,5 @@ export default function Forensics() {
       </footer>
     </div>
   );
-}
+}//Forensics.jsx
+
